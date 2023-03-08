@@ -14,7 +14,7 @@
     <description>音乐中心</description>
     <packaging>jar</packaging>
     <properties>
-        <java.version>17</java.version>
+        <java.version>1.8</java.version>
         <!-- docker setting -->
         <docker.run.port>9300:9300</docker.run.port>
         <docker.dockerHost>http://192.168.123.223:2375</docker.dockerHost>

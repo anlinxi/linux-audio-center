@@ -121,7 +121,7 @@ public class JsMobileUser implements Serializable {
     @ApiModelProperty(value = "密码安全级别（0初始 1很弱 2弱 3安全 4很安全）")
     @Excel(name = "密码安全级别（0初始 1很弱 2弱 3安全 4很安全）")
     @TableField("pwd_security_level")
-    private BigDecimal pwdSecurityLevel;
+    private Long pwdSecurityLevel;
 
     @ApiModelProperty(value = "密码最后更新时间")
     @Excel(name = "密码最后更新时间", exportFormat = "yyyy-MM-dd HH:mm:ss")

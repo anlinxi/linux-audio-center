@@ -5,7 +5,7 @@ server:
 spring:
   datasource:
     driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite::resource:static/sqlite/audioStation.db
+    url: jdbc:sqlite::resource:static/sqlite/audioStation.db?date_string_format=yyyy-MM-dd HH:mm:ss
     username: web
     password: An87654321!
 
@@ -33,4 +33,5 @@ faker:
   ffmpeg:
     #ffmpeg地址设置
     path:
+  #音乐文件目录地址
   resources: '/music/'

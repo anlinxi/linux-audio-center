@@ -66,17 +66,8 @@ public class SqliteInit {
      * 初始化数据库
      */
     private void createDatabase() throws IOException {
-        String sqlite = sqliteDbPath.substring("jdbc:sqlite::resource:".length(), sqliteDbPath.indexOf("?"));
-        //"classpath:templates/1.txt"
-        Resource resource = resourceLoader.getResource("classpath:");
-        File classpath = null;
-        try {
-            classpath = resource.getFile();
-        } catch (IOException e) {
-            log.warn("未找到资源路径，可能是jar运行环境。" + e.getMessage());
-            classpath = new File("");
-        }
-        File audioStationDbFile = new File(classpath.getAbsolutePath() + File.separator + sqlite);
+        String sqlite = sqliteDbPath.substring("jdbc:sqlite:".length(), sqliteDbPath.indexOf("?"));
+        File audioStationDbFile = new File(sqlite);
         log.info("sqlite数据库文件地址:" + audioStationDbFile.getAbsolutePath());
         if (!audioStationDbFile.getParentFile().exists()) {
             audioStationDbFile.getParentFile().mkdirs();
@@ -150,18 +141,4 @@ public class SqliteInit {
         createTables();
     }
 
-//    @Bean
-//    public ResourceLoader initSqliteBean(){
-//        try {
-//            //初始化数据库
-//            createDatabase();
-//            //初始化数据库表
-//            createTables();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
 }

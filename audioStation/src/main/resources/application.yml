@@ -5,9 +5,9 @@ server:
 spring:
   datasource:
     driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite::resource:static/sqlite/audioStation.db?date_string_format=yyyy-MM-dd HH:mm:ss
-    username: web
-    password: An87654321!
+    url: jdbc:sqlite:/music/audioCenter/sqlite/audioStation.db?date_string_format=yyyy-MM-dd HH:mm:ss
+    username:
+    password:
 
 #swagger api信息
 swagger:

@@ -1,0 +1,41 @@
+package ${package.Service};
+
+import ${package.Entity}.${entity};
+import ${superServiceClassPackage};
+import java.util.List;
+import ${cfg.packageName}.model.vo.LayuiColVo;
+import ${cfg.packageName}.model.vo.LayuiPageDataVo;
+import ${cfg.packageName}.model.dto.LayuiPageSizeDto;
+import ${cfg.packageName}.wrapper.WrapMapper;
+import ${cfg.packageName}.wrapper.Wrapper;
+
+/**
+ * <p>
+ * $!{table.comment} 服务类
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+#if(${kotlin})
+interface ${table.serviceName} : ${superServiceClass}<${entity}>
+#else
+public interface ${table.serviceName} extends ${superServiceClass}<${entity}> {
+
+        /**
+         * 获取Layui表结构信息
+         *
+         * @param params 对象
+         * @return 表头结构
+         */
+        Wrapper<List<LayuiColVo>> getLayuiTableInfo(${entity} params);
+
+        /**
+         * 获取Layui表数据信息
+         *
+         * @param params 分页查询参数
+         * @return layui数据表格信息
+         */
+        LayuiPageDataVo getLayuiTableList(LayuiPageSizeDto params);
+}
+#end

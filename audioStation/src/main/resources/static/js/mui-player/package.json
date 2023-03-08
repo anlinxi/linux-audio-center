@@ -1,0 +1,56 @@
+{
+  "_from": "mui-player",
+  "_id": "mui-player@1.7.0",
+  "_inBundle": false,
+  "_integrity": "sha512-BBS+H5N9l+q/Cv+zQFShv328hKc8/qYi2F0QVuDQ9/dUx42t1+KnzB6gb1PnZyXeoWp/KhehYe9axZE+L/2cPQ==",
+  "_location": "/mui-player",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "mui-player",
+    "name": "mui-player",
+    "escapedName": "mui-player",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/mui-player/-/mui-player-1.7.0.tgz",
+  "_shasum": "e4a5991f8103ebfc8f193657e91e2ddd82677c40",
+  "_spec": "mui-player",
+  "_where": "M:\\360安全浏览器下载",
+  "author": {
+    "name": "Leisbanon"
+  },
+  "bugs": {
+    "url": "https://github.com/muiplayer/hello-muiplayer/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "Mui Player Javascript Library",
+  "homepage": "https://github.com/muiplayer/hello-muiplayer#readme",
+  "keywords": [
+    "muiplayer",
+    "mui-player",
+    "player",
+    "video",
+    "html5",
+    "hls",
+    "danmaku"
+  ],
+  "license": "GPL-3.0",
+  "main": "mui-player.min.js",
+  "name": "mui-player",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muiplayer/hello-muiplayer.git"
+  },
+  "scripts": {
+    "test": "npm run test"
+  },
+  "version": "1.7.0"
+}

@@ -1,0 +1,1 @@
+mvn clean package docker:stop docker:remove docker:build docker:start

@@ -1,0 +1,232 @@
+package ${package.Controller};
+
+import cn.afterturn.easypoi.excel.ExcelExportUtil;
+import cn.afterturn.easypoi.excel.entity.ExportParams;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.util.List;
+import java.util.Map;
+
+import com.inspur.wfmcloud.provider.util.MybatisPlusQueryUtil;
+#foreach($pkg in ${table.importPackages})
+import ${pkg};
+#end
+import ${package.Entity}.${entity};
+#if(${swagger2})
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+#end
+import ${package.Service}.${table.serviceName};
+
+import ${cfg.packageName}.model.vo.LayuiColVo;
+import ${cfg.packageName}.model.vo.LayuiPageDataVo;
+import ${cfg.packageName}.model.dto.LayuiPageSizeDto;
+import ${cfg.packageName}.wrapper.WrapMapper;
+import ${cfg.packageName}.wrapper.Wrapper;
+
+#if(${restControllerStyle})
+import org.springframework.web.bind.annotation.RestController;
+#else
+import org.springframework.stereotype.Controller;
+#end
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+import lombok.extern.slf4j.Slf4j;
+
+
+/**
+ * <p>
+ * $!{table.comment} 前端控制器
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+@Slf4j
+#if(${swagger2})
+@Api(value = "$!{table.comment}业务")
+#end
+#set($prePath=$cfg.prePath.toLowerCase())
+#set($entryLower=$entity.toLowerCase())
+@RequestMapping("#if(${cfg.prePath})/${prePath}#end/#if(${controllerMappingHyphenStyle})${controllerMappingHyphen}#else${entryLower}#end")
+#if(${kotlin})
+class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+#else
+#if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+#else
+public class ${table.controllerName} extends BaseController{
+#end
+
+    /**
+     * $!{table.comment}服务层
+     */
+    @Autowired
+    #set($serviceNameImpl=${table.serviceName.substring(0,1).toLowerCase()}+${table.serviceName.substring(1)})
+    private  ${table.serviceName} ${serviceNameImpl};
+
+ #foreach($field in ${table.fields})
+  #if(${field.keyFlag})
+   #set($keyPropertyName=${field.propertyName})
+   #set($keyPropertyType=${field.propertyType})
+   #set($keyPropertyNameLower=$keyPropertyName.toLowerCase())
+  #end
+ #end
+
+    @PostMapping
+    #if(${swagger2})
+    @ApiOperation(value = "创建$!{table.comment}数据")
+    #end
+    void save(@RequestBody ${entity} obj) throws Exception {
+        ${serviceNameImpl}.save(obj);
+    }
+
+    @PutMapping("/{${keyPropertyNameLower}}")
+    #if(${swagger2})
+    @ApiOperation(value = "更新$!{table.comment}数据")
+    #end
+    void update(@PathVariable(name = "${keyPropertyNameLower}") ${keyPropertyType} ${keyPropertyNameLower},@RequestBody ${entity} obj) throws Exception {
+        ${serviceNameImpl}.updateById(obj);
+    }
+
+    @DeleteMapping("/{${keyPropertyNameLower}}")
+    #if(${swagger2})
+    @ApiOperation(value = "按ID删除$!{table.comment}数据")
+    #end
+    void remove(@PathVariable(name = "${keyPropertyNameLower}") ${keyPropertyType} ${keyPropertyNameLower}) throws Exception {
+          ${serviceNameImpl}.removeById(${keyPropertyNameLower});
+    }
+    @GetMapping("/{${keyPropertyNameLower}}")
+    #if(${swagger2})
+    @ApiOperation(value = "按ID查询$!{table.comment}数据")
+    #end
+    //@TinyResponse
+    ${entity} select(@PathVariable(name = "${keyPropertyNameLower}") ${keyPropertyType} ${keyPropertyNameLower}) {
+       ${entity} obj = ${serviceNameImpl}.getById(${keyPropertyNameLower});
+       return obj;
+    }
+
+    @PostMapping("/dels")
+    @ApiOperation(value = "按ID删除多个$!{table.comment}数据")
+    void removes(@RequestBody List<${keyPropertyType}> ${keyPropertyNameLower}s) throws Exception {
+        ${serviceNameImpl}.removeByIds(${keyPropertyNameLower}s);
+    }
+
+
+    @PostMapping("/delby")
+    #if(${swagger2})
+    @ApiOperation(value = "条件删除$!{table.comment}数据")
+    #end
+    void deleteBy(@RequestBody(required = false) Map<String, String> params) {
+        QueryWrapper<${entity}> query = new QueryWrapper<>();
+        MybatisPlusQueryUtil.getQueryFromParams(query,params);
+        if(!query.isEmptyOfWhere()) {
+        ${serviceNameImpl}.remove(query);
+        }
+    }
+
+    @PostMapping("/selby")
+    #if(${swagger2})
+    @ApiOperation(value = "条件查询")
+    #end
+    List<${entity}> selectBy(@RequestBody(required = false) Map<String, String> params) {
+        QueryWrapper<${entity}> query = new QueryWrapper<>();
+        MybatisPlusQueryUtil.getQueryFromParams(query,params);
+
+        List<${entity}> objs = ${serviceNameImpl}.list(query);
+        return objs;
+    }
+
+    @PostMapping("/selpage")
+    #if(${swagger2})
+    @ApiOperation(value = "分页查询$!{table.comment}数据")
+    #end
+    IPage<${entity}> selectPage(@RequestBody Map<String, String> params) {
+        Long pageSize = 10L;
+        Long pageIndex = 0L;
+        String key4PageSize = "pageSize";
+        String key4PageIndex = "pageIndex";
+        if (params.containsKey(key4PageSize) && NumberUtil.isLong(params.get(key4PageSize))) {
+        pageSize = NumberUtil.parseLong(params.get(key4PageSize));
+        }
+        if (params.containsKey(key4PageIndex) && NumberUtil.isLong(params.get(key4PageIndex))) {
+        pageIndex = NumberUtil.parseLong(params.get(key4PageIndex));
+        }
+        QueryWrapper<${entity}> query = new QueryWrapper<>();
+        MybatisPlusQueryUtil.getQueryFromParams(query,params);
+
+        Page<${entity}> page = new Page<${entity}>(pageIndex, pageSize);
+        IPage<${entity}> result = ${serviceNameImpl}.page(page, query);
+        return result;
+    }
+
+    @PostMapping("/excel")
+    @ApiOperation(value = "导出数据")
+    public void excel(HttpServletResponse response, HttpServletRequest request,
+            @RequestBody Map<String, String> params) throws Exception {
+        QueryWrapper<${entity}> query = new QueryWrapper<>();
+
+        MybatisPlusQueryUtil.getQueryFromParams(query,params);
+
+        List<${entity}> data = ${serviceNameImpl}.list(query);
+        Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(null, "${entity}"),
+        ${entity}.class, data);
+        String fileName = String.format("${entity}_%s.xls", DateUtil.today());
+        response.setHeader("Content-Disposition", "attachment;Filename="+ URLEncoder.encode(fileName, "UTF-8"));
+        response.setContentType("application/vnd.ms-excel;charset=UTF-8");
+        response.flushBuffer();
+        workbook.write(response.getOutputStream());
+    }
+
+    @ResponseBody
+    @ApiOperation("获取Layui表结构信息")
+    @PostMapping(value = "/getLayuiTableInfo")
+    public Wrapper<List<LayuiColVo>> getLayuiTableInfo(@RequestBody ${entity} params) {
+        log.info(super.postMethodLog());
+        log.info(params.toString());
+        try {
+            return ${serviceNameImpl}.getLayuiTableInfo(params);
+        } catch (Exception e) {
+            log.error(super.getApiOperationTitle() + "错误", e);
+            return WrapMapper.error(super.getApiOperationTitle() + "错误：" + e.getMessage());
+        }
+    }
+
+    @ResponseBody
+    @ApiOperation("获取Layui表数据信息")
+    @PostMapping(value = "/getLayuiTableList")
+    public LayuiPageDataVo getLayuiTableList(@RequestBody LayuiPageSizeDto params) {
+        log.info(super.postMethodLog());
+        log.info(params.toString());
+        try {
+            return ${serviceNameImpl}.getLayuiTableList(params);
+        } catch (Exception e) {
+            log.error(super.getApiOperationTitle() + "错误", e);
+            LayuiPageDataVo layuiPageVo = new LayuiPageDataVo();
+            layuiPageVo.setCode(500);
+            layuiPageVo.setMsg(super.getApiOperationTitle() + "错误：" + e.getMessage());
+            return layuiPageVo;
+        }
+    }
+
+}
+
+#end

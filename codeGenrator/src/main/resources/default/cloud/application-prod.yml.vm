@@ -1,0 +1,14 @@
+sentinel:
+  server-addr: ${cfg.prod_sentinel_addr}
+  port:  ${cfg.prod_sentinel_port}
+spring:
+  datasource:
+    url: '${cfg.prod_datasource_url}'
+    username: ${cfg.prod_datasource_username}
+    password: '${cfg.prod_datasource_password}'
+
+logging:
+  level:
+    root: ERROR
+    com.inspur: INFO
+    com.alibaba: INFO

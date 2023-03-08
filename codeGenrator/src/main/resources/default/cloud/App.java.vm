@@ -1,0 +1,57 @@
+package ${cfg.packageName};
+#if(${cfg.dbType}=="oracle")
+import com.baomidou.mybatisplus.extension.incrementer.OracleKeyGenerator;
+#end
+#if(${cfg.dbType}=="postgresql")
+import com.baomidou.mybatisplus.extension.incrementer.PostgreKeyGenerator;
+#end
+import com.baomidou.mybatisplus.core.incrementer.IKeyGenerator;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
+import org.springframework.cloud.client.SpringCloudApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@SpringCloudApplication
+@EnableScheduling
+@EnableFeignClients
+public class ${cfg.appClassName} {
+
+    public static void main(String[] args) {
+        SpringApplication.run(${cfg.appClassName}.class, args);
+    }
+    //prometheus监控
+    @Bean
+    MeterRegistryCustomizer<MeterRegistry> configurer(
+            @Value("${spring.application.name}") String applicationName) {
+        return (registry) -> registry.config().commonTags("application", applicationName);
+    }
+    //分页设置方言
+    @Bean
+    public PaginationInterceptor paginationInterceptor() {
+        PaginationInterceptor paginationInterceptor = new PaginationInterceptor();
+        paginationInterceptor.setDbType(DbType.getDbType("${cfg.dbType}"));
+        return paginationInterceptor;
+        }
+    #if(${cfg.dbType}=="oracle")
+    //使用squence
+    @Bean
+    public IKeyGenerator keyGenerator() {
+        return new OracleKeyGenerator();
+    }
+    #end
+    #if(${cfg.dbType}=="postgresql")
+    //使用squence
+    @Bean(name = "pgKeyGenerator")
+    public PostgreKeyGenerator postgreKeyGenerator() {
+            return new PostgreKeyGenerator();
+            }
+    #end
+
+}

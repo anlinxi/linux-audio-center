@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>数据管理页面</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--jquery引用-->
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <!-- 注意：项目正式环境请勿引用该地址 -->
+    <link href="js/layui/css/layui.css" rel="stylesheet">
+    <style>
+        .layui-table-cell {
+            height: auto;
+            line-height: 30px;
+        }
+
+        .layui-table-fixed {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<blockquote class="layui-elem-quote layui-text">
+    <span style="color: #0e90d2">根据数据库表字段和注释自动生成java代码和sql文件的模块，仅支持谷歌、火狐或者高版本IE浏览器(IE8及以下应该是不支持的),因为用到了layui。</span>
+    by:<a class="" href="https://www.anlinxi.top">淡梦如烟</a>
+</blockquote>
+
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>查询</legend>
+</fieldset>
+
+<form class="layui-form">
+    <div class="layui-form-item">
+
+        <div class="layui-inline">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-inline">
+                <div class="layui-input-block" style="margin-left:0px">
+                    <input type="text" id="name" name="name" required lay-verify="required" placeholder="请输入名称"
+                           autocomplete="off"
+                           class="layui-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-inline">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <div class="layui-input-block" style="margin-left:0px">
+                    <select name="flag3" lay-verify="required" id="flag3" lay-search="" lay-filter="flag3">
+                        <option value="">全部</option>
+                        <option value="download">已下载</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="button" class="layui-btn" id="doc">swagger文档</button>
+            <button type="button" class="layui-btn" onclick="reload()">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary" onclick="reload()">重置</button>
+        </div>
+    </div>
+</form>
+
+
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">
+    <legend>对应数据信息</legend>
+</fieldset>
+<table id="attrTable" lay-filter="attrTable"></table>
+<script type="text/html" id="toolbarUpdate">
+    <a class="layui-btn layui-btn-xs" lay-event="look">查看</a>
+    <a class="layui-btn layui-btn-xs" lay-event="download">下载</a>
+</script>
+<script type="text/html" id="toolbarLook">
+    <a class="layui-btn layui-btn-xs" lay-event="look">查看</a>
+</script>
+<!-- 注意：项目正式环境请勿引用该地址 -->
+<script src="js/layui/layui.js"></script>
+
+<script>
+
+    //项目根路径
+    const rootURL = "";
+    //表头
+    let cols = [];
+
+    var table, dropdown, form, layer;
+
+    layui.use(['table', 'dropdown', 'form', 'layer', 'code'], function () {
+        table = layui.table;
+        dropdown = layui.dropdown;
+        form = layui.form;
+        layer = layui.layer;
+
+        //初始化加载表格
+        loadTable(table);
+        //加载表名
+        loadTalbeName(layer, table, form);
+        //按钮事件，生成属性名等
+        showTable(layer, table, form);
+        //渲染代码域
+        layui.code();
+        //渲染单选框下拉框
+        form.render();
+        // setInterval(function () {
+        //     $('.layui-table-fixed .layui-table-body').hide();
+        // }, 1500)
+
+    });
+
+    /**
+     * 重新加载
+     */
+    function reload() {
+        loadTalbeName(layer, table, form);
+
+    }
+
+    /**
+     * 初始化加载表格
+     * @param table
+     */
+    function loadTable(table) {
+        //执行渲染
+        tableIns = table.render({
+            id: 'attrTable',
+            elem: '#attrTable' //指定原始表格元素选择器（推荐id选择器）
+            , cols: [[
+                {field: 'id', title: 'ID', width: 80}
+                , {field: 'tableValue', title: '表字段', edit: 'text'}
+                , {field: 'tableName', title: '表注释', edit: 'text'}
+                , {field: 'dataType', title: '类型', edit: 'text'}
+                , {field: 'attrValue', title: '属性值', edit: 'text'}
+                , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'} //这里的toolbar值是模板元素的选择器
+            ]] //设置表头
+            , text: {
+                none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
+            }
+            , page: true
+            , data: []
+        });
+        //监听单元格编辑
+        table.on('edit(attrTable)', function (obj) {
+            var value = obj.value //得到修改后的值
+                , data = obj.data //得到所在行所有键值
+                , field = obj.field; //得到字段
+            //layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
+            //实时更新表和值对应关系
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].id == data.id) {
+                    rows[i][field] = value;
+                    layer.msg('更改成功~');
+                    break;
+                }
+            }
+        });
+        //监听工具条
+        table.on('tool(attrTable)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+            var data = obj.data;
+            console.log(obj)
+            if (obj.event === 'look') {
+                var index = layer.load();
+                ajax({
+                    type: "get",
+                    "url": "/havefun-center/havefunvideo/" + data.id,
+                    data: {
+                        id: data.id
+                    },
+                    dataType: "json",
+                    success: function (result) {
+                        console.log(result);
+                        layer.close(index);
+                        if (result.flag3 != 'download' || !result.video) {
+                            layer.msg("视频还未下载!");
+                            return;
+                        }
+                        sessionStorage.formData = JSON.stringify(result);
+                        sessionStorage.cols = JSON.stringify(cols);
+                        layer.open({
+                            title: '查看',
+                            type: 2,
+                            area: ['100%', '100%'],
+                            content: 'look.html',
+                            shade: 0.3,
+                            // 是否点击遮罩关闭：默认：false
+                            shadeClose: true,
+                            btn: ['关闭'],
+                            // 第一个按钮事件，也可以叫btn1
+                            yes: function (index, layero) {
+                                layer.close(index);
+                            }
+                        });
+                    },
+                    error: function (error) {
+                        console.log(error);
+                        //关闭
+                        layer.close(index);
+                        layer.alert(error);
+                    }
+                });
+
+            } else if (obj.event === 'del') {
+                layer.confirm('真的删除行么', function (index) {
+                    //实时更新表和值对应关系
+                    for (var i = 0; i < rows.length; i++) {
+                        if (rows[i].id == data.id) {
+                            rows.splice(i, 1);
+                            layer.msg('删除成功~');
+                            break;
+                        }
+                    }
+                    obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                    layer.close(index);
+                    //向服务端发送删除指令
+                });
+            } else if (obj.event === 'edit') {
+                layer.open({
+                    title: '编辑',
+                    type: 1,
+                    area: ['80%', '80%'],
+                    content: '<div style="padding: 16px;">自定义表单元素</div>'
+                });
+            } else if (obj.event === 'download') {
+                layer.confirm('需要下载该视频[' + data.name + ']吗?', function (index) {
+                    //向服务端发送指令
+                    var index = layer.load();
+                    ajax({
+                        type: "post",
+                        "url": "/havefun-center/havefunvideo/downloadVideo",
+                        data: {
+                            id: data.id
+                        },
+                        dataType: "json",
+                        success: function (result) {
+                            console.log(result);
+                            layer.msg(result);
+                            layer.close(index);
+                        },
+                        error: function (error) {
+                            console.log(error);
+                            //关闭
+                            layer.close(index);
+                            layer.alert(error);
+                        }
+                    });
+                });
+            }
+        });
+    }
+
+    /**
+     * 按钮事件，生成属性名
+     */
+    function showTable(layer, table, form) {
+
+        //读取表名
+        $("#doc").on("click", function (e) {
+            location.href = 'doc.html'
+        });
+
+    }
+
+    /**
+     * 将表字段转换为属性名称
+     * @param attrValue
+     * @returns {*}
+     */
+    function changeTableToAttrVal(tableValue) {
+        var arr = tableValue.split("_");
+        var attrValue = "";
+        if (arr.length > 1) {
+            attrValue = arr[0].toLowerCase();
+            for (var i = 1; i < arr.length; i++) {
+                attrValue += toFirstCodeUpper(arr[i]);
+            }
+        } else {
+            attrValue = tableValue;
+        }
+        return attrValue;
+    }
+
+    /**
+     * 首字母大写
+     * @param text
+     * @returns {string}
+     */
+    function toFirstCodeUpper(text) {
+        return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+    }
+
+
+    /**
+     * 封装的请求方法
+     * @param url
+     * @param params
+     * @param success
+     * @param error
+     */
+    function doPost(url, params, success, error) {
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", url);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('__token', localStorage.token);
+        xhr.setRequestHeader('__userId', localStorage.username);
+        xhr.onload = function () {
+            if (xhr.status == 200) {
+                const result = JSON.parse(xhr.responseText);
+                if (result.code == 200) {
+                    success(result, result, result);
+                } else {
+                    error(result.message, result, xhr);
+                }
+
+            } else {
+                error(xhr.responseText, xhr.status, xhr);
+            }
+        }
+        xhr.send(JSON.stringify(params));
+    }
+
+    /**
+     * 建单的ajax封装
+     * @param params
+     */
+    function ajax(params) {
+        let xhr = new XMLHttpRequest();
+        if (params.type) {
+            xhr.open(params.type.toUpperCase(), params.url);
+        } else {
+            xhr.open("POST", params.url);
+        }
+
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('__token', localStorage.token);
+        xhr.setRequestHeader('__userId', localStorage.username);
+        xhr.onload = function () {
+            if (xhr.status == 200) {
+                const result = JSON.parse(xhr.responseText);
+                console.log('%c [信息]ajax请求返回:', 'color:rgba(77,194,43,0.81)', result, params.url, xhr);
+                if (!result.code) {
+                    params.success(result, result, xhr);
+                } else if (result.code == 200) {
+                    params.success(result.result, result, xhr);
+                } else if (result.code == 401) {
+                    location.href = '/login.html';
+                } else {
+                    params.error(result.message, result, xhr);
+                }
+
+            } else {
+                params.error(xhr.responseText, xhr.status, xhr);
+            }
+        }
+        xhr.send(JSON.stringify(params.data));
+    }
+
+    /**
+     * 对Date的扩展，将 Date 转化为指定格式的String
+     * 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符，
+     * 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字)
+     * 例子：
+     * (new Date()).Format("yyyy-MM-dd hh:mm:ss.S") ==> 2006-07-02 08:09:04.423
+     * (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18
+     * @param fmt
+     * @returns {*}
+     * @constructor
+     * @author: meizz
+     */
+    Date.prototype.Format = function (fmt) {
+        var o = {
+            "M+": this.getMonth() + 1, //月份
+            "d+": this.getDate(), //日
+            "h+": this.getHours(), //小时
+            "m+": this.getMinutes(), //分
+            "s+": this.getSeconds(), //秒
+            "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+            "S": this.getMilliseconds() //毫秒
+        };
+        if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+
+    };
+
+    /**
+     * 首字母小写，转换为属性名
+     */
+    function fristLowerCase(text) {
+        var reText = text;
+        if (text.charAt(0).toUpperCase() == text.charAt(0)) {
+            reText = text.charAt(0).toLowerCase() + text.substring(1, text.length);
+        } else {
+            reText = "_" + text;
+        }
+        return reText;
+    }
+
+    /**
+     * 显示表字段信息
+     * @param layer layer弹出层
+     * @param table table表格对象
+     * @param form form表单
+     */
+    function showTableInfo(layer, table, form) {
+        // console.log(tableInfo);
+        rows = [];
+        for (var i = 0; i < tableInfo.length; i++) {
+            var row = {};
+            row["id"] = i + "";
+            row["tableValue"] = tableInfo[i].COLUMN_NAME;
+            row["attrValue"] = changeTableToAttrVal(tableInfo[i].COLUMN_NAME.toLowerCase());
+            row["tableName"] = tableInfo[i].COMMENTS;
+            //转换数据库类型为java类型
+            if ($(":radio[name=database]:checked").val() == "Oracle") {
+                row["dataType"] = swicthDataTypeOracle(tableInfo[i].DATA_TYPE);
+            } else {
+                row["dataType"] = swicthDataTypeMysql(tableInfo[i].DATA_TYPE);
+            }
+            if (row.tableValue != "") {
+                rows.push(row);
+            }
+        }
+        // console.log(rows);
+        //重新加载
+        table.reload("attrTable", {
+            data: rows
+        });
+    }
+
+    /**
+     * 转换Oracle数据库类型为java类型
+     * @param dataType 类型
+     * @param index 序列
+     * @returns {string} java类型
+     */
+    function swicthDataTypeOracle(dataType) {
+        var type = "String";
+        try {
+            if (dataType.toUpperCase() == "VARCHAR2" || dataType.toUpperCase() == "CHAR") {
+                type = "String";
+            } else if (dataType.toUpperCase() == "NUMBER") {
+                type = "Integer";
+            } else if (dataType.toUpperCase() == "DATE") {
+                type = "Date";
+            }
+        } catch (e) {
+            type = "String";
+            console.warn(e);
+        }
+        return type;
+    }
+
+    /**
+     * 加载表信息
+     * @param layer
+     * @param table
+     * @param form
+     */
+    function loadTalbeName(layer, table, form) {
+        var index = layer.load();
+        var formData = {};
+        ajax({
+            type: "post",
+            "url": "/havefun-center/havefunvideo/geTableInfo",
+            data: formData,
+            dataType: "json",
+            success: function (list) {
+                // console.log(cols);
+                layer.close(index);
+                cols = list;
+                tableIns = table.render({
+                    id: 'attrTable',
+                    url: '/havefun-center/havefunvideo/geTableList',
+                    method: 'post',
+                    contentType: 'application/json',
+                    headers: {
+                        __token: localStorage.token,
+                        __userId: localStorage.username
+                    },
+                    //接口的其它参数
+                    where: {
+                        name: $("#name").val(),
+                        stateCode: $("#flag3").val()
+
+                    },
+                    //指定原始表格元素选择器（推荐id选择器）
+                    elem: '#attrTable',
+                    //设置表头
+                    cols: [cols],
+                    //默认 true，即直接由 table 组件在前端自动处理排序。 若为 false，则需自主排序，即由服务端返回排序好的数据
+                    autoSort: true,
+                    text: {
+                        //默认：无数据。注：该属性为 layui 2.2.5 开始新增
+                        none: '暂无相关数据'
+                    },
+                    page: {
+                        limits: [3, 5, 8, 10, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500],
+                        limit: 50
+                    },
+                    data: []
+                });
+            },
+            error: function (xml, code) {
+                console.log(xml.responseText);
+                //关闭
+                layer.close(index);
+                layer.alert("提交数据失败!");
+            }
+        });
+    }
+
+    /**
+     * 预览图片
+     * @param url
+     */
+    function showImage(url, name) {
+        layer.open({
+            title: name,
+            type: 2,
+            area: ['100%', '500px'],
+            content: url,
+            closeBtn: 1,
+            // 遮罩：默认：0.3透明度的黑色背景（'#000'）
+            shade: 0.3,
+            // 是否点击遮罩关闭：默认：false
+            shadeClose: true,
+            btn: ['关闭'],
+            // 第一个按钮事件，也可以叫btn1
+            yes: function (index, layero) {
+                layer.close(index);
+            }
+        });
+    }
+</script>
+<script type="text/html" id="imageTpl">
+    <img style="max-width: 98%" src="http://192.168.123.223/faker/data/video/{{d.name}}.jpg"
+         onclick='showImage("http://www.anlinxi.top:5002/faker/data/video/{{d.name}}.jpg","{{d.name}}")'
+         class="layui-table-link"></img>
+</script>
+</body>
+</html>

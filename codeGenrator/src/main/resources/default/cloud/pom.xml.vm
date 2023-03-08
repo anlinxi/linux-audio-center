@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.inspur</groupId>
+    <artifactId>${cfg.appModule}</artifactId>
+    <version>${cfg.appVersion}</version>
+    <name>${cfg.appModule}</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <tiny-framework.version>${cfg.tiny_framework_version}</tiny-framework.version>
+        <easypoi.version>4.2.0</easypoi.version>
+        <package.dir>../release</package.dir>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.inspur.tiny</groupId>
+            <artifactId>tiny-framework-cloud</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!--分页-->
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper</artifactId>
+            <version>5.1.11</version>
+        </dependency>
+        <!--hutool-->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.3.2</version>
+        </dependency>
+        <!--easypoi-->
+        <dependency>
+            <groupId>cn.afterturn</groupId>
+            <artifactId>easypoi-base</artifactId>
+            <version>${cfg.s}{easypoi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.afterturn</groupId>
+            <artifactId>easypoi-annotation</artifactId>
+            <version>${cfg.s}{easypoi.version}</version>
+        </dependency>
+        #if(${cfg.dev_datasource_dbType}=="mysql")
+            <!--mysql-->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+            </dependency>
+        #end
+        #if(${cfg.dev_datasource_dbType}=="oracle")
+            <!--↓↓↓ oracle ↓↓↓ -->
+            <dependency>
+                <groupId>com.oracle.ojdbc</groupId>
+                <artifactId>ojdbc8</artifactId>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.oracle.ojdbc</groupId>
+                <artifactId>orai18n</artifactId>
+            </dependency>
+        #end
+        #if(${cfg.dev_datasource_dbType}=="postgresql")
+            <!--postgresql Driver-->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+            </dependency>
+        #end
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.inspur.tiny</groupId>
+                <artifactId>tiny-framework-parent</artifactId>
+                <version>${cfg.s}{tiny-framework.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <repositories>
+        <repository>
+            <id>local-nexus</id>
+            <name>local nexus</name>
+            <url>http://10.110.63.27/repository/maven-public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>aliyun</id>
+            <name>aliyun nexus</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>local-nexus</id>
+            <name>local nexus</name>
+            <url>http://10.110.63.27/repository/maven-public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>aliyun-nexus</id>
+            <name>aliyun nexus</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+    <build>
+        <defaultGoal>compile</defaultGoal>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources/</directory>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources.${cfg.s}{spring.profiles.active}</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <source>${cfg.s}{java.version}</source>
+                    <target>${cfg.s}{java.version}</target>
+                    <encoding>UTF8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <!-- 打包插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <outputDirectory>${cfg.s}{package.dir}</outputDirectory>
+                </configuration>
+            </plugin>
+            <!-- 清理插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <followSymLinks>false</followSymLinks>
+                    <filesets>
+                        <fileset>
+                            <directory>${cfg.s}{package.dir}</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.2.5.RELEASE</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputDirectory>${cfg.s}{package.dir}</outputDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- 开发环境 -->
+        <profile>
+            <id>dev</id>
+            <properties>
+                <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <!-- 生成环境 -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <spring.profiles.active>prod</spring.profiles.active>
+            </properties>
+        </profile>
+        <!-- Docker环境 -->
+        <profile>
+            <id>docker</id>
+            <properties>
+                <spring.profiles.active>docker</spring.profiles.active>
+            </properties>
+        </profile>
+    </profiles>
+
+
+</project>

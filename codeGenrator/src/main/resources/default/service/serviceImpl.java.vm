@@ -1,0 +1,82 @@
+package ${package.ServiceImpl};
+
+import ${package.Entity}.${entity};
+import ${package.Mapper}.${table.mapperName};
+import ${package.Service}.${table.serviceName};
+import ${superServiceImplClassPackage};
+import ${cfg.packageName}.model.vo.LayuiColVo;
+import ${cfg.packageName}.model.vo.LayuiPageDataVo;
+import ${cfg.packageName}.util.ToolsUtil;
+import ${cfg.packageName}.wrapper.WrapMapper;
+import ${cfg.packageName}.wrapper.Wrapper;
+import ${cfg.packageName}.model.dto.LayuiPageSizeDto;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
+
+
+/**
+ * <p>
+ * $!{table.comment} 服务实现类
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Service
+#if(${kotlin})
+open class ${table.serviceImplName} : ${superServiceImplClass}<${table.mapperName}, ${entity}>(), ${table.serviceName} {
+
+}
+#else
+public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.mapperName}, ${entity}> implements ${table.serviceName} {
+
+    /**
+     * 获取表结构信息
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    public Wrapper<List<LayuiColVo>> getLayuiTableInfo(${entity} params) {
+        List<LayuiColVo> layuiColVoList = ToolsUtil.getApiModelProperty(params.getClass());
+        for (LayuiColVo layuiColVo : layuiColVoList) {
+            //todo 做一些操作
+            if ("id".equals(layuiColVo.getAttributeName())){
+                layuiColVo.setMinWidth(150);
+            } else {
+
+            }
+        }
+
+        LayuiColVo toolbar = new LayuiColVo();
+        toolbar.setFixed("right");
+        toolbar.setTitle("操作");
+        toolbar.setWidth(125);
+        toolbar.setMinWidth(125);
+        toolbar.setToolbar("#toolbarUpdate");
+        toolbar.setSort(false);
+        layuiColVoList.add(toolbar);
+        return WrapMapper.ok(layuiColVoList);
+    }
+
+    /**
+     * 获取表数据信息
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    public LayuiPageDataVo getLayuiTableList(LayuiPageSizeDto params) {
+        LayuiPageDataVo layuiPageVo = new LayuiPageDataVo();
+        QueryWrapper<${entity}> haveFunVideoQueryWrapper = new QueryWrapper<>();
+        Page<${entity}> page = new Page<${entity}>(params.getPageIndex(), params.getPageSize());
+        IPage<${entity}> iPage = this.page(page, haveFunVideoQueryWrapper);
+        layuiPageVo.putMybatisPlusIPage(iPage);
+        return layuiPageVo;
+    }
+}
+#end

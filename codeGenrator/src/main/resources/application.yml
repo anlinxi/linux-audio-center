@@ -1,0 +1,16 @@
+
+spring:
+  application:
+    name: wfmcloud-Codegenrator
+
+logging:
+  level:
+    root: ERROR
+    com.inspur: INFO
+tiny:
+  code:
+    templetGroup: default
+    module: true
+    excludedir: boot
+
+

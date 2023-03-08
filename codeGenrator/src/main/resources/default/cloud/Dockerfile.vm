@@ -1,0 +1,11 @@
+FROM 10.110.63.25/system/openjdk:8u222-jre
+
+LABEL version="1.0" maintainer="${author}@inspur.com"
+
+VOLUME ["/tmp"]
+
+COPY target/*.jar /app/${cfg.moduleName}.jar
+
+CMD ["java", "-Djava.security.egd=file:/dev/./urandom", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-jar", "/app/${cfg.moduleName}.jar"]
+
+EXPOSE ${cfg.port}

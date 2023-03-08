@@ -1,0 +1,430 @@
+<template>
+  <div class="currentCard">
+    <!-- 查询条件 -->
+    <el-collapse
+      accordion
+      v-model="activeName"
+      class="card-bg"
+    >
+      <el-collapse-item name="1">
+        <template slot="title">
+          <div class="innerHeader">
+            查询条件
+          </div>
+        </template>
+        <div
+          style="display: flex;"
+          class="card-search"
+        >
+          <el-form
+            :inline="true"
+            :model="formList"
+            size="mini"
+            label-width="80px"
+          >
+            <el-form-item label="用户名称">
+              <el-input
+                v-model="formList.title"
+                placeholder="请输入内容"
+                style="width: 200px"
+                @keyup.enter.native="getData"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="用户名称">
+              <el-input
+                placeholder="请输入内容"
+                style="width: 200px"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="用户名称">
+              <el-input
+                placeholder="请输入内容"
+                style="width: 200px"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="用户名称">
+              <el-input
+                placeholder="请输入内容"
+                style="width: 200px"
+              ></el-input>
+            </el-form-item>
+          </el-form>
+        </div>
+      </el-collapse-item>
+    </el-collapse>
+    <!-- 操作按钮区 -->
+    <div style="margin:10px 0;">
+      <el-button
+        type="success"
+        icon="el-icon-document-add"
+        @click="addData()"
+      >
+        新增
+      </el-button>
+      <el-button
+        type="warning"
+        icon="el-icon-document-delete"
+        @click="deleteDataMany()"
+      >
+        删除
+      </el-button>
+      <el-button
+        type="primary"
+        plain
+      >
+        按钮
+      </el-button>
+      <el-button
+        type="success"
+        plain
+      >
+        按钮
+      </el-button>
+      <el-button
+        type="info"
+        plain
+      >
+        按钮
+      </el-button>
+      <el-button
+        type="warning"
+        plain
+      >
+        按钮
+      </el-button>
+      <el-button
+        type="danger"
+        plain
+      >
+        按钮
+      </el-button>
+      <el-dropdown
+        style="margin-left:8px;"
+        split-button
+        type="primary"
+      >
+        更多功能
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item>功能1</el-dropdown-item>
+          <el-dropdown-item>功能2</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+      <div style="float:right;">
+        <el-button
+          type="primary"
+          @click="queryData"
+          icon="el-icon-search"
+          :loading="isSearch"
+        >
+          查询
+        </el-button>
+        <el-button
+          @click="resetData"
+          icon="el-icon-close"
+        >
+          清空
+        </el-button>
+        <el-button
+          @click="excelData"
+        >
+          导出数据
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 表格呈现 -->
+    <el-table
+      :data="tableData"
+      :height="screenHeight - otherHeight"
+      tooltip-effect="dark"
+      style="width:100%"
+      size="mini"
+      @selection-change="selectionChanged"
+    >
+      <el-table-column
+        type="selection"
+        width="55"
+        sortable
+      >
+      </el-table-column>
+#foreach($field in ${table.fields})
+      <el-table-column
+        prop="${field.propertyName}"
+    #if("$!field.comment" != "")
+        label="${field.comment}"
+    #else
+        label="${field.propertyName}"
+    #end
+        width="180"
+        sortable
+      >
+      </el-table-column>
+#end
+      <el-table-column
+        fixed="right"
+        label="操作"
+        width="180"
+      >
+        <template slot-scope="scope">
+          <el-link
+            @click="toUpdate(scope.row,scope.$index)"
+            type="text"
+            size="small"
+            :underline="false"
+          >
+            <i class="iconfont iconIcon-Edit"></i>
+          </el-link>
+          <el-link
+            @click="toDetail(scope.row,scope.$index)"
+            type="text"
+            size="small"
+            :underline="false"
+          >
+            <i class="iconfont iconIcon-Details1"></i>
+          </el-link>
+          <el-link
+            @click="toDelete(scope.row,scope.$index)"
+            type="text"
+            size="small"
+            :underline="false"
+          >
+            <i class="iconfont iconIcon-Delete"></i>
+          </el-link>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination
+      class="customPage mt-10"
+      background
+      :page-sizes="[10, 20, 50]"
+      :current-page="pageConfig.currentPage"
+      :page-size="pageConfig.pageSize"
+      :total="pageConfig.total"
+      layout="sizes,total, ->, prev, pager, next"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
+  </div>
+</template>
+#set($entryLower=$entity.toLowerCase())
+#set($viewModuleNameLower=$cfg.viewModuleName.toLowerCase())
+#foreach($field in ${table.fields})
+  #if(${field.keyFlag})
+    #set($keyPropertyName=${field.propertyName})
+    #set($keyPropertyType=${field.propertyType})
+  #end
+#end
+<script>
+import * as OperatorLog from '@/framework/api/log.js'
+import Api from '@/modules/${viewModuleNameLower}/api/api_${entryLower}.js'
+import { LogType } from '@/share/models/LogType.js'
+import SearchViewMixin from '@/share/mixins/SearchViewMixin'
+import Vue from 'vue'
+
+export default {
+  name: '${entity}Index',
+  data () {
+    return {
+      // context: 父对象
+      // screenHeight:控制高度自适应-页面高度
+      // otherHeight:控制高度自适应-表格外的高度
+      // isSearch:控制搜索状态
+      // detailUrl:详情页面地址
+      // selectedRows:选中行对象
+      // formList:搜索条件对象
+      // pageConfig:分页控制对象
+      // tableData:表格数据
+      // OperatorLogParam:用于记录日志
+      context: { componentParent: this },
+      screenHeight: window.innerHeight,
+      otherHeight: 310,
+      isSearch: false,
+      detailUrl: '/${viewModuleNameLower}/${entryLower}/item',
+      selectedRows: {},
+      formList: {
+        title: ''
+      },
+      activeName: '1',
+      pageConfig: {
+        currentPage: 1,
+        pageSize: 10,
+        total: 0
+      },
+      tableData: [],
+      OperatorLogParam: {
+        operateContent: '',
+        operateFeatures: '',
+        operateState: '',
+        operateType: ''
+      }
+    }
+  },
+  methods: {
+    addData () {
+      // 添加记录
+      this.${cfg.varDescriptor}router.push({
+        path: this.detailUrl,
+        query: { type: 'add' }
+      })
+    },
+    toUpdate (data, index) {
+      // 更新方法
+      this.${cfg.varDescriptor}router.push({
+        path: this.detailUrl,
+        query: { type: 'update', id: data.${keyPropertyName} }
+      })
+    },
+    toDetail (data, index) {
+      // 查看详情
+      this.${cfg.varDescriptor}router.push({
+        path: this.detailUrl,
+        query: { type: 'detail', id: data.${keyPropertyName} }
+      })
+    },
+    toDelete (data, index) {
+      // 删除单条记录
+      this.${cfg.varDescriptor}confirm('<p style="word-break: break-all">确认删除？</p>', '删除', {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        center: true
+      }).then(() => {
+        Api.del4${entryLower}(data.${keyPropertyName}).then(data => {
+          this.getData()
+        })
+      }).catch(() => {
+        this.${cfg.varDescriptor}message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+    deleteDataMany () {
+      // 删除多条记录
+      const datas = this.selectedRows
+      const dataids = []
+      if (!datas || !datas.length || datas.length === 0) {
+        this.${cfg.varDescriptor}message.warning('请选择数据')
+      } else {
+        for (const i of datas) {
+          dataids.push(i.${keyPropertyName})
+        }
+        this.${cfg.varDescriptor}confirm('<p style="word-break: break-all">确认删除？</p>', '删除', {
+          dangerouslyUseHTMLString: true,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+          center: true
+        }).then(() => {
+          Api.dels4${entryLower}(dataids).then(data => {
+            this.getData()
+
+            // 日志记录
+            // this.OperatorLogParam.operateContent = JSON.stringify(dataids)
+            // this.OperatorLogParam.operateFeatures = '删除记录'
+            // this.OperatorLogParam.operateType = LogType.Query
+            // this.OperatorLogParam.operateState = '成功'
+            // OperatorLog.setOperationLog(this.OperatorLogParam)
+          })
+        }).catch(() => {
+          this.${cfg.varDescriptor}message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+      }
+    },
+    queryData () {
+      // 查询事件
+      this.isSearch = true
+      this.pageConfig.currentPage = 1
+      this.getData()
+    },
+    resetData () {
+      // 重置事件
+      this.isSearch = false
+      for (const key in this.formList) {
+        this.formList[key] = ''
+      }
+    },
+    excelData () {
+      const params = {}
+      Api.excelData4${entryLower}(params).then(data => {
+        const blob = new Blob([data], { type: 'application/vnd.ms-excel' })
+        const blobUrl = URL.createObjectURL(blob)
+        // window.location.href = blobUrl
+        // 创建url之后可以模拟对此文件对象的点击下载操作（解决下载文件名为随机数问题）
+        const a = document.createElement('a')
+        a.href = blobUrl
+        // 下载文件名
+        a.download = '${entryLower}.xls'
+        a.click()
+        // 释放临时对象
+        window.URL.revokeObjectURL(blobUrl)
+      }
+      )
+    },
+    getData () {
+      // 查询方法
+      // 查询参数
+      const params = {}
+      if (this.formList.title !== '') {
+        params.title = this.formList.title
+      }
+      params.pageIndex = this.pageConfig.currentPage
+      params.pageSize = this.pageConfig.pageSize
+
+      // 后台请求
+      Api.selpage4${entryLower}(params).then(data => {
+        if (data !== null) {
+          const tablelist = data.records
+          this.tableData = tablelist
+          this.pageConfig.total = data.total
+          this.isSearch = false
+
+          // 日志记录
+          // this.OperatorLogParam.operateContent = JSON.stringify(params)
+          // this.OperatorLogParam.operateFeatures = '查询列表'
+          // this.OperatorLogParam.operateType = LogType.Query
+          // this.OperatorLogParam.operateState = '成功'
+          // OperatorLog.setOperationLog(this.OperatorLogParam)
+        }
+      })
+    },
+    handleCurrentChange (val) {
+      // 页码切换事件
+      this.pageConfig.currentPage = val
+      this.getData()
+    },
+    handleSizeChange (val) {
+      // 页面条数变化事件
+      this.pageConfig.pageSize = val
+      this.getData()
+    },
+    selectionChanged (val) {
+      // 选中行变化事件
+      this.selectedRows = val
+    }
+  },
+  mounted () {
+    const that = this
+    that.getData()
+    window.onresize = () => {
+      return (() => {
+        that.screenHeight = window.innerHeight
+      })()
+    }
+  },
+  activated () {
+    this.getData()
+  }
+}
+</script>
+
+<style lang="css" scoped>
+/* 单页面样式 */
+>>>.el-table .cell {
+  white-space: nowrap
+}
+</style>

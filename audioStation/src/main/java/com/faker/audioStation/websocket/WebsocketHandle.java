@@ -7,10 +7,10 @@ import com.faker.audioStation.service.IJsMobileUserService;
 import com.faker.audioStation.util.SpringContextUtils;
 import com.faker.audioStation.websocket.model.Message;
 import com.faker.audioStation.wrapper.WebSocketMessageWrapper;
-import com.mysql.cj.util.StringUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,7 +73,7 @@ public class WebsocketHandle {
             }
 
             String userId = iJsMobileUserService.getUserIdByToken(token);
-            if (StringUtils.isNullOrEmpty(userId)) {
+            if (StringUtils.isEmpty(userId)) {
                 Message message = WebSocketMessageWrapper.error("token错误");
                 session.getBasicRemote().sendText(message.jsonString());
                 session.close();

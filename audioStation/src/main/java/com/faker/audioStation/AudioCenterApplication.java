@@ -11,10 +11,6 @@ import java.net.InetAddress;
 
 
 @SpringBootApplication
-//mapper接口路径
-@MapperScan(basePackages = {"com.gitee.sunchenbin.mybatis.actable.dao.*","com.faker.audioStation.mapper"})
-//扫包路径
-@ComponentScan(basePackages = {"com.gitee.sunchenbin.mybatis.actable.manager.*", "com.faker.audioStation.*"})
 @Slf4j
 public class AudioCenterApplication {
 

@@ -4,17 +4,10 @@ server:
 
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    #数据源配置
-    url: jdbc:mysql://www.anlinxi.top:2234/springBootV1?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite::resource:static/sqlite/audioStation.db
     username: web
     password: An87654321!
-    druid:
-      initial-size: 5
-      min-idle: 5
-      max-active: 10
-      max-wait: 60000
-
 
 #swagger api信息
 swagger:
@@ -33,14 +26,6 @@ mybatis-plus:
     # 嫌日志多可以屏蔽下面这行
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
-# 根据实体类生成表设置
-actable:
-  #可以设置为create（纯创建）、add（添加新的不删除内容）、update（更新内容，推荐用）、none（啥都不干）
-  table.auto: update
-  #你的实体类放的包
-  model.pack: com.faker.audioStation.model.domain
-  # 创建类型，目前仅支持mysql
-  database.type: mysql
 
 #自定义设置
 faker:
@@ -48,3 +33,4 @@ faker:
   ffmpeg:
     #ffmpeg地址设置
     path:
+  resources: '/music/'

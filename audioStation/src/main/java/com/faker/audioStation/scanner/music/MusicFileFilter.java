@@ -11,7 +11,7 @@ import java.io.FileFilter;
 public class MusicFileFilter implements FileFilter {
 
     @ApiModelProperty("同意扫描的后缀")
-    private String[] allowSuffixs = new String[]{"mp3", "arr", "flac"};
+    private String[] allowSuffixs = new String[]{"mp3", "mp4", "flac", "asf", "ogg", "real", "wav"};
 
     /**
      * Tests whether or not the specified abstract pathname should be

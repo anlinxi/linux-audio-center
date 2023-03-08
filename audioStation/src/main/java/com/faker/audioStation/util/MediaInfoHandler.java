@@ -2,6 +2,9 @@ package com.faker.audioStation.util;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -287,5 +290,23 @@ public class MediaInfoHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 获取封面图片
+     *
+     * @return
+     * @throws IOException
+     */
+    public Image getImage() {
+        try {
+            if (null != this.imageByte) {
+                InputStream buffin = new ByteArrayInputStream(this.imageByte, 0, this.imageByte.length);
+                return ImageIO.read(buffin);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

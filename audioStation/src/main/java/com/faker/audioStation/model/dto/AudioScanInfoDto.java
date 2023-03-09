@@ -43,7 +43,7 @@ public class AudioScanInfoDto {
     @ApiModelProperty(value = "音频封面图片类型", example = "APIC", notes = "图片后缀名")
     private String apic;
 
-    @ApiModelProperty("音频封面图片比特")
+    @ApiModelProperty("音频封面图片")
     private Image cover;
 
     @ApiModelProperty(value = "标题", example = "TIT2", notes = "表示内容为这首歌的标题,下同;")
@@ -52,7 +52,7 @@ public class AudioScanInfoDto {
     @ApiModelProperty(value = "作者", example = "TPE1")
     private String artist;
 
-    @ApiModelProperty(value = "作者", example = "TPE1")
+    @ApiModelProperty(value = "专辑", example = "TPE1")
     private String album;
 
     @ApiModelProperty(value = "采样率", example = "320kbps", notes = "kbps")

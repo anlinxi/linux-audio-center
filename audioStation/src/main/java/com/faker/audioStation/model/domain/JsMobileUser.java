@@ -27,7 +27,7 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("js_mobile_user")
+@TableName("JS_MOBILE_USER")
 @ApiModel(value = "JsMobileUser对象", description = "移动端用户表")
 public class JsMobileUser implements Serializable {
 

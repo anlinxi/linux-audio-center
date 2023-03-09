@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -95,7 +96,7 @@ public class SqliteInit {
         List<String> tables = jdbcTemplate.queryForList("SELECT name FROM sqlite_master ", String.class);
         log.info("已存在的数据库:" + tables);
         List<String> domainTableNames = new ArrayList<String>();
-
+        Map<String, Class> classMap = new HashMap<String, Class>();
         //spring工具类，可以获取指定路径下的全部类
         ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
         try {
@@ -115,6 +116,7 @@ public class SqliteInit {
                 if (anno != null) {
                     //将注解中的类型值作为key，对应的类作为 value
                     domainTableNames.add(anno.value());
+                    classMap.put(anno.value(), clazz);
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -125,7 +127,7 @@ public class SqliteInit {
         for (String tableName : domainTableNames) {
             if (!tables.contains(tableName)) {
                 log.info("数据库[" + tableName + "]不存在，正在创建");
-                String createTableSql = MyBatisPlusSuppotSqliteInit.getInstance().createTable(JsMobileUser.class);
+                String createTableSql = MyBatisPlusSuppotSqliteInit.getInstance().createTable(classMap.get(tableName));
                 jdbcTemplate.update(createTableSql);
             } else {
                 List<Map<String, Object>> sqliteTableMapList = jdbcTemplate.queryForList("PRAGMA  table_info(" + tableName + ")");

@@ -80,7 +80,7 @@ public class MobileAuthFilter implements Filter {
         underscores_in_headers on;
          */
         //获取当前用户
-        String __sid = httpServletRequest.getHeader("__sid");
+        String __token = httpServletRequest.getHeader("__token");
         String __userId = httpServletRequest.getHeader("__userId");
         String redisKey = "userInfo:" + __userId;
         if (null == __userId) {
@@ -99,10 +99,10 @@ public class MobileAuthFilter implements Filter {
             }
         }
         if (null != token) {
-            if (token.equals(__sid)) {
-                log.warn("用户[" + __userId + "]app验证sid[" + __sid + "]通过!");
+            if (token.equals(__token)) {
+                log.warn("用户[" + __userId + "]app验证sid[" + __token + "]通过!");
             } else {
-                String errorMsg = "[" + __userId + "]验证token未通过!token[" + token + "],sid[" + __sid + "]";
+                String errorMsg = "[" + __userId + "]验证token未通过!token[" + token + "],sid[" + __token + "]";
                 log.error(errorMsg);
                 this.toLogin(httpServletRequest, httpServletResponse);
                 return;

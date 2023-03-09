@@ -322,17 +322,18 @@ public class ToolsUtil {
                         continue;
                     }
                     LayuiColVo layuiColVo = new LayuiColVo();
-                    layuiColVo.setAttributeName(field.getName());
+                    layuiColVo.setField(field.getName());
                     if (field.getAnnotation(ApiModelProperty.class) != null) {
                         layuiColVo.setTitle(field.getAnnotation(ApiModelProperty.class).value());
                     }
                     if (field.getAnnotation(TableId.class) != null) {
-                        layuiColVo.setField(field.getAnnotation(TableId.class).value());
+                        layuiColVo.setTableField(field.getAnnotation(TableId.class).value());
                         layuiColVo.setPk(true);
                         layuiColVo.setWidth(80);
                     }
                     if (field.getAnnotation(TableField.class) != null) {
-                        layuiColVo.setField(field.getAnnotation(TableField.class).value());
+                        layuiColVo.setTableField(field.getAnnotation(TableField.class).value());
+                        layuiColVo.setWidth(150);
                     }
                     layuiColVoList.add(layuiColVo);
                 }
@@ -351,8 +352,8 @@ public class ToolsUtil {
      * @return
      */
     public static String getFileName(String name) {
-        return name.replaceAll("\"","").replaceAll("\\*","").replaceAll("\\<","").replaceAll("\\>","")
-                .replaceAll("\\?","").replaceAll("\\\\","").replaceAll("/","").replaceAll("|","")
-                .replaceAll(":","");
+        return name.replaceAll("\"", "").replaceAll("\\*", "").replaceAll("\\<", "").replaceAll("\\>", "")
+                .replaceAll("\\?", "").replaceAll("\\\\", "").replaceAll("/", "").replaceAll("|", "")
+                .replaceAll(":", "");
     }
 }

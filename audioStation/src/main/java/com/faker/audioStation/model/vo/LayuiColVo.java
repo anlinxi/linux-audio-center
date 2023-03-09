@@ -12,13 +12,13 @@ import lombok.NoArgsConstructor;
 public class LayuiColVo {
 
     @ApiModelProperty("属性名称")
-    private String attributeName;
+    private String field;
 
     @ApiModelProperty("是否是主键")
     private boolean isPk;
 
     @ApiModelProperty("表字段名称")
-    private String field;
+    private String tableField;
 
     @ApiModelProperty("显示标题")
     private String title;
@@ -52,11 +52,11 @@ public class LayuiColVo {
     private String templet;
 
     public LayuiColVo(Object columnName, Object comments, Object dataType) {
-        this.field = ToolsUtil.getString(columnName);
+        this.tableField = ToolsUtil.getString(columnName);
         this.title = ToolsUtil.getString(comments);
         this.dataType = ToolsUtil.getString(dataType);
         if ("".equals(this.title)) {
-            this.title = this.field;
+            this.title = this.tableField;
         }
     }
 

@@ -45,4 +45,8 @@ public enum PathEnum {
     PathEnum(String path) {
         this.path = path;
     }
+
+    public String getPath() {
+        return path;
+    }
 }

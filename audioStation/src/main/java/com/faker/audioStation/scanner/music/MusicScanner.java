@@ -95,6 +95,15 @@ public class MusicScanner implements Scanner {
             }
         }
         log.info("扫描到的音乐文件数量" + audioList.get().size());
+        File musicCoverDir = new File(resourcePath + PathEnum.MUSIC_COVER.getPath() + "/");
+        if (!musicCoverDir.exists()) {
+            musicCoverDir.mkdirs();
+        }
+        File singerCoverDir = new File(resourcePath + PathEnum.SINGER_COVER.getPath() + "/");
+        if (!singerCoverDir.exists()) {
+            singerCoverDir.mkdirs();
+        }
+
         //网易云音乐api
         NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
         //读取mp3信息
@@ -144,7 +153,7 @@ public class MusicScanner implements Scanner {
 
                 //保存图片封面信息
                 MusicCover musicCover = null;
-                String coverPath = resourcePath + PathEnum.MUSIC_COVER + music.getTitle();
+                String coverPath = resourcePath + PathEnum.MUSIC_COVER.getPath() + "/" + music.getTitle() + "." + formatName;
                 if (null != audioScanInfoDto.getCover()) {
                     ByteArrayOutputStream os = new ByteArrayOutputStream();
                     ImageIO.write(audioScanInfoDto.getCover(), "png", os);
@@ -153,7 +162,7 @@ public class MusicScanner implements Scanner {
                     QueryWrapper<MusicCover> musicCoverQueryWrapper = new QueryWrapper<>();
                     musicCoverQueryWrapper.eq("HASH_CODE", sha256MusicCover);
                     musicCover = musicCoverMapper.selectOne(musicCoverQueryWrapper);
-                    if (null != musicCover) {
+                    if (null == musicCover) {
                         ImageIO.write(audioScanInfoDto.getCover(), formatName, new File(coverPath));
                         musicCover = new MusicCover();
                         musicCover.setHashCode(sha256MusicCover);
@@ -197,44 +206,48 @@ public class MusicScanner implements Scanner {
 
 
                     //歌手信息
-                    String artistsCoverPath = resourcePath + PathEnum.SINGER_COVER + music.getTitle();
+                    String artistsCoverPath = resourcePath + PathEnum.SINGER_COVER.getPath() + "/" + music.getTitle() + "." + formatName;
                     JSONArray artists = musicJson.getJSONArray("artists");
                     if (artists.size() > 0) {
-                        JSONObject artist = artists.getJSONObject(0);
-                        Long artistId = artist.getLong("id");
+                        try {
+                            JSONObject artist = artists.getJSONObject(0);
+                            Long artistId = artist.getLong("id");
 //                        String artistName = artist.getString("name");
 //                        String artistCover = artist.getString("img1v1Url");
-                        JSONObject searchartist = new JSONObject();
-                        searchartist.put("id", artistId + "");
-                        JSONObject artistJson = neteaseCloudMusicInfo.artistDetail(searchartist);
-                        JSONObject artistJson2 = artistJson.getJSONObject("data").getJSONObject("artist");
-                        String coverUrl = artistJson2.getString("cover");
+                            JSONObject searchartist = new JSONObject();
+                            searchartist.put("id", artistId + "");
+                            JSONObject artistJson = neteaseCloudMusicInfo.artistDetail(searchartist);
+                            JSONObject artistJson2 = artistJson.getJSONObject("data").getJSONObject("artist");
+                            String coverUrl = artistJson2.getString("cover");
 
-                        //歌手名称
-                        String name = artistJson2.getString("name");
-                        //歌手简介
-                        String briefDesc = artistJson2.getString("briefDesc");
-                        //音乐数量
-                        Long musicSize = artistJson2.getLong("musicSize");
-                        //专辑数量
-                        Long albumSize = artistJson2.getLong("albumSize");
-                        //网易云音乐id
-                        Long wyyId = artistJson2.getLong("id");
-                        //归纳歌曲专辑/歌手信息
-                        Singer singer = new Singer();
-                        singer.setName(name);
-                        try {
-                            ImageIO.write(ImageIO.read(new URL(coverUrl)), formatName, new File(artistsCoverPath));
-                            singer.setPic(artistsCoverPath);
+                            //歌手名称
+                            String name = artistJson2.getString("name");
+                            //歌手简介
+                            String briefDesc = artistJson2.getString("briefDesc");
+                            //音乐数量
+                            Long musicSize = artistJson2.getLong("musicSize");
+                            //专辑数量
+                            Long albumSize = artistJson2.getLong("albumSize");
+                            //网易云音乐id
+                            Long wyyId = artistJson2.getLong("id");
+                            //归纳歌曲专辑/歌手信息
+                            Singer singer = new Singer();
+                            singer.setName(name);
+                            try {
+                                ImageIO.write(ImageIO.read(new URL(coverUrl)), formatName, new File(artistsCoverPath));
+                                singer.setPic(artistsCoverPath);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                singer.setPic(coverUrl);
+                            }
+                            singer.setIntroduction(briefDesc);
+                            singer.setMusicSize(musicSize);
+                            singer.setAlbumSize(albumSize);
+                            singer.setWyy_id(wyyId);
+                            singerMapper.insert(singer);
                         } catch (Exception e) {
                             e.printStackTrace();
-                            singer.setPic(coverUrl);
                         }
-                        singer.setIntroduction(briefDesc);
-                        singer.setMusicSize(musicSize);
-                        singer.setAlbumSize(albumSize);
-                        singer.setWyy_id(wyyId);
-                        singerMapper.insert(singer);
 
                     }
 

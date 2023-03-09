@@ -3,10 +3,12 @@ package com.faker.audioStation.scanner.music;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.faker.audioStation.enums.PathEnum;
 import com.faker.audioStation.mapper.MusicCoverMapper;
 import com.faker.audioStation.mapper.MusicMapper;
 import com.faker.audioStation.mapper.SingerMapper;
 import com.faker.audioStation.model.domain.Music;
+import com.faker.audioStation.model.domain.MusicCover;
 import com.faker.audioStation.model.dto.AudioScanInfoDto;
 import com.faker.audioStation.scanner.Scanner;
 import com.faker.audioStation.wrapper.WrapMapper;
@@ -27,10 +29,11 @@ import org.jaudiotagger.audio.real.RealFileReader;
 import org.jaudiotagger.audio.wav.WavFileReader;
 import org.jaudiotagger.tag.TagException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.IOException;
+import javax.imageio.ImageIO;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -41,6 +44,10 @@ import java.util.List;
 @Slf4j
 @Component
 public class MusicScanner implements Scanner {
+
+    @Value("${faker.resources:/music/}")
+    @ApiModelProperty("资源文件路径")
+    private String resourcePath;
 
     @Autowired
     @ApiModelProperty("音乐文件Mapper")
@@ -77,7 +84,7 @@ public class MusicScanner implements Scanner {
         //读取mp3信息
 //        MediaInfoHandler mediaInfoHandler = new MediaInfoHandler();
         int index = 0;
-        List<AudioScanInfoDto> audioScanInfoDtoList = new ArrayList<>();
+        List<Music> audioScanInfoDtoList = new ArrayList<>();
         for (File audio : audioList.get()) {
             String sha256 = SecureUtil.sha256(new File(audio.getAbsolutePath()));
             QueryWrapper<Music> musicQueryWrapperCount = new QueryWrapper<Music>();
@@ -109,13 +116,31 @@ public class MusicScanner implements Scanner {
             try {
                 AudioFile audioFile = audioFileReader.read(audio);
                 AudioScanInfoDto audioScanInfoDto = new AudioScanInfoDto(audioFile);
-                audioScanInfoDtoList.add(audioScanInfoDto);
 
+                //保存歌曲信息
                 Music music = new Music();
                 music.setHashCode(sha256);
                 BeanUtil.copyProperties(audioScanInfoDto, music);
                 music.setCreateTime(new Date());
-                musicMapper.insert(music);
+//                musicMapper.insert(music);
+                audioScanInfoDtoList.add(music);
+
+                if (null != audioScanInfoDto.getCover()) {
+                    //保存图片封面信息
+                    String coverPath = resourcePath + PathEnum.MUSIC_COVER + music.getTitle();
+
+                    ByteArrayOutputStream os = new ByteArrayOutputStream();
+                    ImageIO.write(audioScanInfoDto.getCover(), "png", os);
+                    InputStream inputStream = new ByteArrayInputStream(os.toByteArray());
+                    String sha256MusicCover = SecureUtil.sha256(inputStream);
+
+
+                    //bmp|gif|jpg|jpeg|png
+                    String formatName = "png";
+                    ImageIO.write(audioScanInfoDto.getCover(), formatName, new File(coverPath));
+                    MusicCover musicCover = new MusicCover();
+                }
+
 
             } catch (CannotReadException e) {
                 e.printStackTrace();

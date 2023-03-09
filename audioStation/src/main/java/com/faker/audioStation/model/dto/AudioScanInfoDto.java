@@ -13,6 +13,7 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.datatype.Artwork;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -44,7 +45,7 @@ public class AudioScanInfoDto {
     private String apic;
 
     @ApiModelProperty("音频封面图片")
-    private Image cover;
+    private BufferedImage cover;
 
     @ApiModelProperty(value = "标题", example = "TIT2", notes = "表示内容为这首歌的标题,下同;")
     private String title;
@@ -123,6 +124,7 @@ public class AudioScanInfoDto {
         Artwork artwork = tag.getFirstArtwork();
         try {
             this.cover = artwork.getImage();
+            this.apic = artwork.getMimeType();
         } catch (Exception e) {
             e.printStackTrace();
         }

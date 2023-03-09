@@ -1,15 +1,19 @@
 package com.faker.audioStation.scanner.music;
 
-import com.alibaba.fastjson.JSONObject;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.crypto.SecureUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.faker.audioStation.mapper.MusicCoverMapper;
+import com.faker.audioStation.mapper.MusicMapper;
+import com.faker.audioStation.mapper.SingerMapper;
+import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.dto.AudioScanInfoDto;
 import com.faker.audioStation.scanner.Scanner;
-import com.faker.audioStation.util.MediaInfoHandler;
 import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.asf.AsfFileReader;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
@@ -21,16 +25,14 @@ import org.jaudiotagger.audio.mp4.Mp4FileReader;
 import org.jaudiotagger.audio.ogg.OggFileReader;
 import org.jaudiotagger.audio.real.RealFileReader;
 import org.jaudiotagger.audio.wav.WavFileReader;
-import org.jaudiotagger.tag.FieldKey;
-import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -40,6 +42,17 @@ import java.util.List;
 @Component
 public class MusicScanner implements Scanner {
 
+    @Autowired
+    @ApiModelProperty("音乐文件Mapper")
+    MusicMapper musicMapper;
+
+    @Autowired
+    @ApiModelProperty("音乐封面图片文件Mapper")
+    MusicCoverMapper musicCoverMapper;
+
+    @Autowired
+    @ApiModelProperty("歌手Mapper")
+    SingerMapper singerMapper;
 
     @ApiModelProperty("音乐文件列表")
     private ThreadLocal<List<File>> audioList = ThreadLocal.withInitial(() -> new ArrayList<File>());
@@ -61,17 +74,19 @@ public class MusicScanner implements Scanner {
             }
         }
         log.info("扫描到的音乐文件数量" + audioList.get().size());
-        //todo 读取mp3信息
+        //读取mp3信息
 //        MediaInfoHandler mediaInfoHandler = new MediaInfoHandler();
         int index = 0;
         List<AudioScanInfoDto> audioScanInfoDtoList = new ArrayList<>();
         for (File audio : audioList.get()) {
-//            mediaInfoHandler.handle(audio);
-//            HashMap hashMap = mediaInfoHandler.getMediaInfo();
-//            AudioScanInfoDto audioScanInfoDto = new AudioScanInfoDto(hashMap);
-//            audioScanInfoDto.setCover(mediaInfoHandler.getImage());
-//            log.info("得到音频的信息:" + JSONObject.toJSONString(audioScanInfoDto));
-//            log.info("得到音频的信息Map:" + JSONObject.toJSONString(hashMap));
+            String sha256 = SecureUtil.sha256(new File(audio.getAbsolutePath()));
+            QueryWrapper<Music> musicQueryWrapperCount = new QueryWrapper<Music>();
+            musicQueryWrapperCount.eq("HASH_CODE", sha256);
+            int count = musicMapper.selectCount(musicQueryWrapperCount);
+            if (count > 0) {
+                log.info("已存在歌曲[" + audio.getName() + "],sha256[" + sha256 + "]");
+                continue;
+            }
             AudioFileReader audioFileReader = null;
             String audioName = audio.getName().toLowerCase();
             if (audioName.endsWith(".mp3")) {
@@ -95,6 +110,13 @@ public class MusicScanner implements Scanner {
                 AudioFile audioFile = audioFileReader.read(audio);
                 AudioScanInfoDto audioScanInfoDto = new AudioScanInfoDto(audioFile);
                 audioScanInfoDtoList.add(audioScanInfoDto);
+
+                Music music = new Music();
+                music.setHashCode(sha256);
+                BeanUtil.copyProperties(audioScanInfoDto, music);
+                music.setCreateTime(new Date());
+                musicMapper.insert(music);
+
             } catch (CannotReadException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -128,6 +150,7 @@ public class MusicScanner implements Scanner {
      *
      * @param file
      */
+    @Override
     public void scanFile(File file) {
         if (file.exists() && file.isDirectory()) {
             File[] dirs = file.listFiles(new MusicFileFilter());

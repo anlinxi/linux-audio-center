@@ -35,7 +35,7 @@ import java.util.Date;
 @Accessors(chain = true)
 @TableName("MUSIC")
 @ApiModel(value = "音频文件信息对象", description = "音频文件信息表")
-public class MusicDto implements Serializable {
+public class Music implements Serializable {
 
     @ApiModelProperty("音频文件哈希值")
     @Excel(name = "音频文件哈希值")

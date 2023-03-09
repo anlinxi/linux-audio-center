@@ -1,15 +1,17 @@
 package com.faker.audioStation.test;
 
-import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
-import cn.hutool.crypto.symmetric.SymmetricCrypto;
 import com.faker.audioStation.scanner.Scanner;
-import com.faker.audioStation.scanner.music.MusicScanner;
 import com.faker.audioStation.wrapper.Wrapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 @Slf4j
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@RunWith(SpringRunner.class)
 public class ScanMusicTest1 {
 
     @Autowired
@@ -17,9 +19,6 @@ public class ScanMusicTest1 {
 
     @Test
     public void test1() throws Exception {
-        if (scanner == null) {
-            scanner = new MusicScanner();
-        }
         Wrapper wrapper = scanner.startScan("E:\\CloudMusic");
         log.info(wrapper.toString());
     }

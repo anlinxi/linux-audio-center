@@ -26,6 +26,13 @@ mybatis-plus:
     # 嫌日志多可以屏蔽下面这行
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+#日志打印配置
+logging:
+  level:
+    root: INFO
+    com.faker: INFO
+    com.alibaba: ERROR
+    org.jaudiotagger: ERROR
 
 #自定义设置
 faker:

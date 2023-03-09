@@ -1,7 +1,9 @@
 package com.faker.audioStation.model.domain;
 
 import cn.afterturn.easypoi.excel.annotation.Excel;
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -35,7 +37,7 @@ public class Singer  implements Serializable {
 
     @ApiModelProperty("主键")
     @Excel(name = "主键")
-    @TableField("ID")
+    @TableId(value = "HASH_CODE", type = IdType.ASSIGN_ID)
     private Integer id;
 
     @ApiModelProperty("姓名")

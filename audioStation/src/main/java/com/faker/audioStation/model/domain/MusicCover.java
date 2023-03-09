@@ -31,7 +31,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @TableName("MUSIC_COVER")
 @ApiModel(value = "音频文件专辑信息对象", description = "音频文件专辑信息表")
-public class MusicCoverDto {
+public class MusicCover {
 
     @ApiModelProperty("专辑图片哈希值")
     @Excel(name = "专辑图片哈希值")

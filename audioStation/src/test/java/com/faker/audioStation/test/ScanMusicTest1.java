@@ -1,6 +1,8 @@
 package com.faker.audioStation.test;
 
+import com.faker.audioStation.conf.SqliteInit;
 import com.faker.audioStation.scanner.Scanner;
+import com.faker.audioStation.util.SpringContextUtils;
 import com.faker.audioStation.wrapper.Wrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -16,6 +18,7 @@ public class ScanMusicTest1 {
 
     @Autowired
     Scanner scanner;
+
 
     @Test
     public void test1() throws Exception {

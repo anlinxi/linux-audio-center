@@ -191,9 +191,8 @@ public class MusicScanner implements Scanner {
                         musicCover.setPath(coverPath);
                         musicCover.setName(music.getTitle());
                         musicCoverMapper.insert(musicCover);
-                    } else {
-                        music.setCoverId(musicCover.getId());
                     }
+                    music.setCoverId(musicCover.getId());
                 }
 
                 //todo 查询下载专辑封面/歌手封面
@@ -221,6 +220,7 @@ public class MusicScanner implements Scanner {
                             musicCover.setPath(coverPath);
                             musicCover.setName(music.getTitle());
                             musicCoverMapper.insert(musicCover);
+                            music.setAlbumId(album.getLong("id"));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -228,7 +228,6 @@ public class MusicScanner implements Scanner {
 
 
                     //歌手信息
-                    String artistsCoverPath = resourcePath + PathEnum.SINGER_COVER.getPath() + "/" + music.getTitle() + "." + formatName;
                     JSONArray artists = musicJson.getJSONArray("artists");
                     if (artists.size() > 0) {
                         try {
@@ -253,20 +252,25 @@ public class MusicScanner implements Scanner {
                             //网易云音乐id
                             Long wyyId = artistJson2.getLong("id");
                             //归纳歌曲专辑/歌手信息
-                            Singer singer = new Singer();
-                            singer.setName(name);
-                            try {
-                                ImageIO.write(ImageIO.read(new URL(coverUrl)), formatName, new File(artistsCoverPath));
-                                singer.setPic(artistsCoverPath);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                singer.setPic(coverUrl);
+                            Singer singer = singerMapper.selectById(wyyId);
+                            if(null == singer){
+                                singer = new Singer();
+                                singer.setName(name);
+                                String artistsCoverPath = resourcePath + PathEnum.SINGER_COVER.getPath() + "/" + name + "." + formatName;
+                                try {
+                                    ImageIO.write(ImageIO.read(new URL(coverUrl)), formatName, new File(artistsCoverPath));
+                                    singer.setPic(artistsCoverPath);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    singer.setPic(coverUrl);
+                                }
+                                singer.setIntroduction(briefDesc);
+                                singer.setMusicSize(musicSize);
+                                singer.setAlbumSize(albumSize);
+                                singer.setWyy_id(wyyId);
+                                singerMapper.insert(singer);
                             }
-                            singer.setIntroduction(briefDesc);
-                            singer.setMusicSize(musicSize);
-                            singer.setAlbumSize(albumSize);
-                            singer.setWyy_id(wyyId);
-                            singerMapper.insert(singer);
+                            music.setArtistId(singer.getId());
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

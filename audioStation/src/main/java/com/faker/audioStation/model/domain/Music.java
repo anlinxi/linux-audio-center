@@ -39,7 +39,7 @@ public class Music implements Serializable {
 
     @ApiModelProperty("主键")
     @Excel(name = "主键")
-    @TableId(value = "ID", type = IdType.AUTO)
+    @TableId(value = "ID", type = IdType.ASSIGN_ID)
     private Long id;
 
     @ApiModelProperty("音频文件哈希值")
@@ -65,7 +65,7 @@ public class Music implements Serializable {
     @ApiModelProperty(value = "艺术家id", notes = "艺术家id")
     @Excel(name = "艺术家")
     @TableField("ARTIST_ID")
-    private String artistId;
+    private Long artistId;
 
     @ApiModelProperty(value = "专辑名称", notes = "专辑名称")
     @Excel(name = "专辑")
@@ -75,7 +75,7 @@ public class Music implements Serializable {
     @ApiModelProperty(value = "专辑id", notes = "专辑id")
     @Excel(name = "专辑")
     @TableField("ALBUM_ID")
-    private String albumId;
+    private Long albumId;
 
     @ApiModelProperty(value = "采样率", example = "320kbps", notes = "kbps")
     @Excel(name = "采样率")

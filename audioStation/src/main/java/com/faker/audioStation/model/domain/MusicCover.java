@@ -35,7 +35,7 @@ public class MusicCover {
 
     @ApiModelProperty("主键")
     @Excel(name = "主键")
-    @TableId(value = "ID", type = IdType.AUTO)
+    @TableId(value = "ID", type = IdType.ASSIGN_ID)
     private Long id;
 
     @ApiModelProperty("专辑图片哈希值")

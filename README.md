@@ -21,3 +21,8 @@
 也可以放到jar包同级目录读取。
 
 扫描的音乐文件地址是/music/，docker映射到群辉的音乐文件夹下。 也可以在配置文件faker.resources里更改
+
+##### 网易云音乐 API
+网易云音乐 API 可以用在线的，也可以自己搭设，直接在群辉docker里搜索<font style="color:#FF9900">binaryify/netease_cloud_music_api</font>即可
+
+然后在application.yml的faker.music163Api里改成自己的地址

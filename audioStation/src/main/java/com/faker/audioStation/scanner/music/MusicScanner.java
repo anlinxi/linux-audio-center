@@ -14,6 +14,7 @@ import com.faker.audioStation.model.domain.MusicCover;
 import com.faker.audioStation.model.domain.Singer;
 import com.faker.audioStation.model.dto.AudioScanInfoDto;
 import com.faker.audioStation.scanner.Scanner;
+import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.websocket.WebsocketHandle;
 import com.faker.audioStation.wrapper.WebSocketMessageWrapper;
 import com.faker.audioStation.wrapper.WrapMapper;
@@ -36,11 +37,14 @@ import org.jaudiotagger.tag.TagException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import top.yumbo.util.music.MusicEnum;
 import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
+import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import java.io.*;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -55,6 +59,10 @@ public class MusicScanner implements Scanner {
     @Value("${faker.resources:/music/}")
     @ApiModelProperty("资源文件路径")
     private String resourcePath;
+
+    @Value("${faker.music163Api:http://yumbo.top:3000}")
+    @ApiModelProperty("网易云音乐API地址")
+    private String music163Api;
 
     @Autowired
     @ApiModelProperty("音乐文件Mapper")
@@ -77,6 +85,20 @@ public class MusicScanner implements Scanner {
 
     @ApiModelProperty(value = "歌曲封面图片类型", notes = "bmp|gif|jpg|jpeg|png")
     private String formatName = "png";
+
+    /**
+     * 初始化信息
+     *
+     * @throws SQLException
+     * @throws IOException
+     */
+    @PostConstruct
+    public void init() throws SQLException, IOException {
+        if (ToolsUtil.isNotNull(music163Api)) {
+            MusicEnum.setBASE_URL_163Music(music163Api);
+        }
+    }
+
 
     /**
      * 开始扫描音乐

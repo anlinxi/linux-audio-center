@@ -42,3 +42,5 @@ faker:
     path:
   #音乐文件目录地址
   resources: '/music/'
+  #网易云音乐API地址 默认为http://yumbo.top:3000
+  music163Api: 'http://192.168.123.223:3000'

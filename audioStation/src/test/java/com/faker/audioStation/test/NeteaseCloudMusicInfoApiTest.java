@@ -3,6 +3,7 @@ package com.faker.audioStation.test;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import top.yumbo.util.music.MusicEnum;
 import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
 /**
@@ -61,6 +62,7 @@ public class NeteaseCloudMusicInfoApiTest {
     @Test
     public void test3() throws Exception {
         NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
+        MusicEnum.setBASE_URL_163Music("http://192.168.123.223:3000");
         JSONObject searJsonObject = new JSONObject();
         searJsonObject.put("id", "11127");
         JSONObject searJsonResult = neteaseCloudMusicInfo.artistDetail(searJsonObject);

@@ -51,6 +51,16 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
         Page<Music> pageParam = new Page<>(pageSizeDto.getPage(), pageSizeDto.getPageSize());
         QueryWrapper<Music> musicQueryWrapper = new QueryWrapper<>();
         musicQueryWrapper.like(ToolsUtil.isNotNull(pageSizeDto.getName()), "TITLE", pageSizeDto.getName());
+        if ("asc".equals(pageSizeDto.getOrder())) {
+            String tableField = ToolsUtil.getTableField(Music.class, pageSizeDto.getField());
+            musicQueryWrapper.orderByAsc(tableField);
+        }
+        if ("desc".equals(pageSizeDto.getOrder())) {
+            String tableField = ToolsUtil.getTableField(Music.class, pageSizeDto.getField());
+            musicQueryWrapper.orderByDesc(tableField);
+        }
+
+
         IPage<Music> musicIPage = this.page(pageParam, musicQueryWrapper);
         return WrapMapper.ok(musicIPage);
     }

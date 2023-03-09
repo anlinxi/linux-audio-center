@@ -141,6 +141,8 @@
                 none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
             }
             , page: true
+            //自主排序，即由服务端返回排序好的数据
+            , autoSort: false
             , data: []
         });
         //监听单元格编辑
@@ -512,7 +514,7 @@
                         };
                     },
                     //默认 true，即直接由 table 组件在前端自动处理排序。 若为 false，则需自主排序，即由服务端返回排序好的数据
-                    autoSort: true,
+                    autoSort: false,
                     text: {
                         //默认：无数据。注：该属性为 layui 2.2.5 开始新增
                         none: '暂无相关数据'
@@ -530,6 +532,21 @@
                 layer.close(index);
                 layer.alert("提交数据失败!");
             }
+        });
+
+        //触发排序事件 注：sort 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+        table.on('sort(attrTable)', function (obj) {
+            table.reload('attrTable', {
+                //记录初始排序，如果不设的话，将无法标记表头的排序状态。
+                initSort: obj
+                //请求参数（注意：这里面的参数可任意定义，并非下面固定的格式）
+                , where: {
+                    //排序字段
+                    field: obj.field
+                    //排序方式
+                    , order: obj.type
+                }
+            });
         });
     }
 

@@ -16,6 +16,12 @@ public class LayuiPageSizeDto {
     @ApiModelProperty("页码")
     private Long page = 1L;
 
+    @ApiModelProperty(value = "排序字段", example = "")
+    private String field;
+
+    @ApiModelProperty(value = "排序方式", example = "desc")
+    private String order;
+
     public long getPageIndex() {
         return page;
     }

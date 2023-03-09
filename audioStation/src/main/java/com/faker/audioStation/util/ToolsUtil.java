@@ -345,6 +345,42 @@ public class ToolsUtil {
     }
 
     /**
+     * 根据属性获取表字段
+     *
+     * @param c
+     * @return
+     */
+    public static String getTableField(Class<?> c, String name) {
+        try {
+            // 2.获取类的属性
+            Field[] declaredFields = c.getDeclaredFields();
+            // 3.遍历属性，获取属性上ApiModelProperty的值，属性的名，存入Properties
+            if (declaredFields.length != 0) {
+                for (Field field : declaredFields) {
+                    //序列化属性去掉
+                    if ("serialVersionUID".equals(field.getName())) {
+                        continue;
+                    }
+                    if (field.getAnnotation(TableId.class) != null) {
+                        if (field.getName().equals(name)) {
+                            return field.getAnnotation(TableId.class).value();
+                        }
+                    }
+                    if (field.getAnnotation(TableField.class) != null) {
+                        if (field.getName().equals(name)) {
+                            return field.getAnnotation(TableField.class).value();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    /**
      * 文件名不包含以下任何字符：
      * “（双引号）、*（星号）、<（小于）、>（大于）、？（问号）、\（反斜杠）、/（正斜杠）、|（竖线）、：（冒号）
      *

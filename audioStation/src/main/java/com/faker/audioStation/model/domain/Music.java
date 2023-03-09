@@ -122,8 +122,8 @@ public class Music implements Serializable {
     @TableField("LYRIC_ID")
     private Long lyricId;
 
-    @ApiModelProperty(value = "音频封面图片", notes = "音频封面图片id")
-    @Excel(name = "音频封面图片")
+    @ApiModelProperty(value = "音频封面图片ID", notes = "音频封面图片id")
+    @Excel(name = "音频封面图片ID")
     @TableField("COVER_ID")
     private Long coverId;
 

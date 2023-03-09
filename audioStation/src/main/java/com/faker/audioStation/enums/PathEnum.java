@@ -33,6 +33,11 @@ public enum PathEnum {
     PLAYLIST_COVER("image/playlist"),
 
     /**
+     * 歌词地址
+     */
+    LYRIC_PATH("lyric/"),
+
+    /**
      * 音乐地址
      */
     MUSIC_PATH("music/");

@@ -241,7 +241,7 @@ public class MyBatisPlusSuppotSqliteInit {
         for (ModelField modelField : modelFieldList) {
             if (!fields.contains(modelField.getTableField().toUpperCase())) {
                 log.warn("表[" + dto.getTableName() + "]字段[" + modelField.getTableField().toUpperCase() + "]缺失，正在生成重建sql");
-                sqlList.add("alter table \"" + dto.getTableName() + "\" add \"" + modelField.getTableField().toUpperCase() + "\""
+                sqlList.add("alter table \"" + dto.getTableName() + "\" add \"" + modelField.getTableField().toUpperCase() + "\" "
                         + this.getSqliteType(modelField.getModelType()) + "");
             }
         }

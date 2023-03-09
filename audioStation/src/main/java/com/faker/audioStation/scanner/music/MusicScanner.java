@@ -1,14 +1,17 @@
 package com.faker.audioStation.scanner.music;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.faker.audioStation.enums.PathEnum;
+import com.faker.audioStation.mapper.LyricMapper;
 import com.faker.audioStation.mapper.MusicCoverMapper;
 import com.faker.audioStation.mapper.MusicMapper;
 import com.faker.audioStation.mapper.SingerMapper;
+import com.faker.audioStation.model.domain.Lyric;
 import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.domain.MusicCover;
 import com.faker.audioStation.model.domain.Singer;
@@ -77,6 +80,10 @@ public class MusicScanner implements Scanner {
     SingerMapper singerMapper;
 
     @Autowired
+    @ApiModelProperty("歌词Mapper")
+    LyricMapper lyricMapper;
+
+    @Autowired
     @ApiModelProperty("websocket连接")
     WebsocketHandle websocketHandle;
 
@@ -124,6 +131,10 @@ public class MusicScanner implements Scanner {
         File singerCoverDir = new File(resourcePath + PathEnum.SINGER_COVER.getPath() + "/");
         if (!singerCoverDir.exists()) {
             singerCoverDir.mkdirs();
+        }
+        File lyricCoverDir = new File(resourcePath + PathEnum.LYRIC_PATH.getPath() + "/");
+        if (!lyricCoverDir.exists()) {
+            lyricCoverDir.mkdirs();
         }
 
         //网易云音乐api
@@ -283,8 +294,16 @@ public class MusicScanner implements Scanner {
                         JSONObject searchlyric = new JSONObject();
                         searchlyric.put("id", wyyMusicIdLong + "");
                         JSONObject searchlyricResult = neteaseCloudMusicInfo.lyric(searchlyric);
-                        String lyric = searchlyricResult.getJSONObject("lrc").getString("lyric");
-                        music.setLyric(lyric);
+                        String lyricText = searchlyricResult.getJSONObject("lrc").getString("lyric");
+                        String lyricPath = resourcePath + PathEnum.LYRIC_PATH.getPath()  + "/" + music.getTitle() + ".lrc";
+                        FileWriter writer = new FileWriter(lyricPath);
+                        writer.write(lyricText);
+                        Lyric lyric = new Lyric();
+                        lyric.setId(music.getId());
+                        lyric.setPath(lyricPath);
+                        lyric.setName(music.getTitle());
+                        lyricMapper.insert(lyric);
+                        music.setLyricId(lyric.getId());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

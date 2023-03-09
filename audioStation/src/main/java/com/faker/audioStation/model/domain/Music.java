@@ -117,10 +117,10 @@ public class Music implements Serializable {
     @TableField("LANGUAGE")
     private String language;
 
-    @ApiModelProperty(value = "歌词", example = "TYER", notes = "LANGUAGE")
-    @Excel(name = "歌词")
-    @TableField("LYRIC")
-    private String lyric;
+    @ApiModelProperty(value = "歌词id", example = "TYER", notes = "LANGUAGE")
+    @Excel(name = "歌词id")
+    @TableField("LYRIC_ID")
+    private Long lyricId;
 
     @ApiModelProperty(value = "音频封面图片", notes = "音频封面图片id")
     @Excel(name = "音频封面图片")

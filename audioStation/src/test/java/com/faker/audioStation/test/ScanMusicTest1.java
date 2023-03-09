@@ -20,7 +20,7 @@ public class ScanMusicTest1 {
         if (scanner == null) {
             scanner = new MusicScanner();
         }
-        Wrapper wrapper = scanner.startScan("D:\\CloudMusic");
+        Wrapper wrapper = scanner.startScan("E:\\CloudMusic");
         log.info(wrapper.toString());
     }
 }

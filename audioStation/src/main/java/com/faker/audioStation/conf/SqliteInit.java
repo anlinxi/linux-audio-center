@@ -1,7 +1,9 @@
 package com.faker.audioStation.conf;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.faker.audioStation.model.domain.JsMobileUser;
+import com.faker.audioStation.model.dto.SqliteTableStructureDto;
 import com.faker.audioStation.util.MyBatisPlusSuppotSqliteInit;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>SqliteInit</p>
@@ -123,6 +127,22 @@ public class SqliteInit {
                 log.info("数据库[" + tableName + "]不存在，正在创建");
                 String createTableSql = MyBatisPlusSuppotSqliteInit.getInstance().createTable(JsMobileUser.class);
                 jdbcTemplate.update(createTableSql);
+            } else {
+                List<Map<String, Object>> sqliteTableMapList = jdbcTemplate.queryForList("PRAGMA  table_info(" + tableName + ")");
+                List<SqliteTableStructureDto> sqliteTableStructureDto = new ArrayList<>();
+                for (Map<String, Object> map : sqliteTableMapList) {
+                    SqliteTableStructureDto dto = new SqliteTableStructureDto();
+                    BeanUtil.copyProperties(map, dto);
+                    dto.setDfltValue(null != map.get("dflt_value") ? String.valueOf(map.get("dflt_value")) : null);
+                    dto.setNotNull("1".equals(map.get("notnull")) ? true : false);
+                    dto.setPk("1".equals(map.get("pk")) ? true : false);
+                    sqliteTableStructureDto.add(dto);
+                }
+                sqliteTableMapList = null;
+//                log.info(sqliteTableStructureDto.toString());
+                List<String> createFieldSqlList = MyBatisPlusSuppotSqliteInit.getInstance().createField(JsMobileUser.class, sqliteTableStructureDto);
+                String createFieldSql = createFieldSqlList.stream().collect(Collectors.joining(";\n"));
+                jdbcTemplate.update(createFieldSql);
             }
         }
         //初始化参数

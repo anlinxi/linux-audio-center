@@ -18,6 +18,6 @@
 
 项目配置文件地址audioStation/src/main/resources/application.yml
 
-也可以放到jar包同级目录读取
+也可以放到jar包同级目录读取。
 
 扫描的音乐文件地址是/music/，docker映射到群辉的音乐文件夹下。 也可以在配置文件faker.resources里更改

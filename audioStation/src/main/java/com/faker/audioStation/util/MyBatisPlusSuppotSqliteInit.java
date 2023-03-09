@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.faker.audioStation.model.dto.ModelField;
+import com.faker.audioStation.model.dto.SqliteTableStructureDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -13,6 +14,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>MyBatisPlus支持sqlite初始化建表</p>
@@ -221,5 +223,30 @@ public class MyBatisPlusSuppotSqliteInit {
         }
         return "NUMERIC";
     }
+
+    /**
+     * 创建表字段
+     *
+     * @param clazz
+     * @param sqliteList
+     * @return
+     */
+    public List<String> createField(Class clazz, List<SqliteTableStructureDto> sqliteList) {
+        List<String> sqlList = new ArrayList<String>();
+        List<String> fields = sqliteList.stream().map(item -> item.getName().toUpperCase()).collect(Collectors.toList());
+        MybatisPlusDto dto = this.getMybatisPlusDto(clazz);
+        StringBuffer sql = new StringBuffer();
+        //表字段结构
+        List<ModelField> modelFieldList = dto.getModelFieldList();
+        for (ModelField modelField : modelFieldList) {
+            if (!fields.contains(modelField.getTableField().toUpperCase())) {
+                log.warn("表[" + dto.getTableName() + "]字段[" + modelField.getTableField().toUpperCase() + "]缺失，正在生成重建sql");
+                sqlList.add("alter table \"" + dto.getTableName() + "\" add \"" + modelField.getTableField().toUpperCase() + "\""
+                        + this.getSqliteType(modelField.getModelType()) + "");
+            }
+        }
+        return sqlList;
+    }
+
 
 }

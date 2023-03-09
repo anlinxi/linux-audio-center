@@ -319,6 +319,11 @@ public class JsMobileUser implements Serializable {
     @TableField("extend_f4")
     private BigDecimal extendF4;
 
+    @ApiModelProperty(value = "扩展 Float 5")
+    @Excel(name = "扩展 Float 5")
+    @TableField("extend_f5")
+    private BigDecimal extendF5;
+
     @ApiModelProperty(value = "扩展 Date 1")
     @Excel(name = "扩展 Date 1", exportFormat = "yyyy-MM-dd HH:mm:ss")
     @TableField("extend_d1")

@@ -104,6 +104,7 @@
 
     if (localStorage.username) {
         document.getElementById("LAY-user-login-username").value = localStorage.username
+        refreshVerificationCode()
     }
     if (localStorage.password) {
         document.getElementById("LAY-user-login-password").value = localStorage.password
@@ -127,7 +128,7 @@
                 console.log('[信息]登录信息返回', xhr.responseText);
                 const result = JSON.parse(xhr.responseText);
                 if (result.code == 200) {
-                    localStorage.token = result.result;
+                    localStorage.token = result.result.token;
                     localStorage.username = username;
                     localStorage.password = password;
                     localStorage.user = JSON.stringify(result.result);

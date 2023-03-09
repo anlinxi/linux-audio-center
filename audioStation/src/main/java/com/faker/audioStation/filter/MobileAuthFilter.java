@@ -1,12 +1,15 @@
 package com.faker.audioStation.filter;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.faker.audioStation.model.domain.JsMobileUser;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.IJsMobileUserService;
 import com.faker.audioStation.util.SpringContextUtils;
+import com.faker.audioStation.wrapper.WrapMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -127,7 +130,8 @@ public class MobileAuthFilter implements Filter {
         //认证过了
         httpServletResponse.setContentType("application/json; charset=utf-8");
         httpServletResponse.setCharacterEncoding("UTF-8");
+        httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
         OutputStream out = httpServletResponse.getOutputStream();
-        out.write("{\"result\":\"login\",\"message\":\"请重新登录!\",\"errorCode\":-10000}".getBytes("UTF-8"));
+        out.write(JSONObject.toJSONString(WrapMapper.wrap(401, "请重新登录!")).getBytes("UTF-8"));
     }
 }

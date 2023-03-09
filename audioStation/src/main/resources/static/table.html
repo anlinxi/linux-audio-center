@@ -125,132 +125,141 @@
      * @param table
      */
     function loadTable(table) {
-        //执行渲染
-        tableIns = table.render({
-            id: 'attrTable',
-            elem: '#attrTable' //指定原始表格元素选择器（推荐id选择器）
-            , cols: [[
-                {field: 'id', title: 'ID', width: 80}
-                , {field: 'tableValue', title: '表字段', edit: 'text'}
-                , {field: 'tableName', title: '表注释', edit: 'text'}
-                , {field: 'dataType', title: '类型', edit: 'text'}
-                , {field: 'attrValue', title: '属性值', edit: 'text'}
-                , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'} //这里的toolbar值是模板元素的选择器
-            ]] //设置表头
-            , text: {
-                none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
-            }
-            , page: true
-            , data: []
-        });
-        //监听单元格编辑
-        table.on('edit(attrTable)', function (obj) {
-            var value = obj.value //得到修改后的值
-                , data = obj.data //得到所在行所有键值
-                , field = obj.field; //得到字段
-            //layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
-            //实时更新表和值对应关系
-            for (var i = 0; i < rows.length; i++) {
-                if (rows[i].id == data.id) {
-                    rows[i][field] = value;
-                    layer.msg('更改成功~');
-                    break;
-                }
-            }
-        });
-        //监听工具条
-        table.on('tool(attrTable)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
-            var data = obj.data; //获得当前行数据
-            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
-            var tr = obj.tr; //获得当前行 tr 的DOM对象
-            var data = obj.data;
-            console.log(obj)
-            if (obj.event === 'look') {
-                var index = layer.load();
-                ajax({
-                    type: "get",
-                    "url": "/havefun-center/havefunvideo/" + data.id,
-                    data: {
-                        id: data.id
-                    },
-                    dataType: "json",
-                    success: function (result) {
-                        console.log(result);
-                        layer.close(index);
-                        if (result.flag3 != 'download' || !result.video) {
-                            layer.msg("视频还未下载!");
-                            return;
-                        }
-                        sessionStorage.formData = JSON.stringify(result);
-                        sessionStorage.cols = JSON.stringify(cols);
-                        layer.open({
-                            title: '查看',
-                            type: 2,
-                            area: ['100%', '100%'],
-                            content: 'look.html',
-                            shade: 0.3,
-                            // 是否点击遮罩关闭：默认：false
-                            shadeClose: true,
-                            btn: ['关闭'],
-                            // 第一个按钮事件，也可以叫btn1
-                            yes: function (index, layero) {
-                                layer.close(index);
-                            }
-                        });
-                    },
-                    error: function (error) {
-                        console.log(error);
-                        //关闭
-                        layer.close(index);
-                        layer.alert(error);
+        ajax({
+            type: "post",
+            "url": "/music/getMusicLayuiColVo",
+            data: {},
+            dataType: "json",
+            success: function (result) {
+                console.log(result);
+                layer.close(index);
+                //执行渲染
+                tableIns = table.render({
+                    id: 'attrTable',
+                    elem: '#attrTable' //指定原始表格元素选择器（推荐id选择器）
+                    , cols: [result.result] //设置表头
+                    , text: {
+                        none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
                     }
+                    , page: true
+                    , data: []
                 });
-
-            } else if (obj.event === 'del') {
-                layer.confirm('真的删除行么', function (index) {
+                //监听单元格编辑
+                table.on('edit(attrTable)', function (obj) {
+                    var value = obj.value //得到修改后的值
+                        , data = obj.data //得到所在行所有键值
+                        , field = obj.field; //得到字段
+                    //layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
                     //实时更新表和值对应关系
                     for (var i = 0; i < rows.length; i++) {
                         if (rows[i].id == data.id) {
-                            rows.splice(i, 1);
-                            layer.msg('删除成功~');
+                            rows[i][field] = value;
+                            layer.msg('更改成功~');
                             break;
                         }
                     }
-                    obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
-                    layer.close(index);
-                    //向服务端发送删除指令
                 });
-            } else if (obj.event === 'edit') {
-                layer.open({
-                    title: '编辑',
-                    type: 1,
-                    area: ['80%', '80%'],
-                    content: '<div style="padding: 16px;">自定义表单元素</div>'
-                });
-            } else if (obj.event === 'download') {
-                layer.confirm('需要下载该视频[' + data.name + ']吗?', function (index) {
-                    //向服务端发送指令
-                    var index = layer.load();
-                    ajax({
-                        type: "post",
-                        "url": "/havefun-center/havefunvideo/downloadVideo",
-                        data: {
-                            id: data.id
-                        },
-                        dataType: "json",
-                        success: function (result) {
-                            console.log(result);
-                            layer.msg(result);
+                //监听工具条
+                table.on('tool(attrTable)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+                    var data = obj.data; //获得当前行数据
+                    var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+                    var tr = obj.tr; //获得当前行 tr 的DOM对象
+                    var data = obj.data;
+                    console.log(obj)
+                    if (obj.event === 'look') {
+                        var index = layer.load();
+                        ajax({
+                            type: "get",
+                            "url": "/havefun-center/havefunvideo/" + data.id,
+                            data: {
+                                id: data.id
+                            },
+                            dataType: "json",
+                            success: function (result) {
+                                console.log(result);
+                                layer.close(index);
+                                if (result.flag3 != 'download' || !result.video) {
+                                    layer.msg("视频还未下载!");
+                                    return;
+                                }
+                                sessionStorage.formData = JSON.stringify(result);
+                                sessionStorage.cols = JSON.stringify(cols);
+                                layer.open({
+                                    title: '查看',
+                                    type: 2,
+                                    area: ['100%', '100%'],
+                                    content: 'look.html',
+                                    shade: 0.3,
+                                    // 是否点击遮罩关闭：默认：false
+                                    shadeClose: true,
+                                    btn: ['关闭'],
+                                    // 第一个按钮事件，也可以叫btn1
+                                    yes: function (index, layero) {
+                                        layer.close(index);
+                                    }
+                                });
+                            },
+                            error: function (error) {
+                                console.log(error);
+                                //关闭
+                                layer.close(index);
+                                layer.alert(error);
+                            }
+                        });
+
+                    } else if (obj.event === 'del') {
+                        layer.confirm('真的删除行么', function (index) {
+                            //实时更新表和值对应关系
+                            for (var i = 0; i < rows.length; i++) {
+                                if (rows[i].id == data.id) {
+                                    rows.splice(i, 1);
+                                    layer.msg('删除成功~');
+                                    break;
+                                }
+                            }
+                            obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
                             layer.close(index);
-                        },
-                        error: function (error) {
-                            console.log(error);
-                            //关闭
-                            layer.close(index);
-                            layer.alert(error);
-                        }
-                    });
+                            //向服务端发送删除指令
+                        });
+                    } else if (obj.event === 'edit') {
+                        layer.open({
+                            title: '编辑',
+                            type: 1,
+                            area: ['80%', '80%'],
+                            content: '<div style="padding: 16px;">自定义表单元素</div>'
+                        });
+                    } else if (obj.event === 'download') {
+                        layer.confirm('需要下载该视频[' + data.name + ']吗?', function (index) {
+                            //向服务端发送指令
+                            var index = layer.load();
+                            ajax({
+                                type: "post",
+                                "url": "/havefun-center/havefunvideo/downloadVideo",
+                                data: {
+                                    id: data.id
+                                },
+                                dataType: "json",
+                                success: function (result) {
+                                    console.log(result);
+                                    layer.msg(result);
+                                    layer.close(index);
+                                },
+                                error: function (error) {
+                                    console.log(error);
+                                    //关闭
+                                    layer.close(index);
+                                    layer.alert(error);
+                                }
+                            });
+                        });
+                    }
                 });
+            },
+            error: function (error) {
+                console.log(error);
+                //关闭
+                layer.close(index);
+                layer.alert(error);
             }
         });
     }
@@ -354,6 +363,11 @@
                     params.error(result.message, result, xhr);
                 }
 
+            } else if (xhr.status == 401) {
+                layer.msg("鉴权失败，请重新登录！")
+                setTimeout(function () {
+                    location.href = '/login.html';
+                }, 3000)
             } else {
                 params.error(xhr.responseText, xhr.status, xhr);
             }
@@ -466,10 +480,13 @@
      */
     function loadTalbeName(layer, table, form) {
         var index = layer.load();
-        var formData = {};
+        var formData = {
+            pageIndex: 0,
+            pageSize: 10
+        };
         ajax({
             type: "post",
-            "url": "/havefun-center/havefunvideo/geTableInfo",
+            "url": "/music/getMusicPage",
             data: formData,
             dataType: "json",
             success: function (list) {

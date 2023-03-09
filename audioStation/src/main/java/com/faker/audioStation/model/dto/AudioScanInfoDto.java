@@ -123,8 +123,10 @@ public class AudioScanInfoDto {
         //FlacTag对象的getFirstArtwork方法可以获得图片
         Artwork artwork = tag.getFirstArtwork();
         try {
-            this.cover = artwork.getImage();
-            this.apic = artwork.getMimeType();
+            if (null != artwork) {
+                this.cover = artwork.getImage();
+                this.apic = artwork.getMimeType();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

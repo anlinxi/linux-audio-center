@@ -342,4 +342,17 @@ public class ToolsUtil {
         }
         return layuiColVoList;
     }
+
+    /**
+     * 文件名不包含以下任何字符：
+     * “（双引号）、*（星号）、<（小于）、>（大于）、？（问号）、\（反斜杠）、/（正斜杠）、|（竖线）、：（冒号）
+     *
+     * @param name
+     * @return
+     */
+    public static String getFileName(String name) {
+        return name.replaceAll("\"","").replaceAll("\\*","").replaceAll("\\<","").replaceAll("\\>","")
+                .replaceAll("\\?","").replaceAll("\\\\","").replaceAll("/","").replaceAll("|","")
+                .replaceAll(":","");
+    }
 }

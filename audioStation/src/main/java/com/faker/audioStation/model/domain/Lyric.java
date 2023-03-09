@@ -38,11 +38,6 @@ public class Lyric {
     @TableId(value = "ID", type = IdType.INPUT)
     private Long id;
 
-    @ApiModelProperty("歌词哈希值")
-    @Excel(name = "歌词哈希值")
-    @TableField(value = "HASH_CODE")
-    private String hashCode;
-
     @ApiModelProperty("歌词路径")
     @Excel(name = "歌词路径")
     @TableField("PATH")

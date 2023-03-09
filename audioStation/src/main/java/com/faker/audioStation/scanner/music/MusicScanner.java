@@ -186,7 +186,7 @@ public class MusicScanner implements Scanner {
 
                 //保存图片封面信息
                 MusicCover musicCover = null;
-                String coverPath = resourcePath + PathEnum.MUSIC_COVER.getPath() + "/" + music.getTitle() + "." + formatName;
+                String coverPath = resourcePath + PathEnum.MUSIC_COVER.getPath() + "/" + ToolsUtil.getFileName(music.getTitle()) + "." + formatName;
                 if (null != audioScanInfoDto.getCover()) {
                     ByteArrayOutputStream os = new ByteArrayOutputStream();
                     ImageIO.write(audioScanInfoDto.getCover(), "png", os);
@@ -264,10 +264,10 @@ public class MusicScanner implements Scanner {
                             Long wyyId = artistJson2.getLong("id");
                             //归纳歌曲专辑/歌手信息
                             Singer singer = singerMapper.selectById(wyyId);
-                            if(null == singer){
+                            if (null == singer) {
                                 singer = new Singer();
                                 singer.setName(name);
-                                String artistsCoverPath = resourcePath + PathEnum.SINGER_COVER.getPath() + "/" + name + "." + formatName;
+                                String artistsCoverPath = resourcePath + PathEnum.SINGER_COVER.getPath() + "/" + ToolsUtil.getFileName(name) + "." + formatName;
                                 try {
                                     ImageIO.write(ImageIO.read(new URL(coverUrl)), formatName, new File(artistsCoverPath));
                                     singer.setPic(artistsCoverPath);
@@ -295,9 +295,11 @@ public class MusicScanner implements Scanner {
                         searchlyric.put("id", wyyMusicIdLong + "");
                         JSONObject searchlyricResult = neteaseCloudMusicInfo.lyric(searchlyric);
                         String lyricText = searchlyricResult.getJSONObject("lrc").getString("lyric");
-                        String lyricPath = resourcePath + PathEnum.LYRIC_PATH.getPath()  + "/" + music.getTitle() + ".lrc";
+                        String lyricPath = resourcePath + PathEnum.LYRIC_PATH.getPath() + "/" + ToolsUtil.getFileName(music.getTitle()) + ".lrc";
                         FileWriter writer = new FileWriter(lyricPath);
                         writer.write(lyricText);
+                        writer.flush();
+                        writer.close();
                         Lyric lyric = new Lyric();
                         lyric.setId(music.getId());
                         lyric.setPath(lyricPath);

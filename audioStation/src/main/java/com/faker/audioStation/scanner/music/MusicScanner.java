@@ -2,6 +2,8 @@ package com.faker.audioStation.scanner.music;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.crypto.SecureUtil;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.faker.audioStation.enums.PathEnum;
 import com.faker.audioStation.mapper.MusicCoverMapper;
@@ -9,8 +11,11 @@ import com.faker.audioStation.mapper.MusicMapper;
 import com.faker.audioStation.mapper.SingerMapper;
 import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.domain.MusicCover;
+import com.faker.audioStation.model.domain.Singer;
 import com.faker.audioStation.model.dto.AudioScanInfoDto;
 import com.faker.audioStation.scanner.Scanner;
+import com.faker.audioStation.websocket.WebsocketHandle;
+import com.faker.audioStation.wrapper.WebSocketMessageWrapper;
 import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
@@ -31,9 +36,11 @@ import org.jaudiotagger.tag.TagException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
 import javax.imageio.ImageIO;
 import java.io.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -61,8 +68,15 @@ public class MusicScanner implements Scanner {
     @ApiModelProperty("歌手Mapper")
     SingerMapper singerMapper;
 
+    @Autowired
+    @ApiModelProperty("websocket连接")
+    WebsocketHandle websocketHandle;
+
     @ApiModelProperty("音乐文件列表")
     private ThreadLocal<List<File>> audioList = ThreadLocal.withInitial(() -> new ArrayList<File>());
+
+    @ApiModelProperty(value = "歌曲封面图片类型", notes = "bmp|gif|jpg|jpeg|png")
+    private String formatName = "png";
 
     /**
      * 开始扫描音乐
@@ -81,6 +95,8 @@ public class MusicScanner implements Scanner {
             }
         }
         log.info("扫描到的音乐文件数量" + audioList.get().size());
+        //网易云音乐api
+        NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
         //读取mp3信息
 //        MediaInfoHandler mediaInfoHandler = new MediaInfoHandler();
         int index = 0;
@@ -94,6 +110,8 @@ public class MusicScanner implements Scanner {
                 log.info("已存在歌曲[" + audio.getName() + "],sha256[" + sha256 + "]");
                 continue;
             }
+
+            websocketHandle.fanoutMessage(WebSocketMessageWrapper.ok("扫描进度", "正在扫描歌曲[" + audio.getName() + "]...", null));
             AudioFileReader audioFileReader = null;
             String audioName = audio.getName().toLowerCase();
             if (audioName.endsWith(".mp3")) {
@@ -122,25 +140,128 @@ public class MusicScanner implements Scanner {
                 music.setHashCode(sha256);
                 BeanUtil.copyProperties(audioScanInfoDto, music);
                 music.setCreateTime(new Date());
-//                musicMapper.insert(music);
                 audioScanInfoDtoList.add(music);
 
+                //保存图片封面信息
+                MusicCover musicCover = null;
+                String coverPath = resourcePath + PathEnum.MUSIC_COVER + music.getTitle();
                 if (null != audioScanInfoDto.getCover()) {
-                    //保存图片封面信息
-                    String coverPath = resourcePath + PathEnum.MUSIC_COVER + music.getTitle();
-
                     ByteArrayOutputStream os = new ByteArrayOutputStream();
                     ImageIO.write(audioScanInfoDto.getCover(), "png", os);
                     InputStream inputStream = new ByteArrayInputStream(os.toByteArray());
                     String sha256MusicCover = SecureUtil.sha256(inputStream);
-
-
-                    //bmp|gif|jpg|jpeg|png
-                    String formatName = "png";
-                    ImageIO.write(audioScanInfoDto.getCover(), formatName, new File(coverPath));
-                    MusicCover musicCover = new MusicCover();
+                    QueryWrapper<MusicCover> musicCoverQueryWrapper = new QueryWrapper<>();
+                    musicCoverQueryWrapper.eq("HASH_CODE", sha256MusicCover);
+                    musicCover = musicCoverMapper.selectOne(musicCoverQueryWrapper);
+                    if (null != musicCover) {
+                        ImageIO.write(audioScanInfoDto.getCover(), formatName, new File(coverPath));
+                        musicCover = new MusicCover();
+                        musicCover.setHashCode(sha256MusicCover);
+                        musicCover.setPath(coverPath);
+                        musicCover.setName(music.getTitle());
+                        musicCoverMapper.insert(musicCover);
+                    } else {
+                        music.setCoverId(musicCover.getId());
+                    }
                 }
 
+                //todo 查询下载专辑封面/歌手封面
+                JSONObject searJsonObject = new JSONObject();
+                searJsonObject.put("keywords", music.getTitle() + "" + music.getAlbum() + " " + music.getArtist());
+                searJsonObject.put("type", "1");
+                searJsonObject.put("limit", "1");
+                JSONObject searJsonResult = neteaseCloudMusicInfo.search(searJsonObject);
+                JSONArray musicInfoArray = searJsonResult.getJSONObject("result").getJSONArray("songs");
+                if (musicInfoArray.size() > 0) {
+                    JSONObject musicJson = musicInfoArray.getJSONObject(0);
+                    //专辑信息
+                    JSONObject album = musicJson.getJSONObject("album");
+                    if (null == musicCover && null != album) {
+                        try {
+                            JSONObject artist = album.getJSONObject("artist");
+                            String img1v1Url = artist.getString("img1v1Url");
+                            musicCover = new MusicCover();
+                            ByteArrayOutputStream os = new ByteArrayOutputStream();
+                            ImageIO.write(ImageIO.read(new URL(img1v1Url)), formatName, os);
+                            InputStream inputStream = new ByteArrayInputStream(os.toByteArray());
+                            String sha256MusicCover = SecureUtil.sha256(inputStream);
+                            ImageIO.write(audioScanInfoDto.getCover(), formatName, new File(coverPath));
+                            musicCover.setHashCode(sha256MusicCover);
+                            musicCover.setPath(coverPath);
+                            musicCover.setName(music.getTitle());
+                            musicCoverMapper.insert(musicCover);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+
+                    //歌手信息
+                    String artistsCoverPath = resourcePath + PathEnum.SINGER_COVER + music.getTitle();
+                    JSONArray artists = musicJson.getJSONArray("artists");
+                    if (artists.size() > 0) {
+                        JSONObject artist = artists.getJSONObject(0);
+                        Long artistId = artist.getLong("id");
+//                        String artistName = artist.getString("name");
+//                        String artistCover = artist.getString("img1v1Url");
+                        JSONObject searchartist = new JSONObject();
+                        searchartist.put("id", artistId + "");
+                        JSONObject artistJson = neteaseCloudMusicInfo.artistDetail(searchartist);
+                        JSONObject artistJson2 = artistJson.getJSONObject("data").getJSONObject("artist");
+                        String coverUrl = artistJson2.getString("cover");
+
+                        //歌手名称
+                        String name = artistJson2.getString("name");
+                        //歌手简介
+                        String briefDesc = artistJson2.getString("briefDesc");
+                        //音乐数量
+                        Long musicSize = artistJson2.getLong("musicSize");
+                        //专辑数量
+                        Long albumSize = artistJson2.getLong("albumSize");
+                        //网易云音乐id
+                        Long wyyId = artistJson2.getLong("id");
+                        //归纳歌曲专辑/歌手信息
+                        Singer singer = new Singer();
+                        singer.setName(name);
+                        try {
+                            ImageIO.write(ImageIO.read(new URL(coverUrl)), formatName, new File(artistsCoverPath));
+                            singer.setPic(artistsCoverPath);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            singer.setPic(coverUrl);
+                        }
+                        singer.setIntroduction(briefDesc);
+                        singer.setMusicSize(musicSize);
+                        singer.setAlbumSize(albumSize);
+                        singer.setWyy_id(wyyId);
+                        singerMapper.insert(singer);
+
+                    }
+
+                    try {
+                        //查询下载歌曲歌词
+                        Long wyyMusicIdLong = musicJson.getLong("id");
+                        JSONObject searchlyric = new JSONObject();
+                        searchlyric.put("id", wyyMusicIdLong + "");
+                        JSONObject searchlyricResult = neteaseCloudMusicInfo.lyric(searchlyric);
+                        String lyric = searchlyricResult.getJSONObject("lrc").getString("lyric");
+                        music.setLyric(lyric);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        //todo 爬取歌曲热度、播放量、评论等额外信息 还没想好怎么保存
+//                        Long wyyMusicIdLong = musicJson.getLong("id");
+//                        JSONObject searchComment = new JSONObject();
+//                        searchComment.put("id", wyyMusicIdLong + "");
+//                        JSONObject searchCommentResult = neteaseCloudMusicInfo.commentMusic(searchComment);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                musicMapper.insert(music);
 
             } catch (CannotReadException e) {
                 e.printStackTrace();
@@ -160,13 +281,7 @@ public class MusicScanner implements Scanner {
             }
         }
 
-        //todo 查询下载歌曲歌词
 
-        //todo 归纳歌曲专辑/歌手信息
-
-        //todo 查询下载专辑封面/歌手封面
-
-        //todo 爬取歌曲热度、播放量、评论等额外信息
         return WrapMapper.ok();
     }
 

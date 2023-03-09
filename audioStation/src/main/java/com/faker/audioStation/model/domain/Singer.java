@@ -32,13 +32,13 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("SINGER")
-@ApiModel(value = "歌手信息对象", description = "音频文件信息表")
-public class Singer  implements Serializable {
+@ApiModel(value = "歌手信息对象", description = "歌手信息表")
+public class Singer implements Serializable {
 
     @ApiModelProperty("主键")
     @Excel(name = "主键")
-    @TableId(value = "HASH_CODE", type = IdType.ASSIGN_ID)
-    private Integer id;
+    @TableId(value = "ID", type = IdType.ASSIGN_ID)
+    private Long id;
 
     @ApiModelProperty("姓名")
     @Excel(name = "姓名")
@@ -69,4 +69,19 @@ public class Singer  implements Serializable {
     @Excel(name = "简介")
     @TableField("INTRODUCTION")
     private String introduction;
+
+    @ApiModelProperty("音乐数量")
+    @Excel(name = "音乐数量")
+    @TableField("MUSIC_SIZE")
+    private Long musicSize;
+
+    @ApiModelProperty("专辑数量")
+    @Excel(name = "专辑数量")
+    @TableField("ALBUM_SIZE")
+    private Long albumSize;
+
+    @ApiModelProperty("网易云音乐id")
+    @Excel(name = "网易云音乐id")
+    @TableField("WYY_ID")
+    private Long wyy_id;
 }

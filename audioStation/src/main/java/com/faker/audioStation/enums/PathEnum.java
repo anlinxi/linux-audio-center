@@ -28,7 +28,7 @@ public enum PathEnum {
     SINGER_COVER("image/singer"),
 
     /**
-     * 歌手图片
+     * 歌单图片
      */
     PLAYLIST_COVER("image/playlist"),
 

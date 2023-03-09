@@ -191,7 +191,7 @@ public class WebsocketHandle {
      *
      * @param message
      */
-    public static void sendMessage(String senderId, String message) {
+    public void sendMessage(String senderId, String message) {
         try {
             webSocketMap.get(senderId).getSession().getBasicRemote().sendText(message);
         } catch (IOException e) {
@@ -204,11 +204,27 @@ public class WebsocketHandle {
      *
      * @param message
      */
-    public static void fanoutMessage(String message) {
+    public void fanoutMessage(String message) {
         //遍历Map
         for (Map.Entry<String, WebsocketHandle> entry : webSocketMap.entrySet()) {
             try {
                 entry.getValue().getSession().getBasicRemote().sendText(message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 群发消息
+     *
+     * @param message
+     */
+    public void fanoutMessage(Message message) {
+        //遍历Map
+        for (Map.Entry<String, WebsocketHandle> entry : webSocketMap.entrySet()) {
+            try {
+                entry.getValue().getSession().getBasicRemote().sendText(JSONObject.toJSONString(message));
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -33,9 +33,14 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "音频文件专辑信息对象", description = "音频文件专辑信息表")
 public class MusicCover {
 
+    @ApiModelProperty("主键")
+    @Excel(name = "主键")
+    @TableId(value = "ID", type = IdType.AUTO)
+    private Long id;
+
     @ApiModelProperty("专辑图片哈希值")
     @Excel(name = "专辑图片哈希值")
-    @TableId(value = "HASH_CODE", type = IdType.ASSIGN_ID)
+    @TableField(value = "HASH_CODE")
     private String hashCode;
 
     @ApiModelProperty("专辑图片路径")

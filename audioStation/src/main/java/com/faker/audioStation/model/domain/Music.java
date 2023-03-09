@@ -37,9 +37,14 @@ import java.util.Date;
 @ApiModel(value = "音频文件信息对象", description = "音频文件信息表")
 public class Music implements Serializable {
 
+    @ApiModelProperty("主键")
+    @Excel(name = "主键")
+    @TableId(value = "ID", type = IdType.AUTO)
+    private Long id;
+
     @ApiModelProperty("音频文件哈希值")
     @Excel(name = "音频文件哈希值")
-    @TableId(value = "HASH_CODE", type = IdType.ASSIGN_ID)
+    @TableField(value = "HASH_CODE")
     private String hashCode;
 
     @ApiModelProperty("音频文件路径")
@@ -120,7 +125,7 @@ public class Music implements Serializable {
     @ApiModelProperty(value = "音频封面图片", notes = "音频封面图片id")
     @Excel(name = "音频封面图片")
     @TableField("COVER_ID")
-    private String coverId;
+    private Long coverId;
 
     @ApiModelProperty(value = "创建时间")
     @Excel(name = "创建时间", exportFormat = "yyyy-MM-dd HH:mm:ss")

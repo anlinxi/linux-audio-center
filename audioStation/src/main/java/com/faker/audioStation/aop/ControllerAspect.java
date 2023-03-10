@@ -114,7 +114,14 @@ public class ControllerAspect {
         userId = request.getHeader("__userId");
 
         Object[] args = joinPoint.getArgs();
-        JSONArray jsonArray = JSONArray.fromObject(args);
+        JSONArray jsonArray = new JSONArray();
+        for (Object arg : args) {
+            if (arg != null
+                    && !arg.getClass().equals(org.apache.catalina.connector.ResponseFacade.class)
+                    && !arg.getClass().equals(org.apache.catalina.connector.RequestFacade.class)) {
+                jsonArray.add(arg);
+            }
+        }
         //得到其方法签名
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
 //        //获取方法参数类型数组

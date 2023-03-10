@@ -16,6 +16,7 @@ import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -51,7 +52,7 @@ public class TableController {
     TableService tableService;
 
     @ApiOperation(value = "获取所有mybatis plus对象的参数", notes = "layui表头参数")
-    @RequestMapping(value = "getAllDomainList")
+    @PostMapping(value = "getAllDomainList")
     @ResponseBody
     @LogAndPermissions("1")
     public Wrapper<Map<String, String>> getAllDomainList() {
@@ -73,7 +74,7 @@ public class TableController {
     }
 
     @ApiOperation(value = "获取mybatis plus实体类参数", notes = "layui表头参数")
-    @RequestMapping(value = "getLayuiColVo")
+    @PostMapping(value = "getLayuiColVo")
     @ResponseBody
     @LogAndPermissions("1")
     public Wrapper<List<LayuiColVo>> getLayuiColVo(@RequestBody NameDto param) {
@@ -86,7 +87,7 @@ public class TableController {
     }
 
     @ApiOperation(value = "获取实体类文件的分页数据", notes = "分页查询")
-    @RequestMapping(value = "getPage")
+    @PostMapping(value = "getPage")
     @ResponseBody
     @LogAndPermissions
     public Wrapper<IPage<?>> getPage(@RequestBody GetPageDto pageSizeDto) {

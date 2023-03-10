@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Data
 @NoArgsConstructor
 @ApiModel("缓存对象")
-public class CacheDto {
+public class CacheDto implements Serializable {
 
     @ApiModelProperty("缓存键名")
     private String key;

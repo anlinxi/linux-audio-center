@@ -1,11 +1,16 @@
 package com.faker.audioStation.service.impl;
 
 import cn.hutool.core.convert.Convert;
+import com.alibaba.fastjson.JSONObject;
+import com.faker.audioStation.enums.PathEnum;
 import com.faker.audioStation.model.dto.CacheDto;
 import com.faker.audioStation.service.CacheService;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.*;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -36,6 +41,12 @@ public class CacheServiceImpl implements CacheService {
      */
     private static ConcurrentHashMap<String, CacheDto> webSocketMap = new ConcurrentHashMap<>();
 
+    @ApiModelProperty("是否初始化")
+    private Boolean initialized = false;
+
+    @Value("${faker.resources:/music/}")
+    @ApiModelProperty("资源文件路径")
+    private String resourcePath;
 
     /**
      * 设置值
@@ -149,6 +160,25 @@ public class CacheServiceImpl implements CacheService {
      */
     @Override
     public void cleanCache() {
+        String cachePath = resourcePath + PathEnum.CACHE_JSON_PATH.getPath();
+        if (!initialized) {
+            File cacheFile = new File(cachePath + "cache.xlh");
+            if (!cacheFile.getParentFile().exists()) {
+                cacheFile.getParentFile().mkdirs();
+            }
+            if (cacheFile.exists()) {
+                try {
+                    FileInputStream fis = new FileInputStream(cacheFile);
+                    //创建对象输入流
+                    ObjectInputStream ois = new ObjectInputStream(fis);
+                    //读取对象
+                    webSocketMap = (ConcurrentHashMap) ois.readObject();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            initialized = true;
+        }
         Iterator<String> it = webSocketMap.keySet().iterator();
         while (it.hasNext()) {
             String key = it.next();
@@ -160,6 +190,26 @@ public class CacheServiceImpl implements CacheService {
                 log.info("过期已删除" + cacheDto.getKey() + "(" + cacheDto.getClassz().getSimpleName() + ")");
                 it.remove();
             }
+        }
+        try {
+            FileWriter writer = new FileWriter(cachePath + "cache.json");
+            writer.write(JSONObject.toJSONString(webSocketMap));
+            writer.flush();
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            FileOutputStream fos = new FileOutputStream(cachePath + "cache.xlh");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            //调用 ObjectOutputStream 中的 writeObject() 方法 写对象
+            oos.writeObject(webSocketMap);
+            //flush方法刷新缓冲区，写字符时会用，因为字符会先进入缓冲区，将内存中的数据立刻写出
+            oos.flush();
+            fos.close();
+            oos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

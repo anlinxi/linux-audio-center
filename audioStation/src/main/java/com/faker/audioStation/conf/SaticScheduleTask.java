@@ -28,7 +28,7 @@ public class SaticScheduleTask {
     /**
      * 定时清理过期缓存
      */
-    @Scheduled(fixedRate = 10 * 1000)
+    @Scheduled(fixedRate = 30 * 1000)
     private void cleanCache() {
         cacheService.cleanCache();
     }

@@ -40,7 +40,14 @@ public enum PathEnum {
     /**
      * 音乐地址
      */
-    DOWNLOAD_MUSIC_PATH("audioCenter/music");
+    DOWNLOAD_MUSIC_PATH("audioCenter/music"),
+
+    /**
+     * 缓存持久化地址
+     */
+    CACHE_JSON_PATH("audioCenter/cache/"),
+
+    ;
 
     /**
      * 路径

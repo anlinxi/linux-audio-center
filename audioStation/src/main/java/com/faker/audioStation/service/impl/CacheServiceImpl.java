@@ -3,11 +3,11 @@ package com.faker.audioStation.service.impl;
 import cn.hutool.core.convert.Convert;
 import com.faker.audioStation.model.dto.CacheDto;
 import com.faker.audioStation.service.CacheService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * @date 2023/3/8 10:21
  */
+@Slf4j
 @Service
 public class CacheServiceImpl implements CacheService {
 
@@ -156,6 +157,7 @@ public class CacheServiceImpl implements CacheService {
             long expire = cacheDto.getInitTime() + milliSeconds - System.currentTimeMillis();
             if (expire < 0) {
                 // 这个可以实现 遍历的过程中删除某个元素
+                log.info("过期已删除" + cacheDto.getKey() + "(" + cacheDto.getClassz().getSimpleName() + ")");
                 it.remove();
             }
         }

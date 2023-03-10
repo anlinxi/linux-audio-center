@@ -1,5 +1,6 @@
 package com.faker.audioStation.controller;
 
+import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -8,6 +9,7 @@ import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.dto.GetMusicPageParamDto;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.model.vo.LayuiColVo;
+import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.MusicService;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.Api;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Controller
@@ -37,6 +40,10 @@ public class MusicController {
     @Autowired
     @ApiModelProperty("音乐文件服务层")
     MusicService musicService;
+
+    @Autowired
+    @ApiModelProperty("缓存服务")
+    CacheService cacheService;
 
     @ApiOperation(value = "获取音乐文件的layui参数", notes = "layui表头参数")
     @PostMapping(value = "getMusicLayuiColVo")
@@ -59,6 +66,15 @@ public class MusicController {
     @ResponseBody
     @LogAndPermissions
     public JSONObject getWyyApi(@RequestBody WyyApiDto params) {
+        String key = SecureUtil.md5(JSONObject.toJSONString(params));
+        String value = cacheService.get(key);
+        if (null != value) {
+            try {
+                return JSONObject.parseObject(value);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         String method = params.getMethod().toUpperCase();
         String resultText = null;
         String url = music163Api + params.getUrl();
@@ -72,6 +88,9 @@ public class MusicController {
         if (null == resultText) {
             return null;
         }
+        //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
+        cacheService.set(key, resultText, 10, TimeUnit.HOURS);
         return JSONObject.parseObject(resultText);
     }
+    
 }

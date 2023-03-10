@@ -22,7 +22,7 @@ public class WebMvcConfig {
     }
 
     @Bean
-    public CorsFilter corsFilter() {
+    public CorsFilter corsFilterV2() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", buildConfig());
         return new CorsFilter(source);

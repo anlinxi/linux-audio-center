@@ -46,9 +46,9 @@ public class MobileUserAppController extends BaseController {
     @Autowired
     private IJsMobileUserService iJsMobileUserService;
 
-
     @Autowired
-    private CacheService cacheService;
+    @ApiModelProperty("缓存服务")
+    CacheService cacheService;
 
     @ApiModelProperty("登录des加密参数")
     public static String DES_SECRET_KEY = "tx,anlinxi,top";
@@ -85,11 +85,15 @@ public class MobileUserAppController extends BaseController {
         // 登录密码解密（解决密码明文传输安全问题）
         String secretKey = DES_SECRET_KEY;
         QueryWrapper<JsMobileUser> mobileUser = new QueryWrapper<>();
-        String loginCode = DesUtils.decode(username, secretKey);
-        if (StringUtils.isNotBlank(secretKey)) {
-            mobileUser.eq("login_code", loginCode);
-            mobileUser.eq("password", password);
-        }
+//        String loginCode = DesUtils.decode(username, secretKey);
+//        if (StringUtils.isNotBlank(secretKey)) {
+//            mobileUser.eq("login_code", loginCode);
+//            mobileUser.eq("password", password);
+//        }
+        String loginCode = username;
+        String md5Password = DesUtils.encode(password, DES_SECRET_KEY);
+        mobileUser.eq("login_code", loginCode);
+        mobileUser.eq("password", md5Password);
 
         JsMobileUser user1 = iJsMobileUserService.getOne(mobileUser);
         if (null != user1 && null != user1.getLoginCode() && null != user1.getPassword()) {

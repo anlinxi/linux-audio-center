@@ -66,72 +66,73 @@ public class MobileSecretFilter implements Filter {
         logger.debug("[" + this.getClass().getName() + "]执行过滤方法>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-        if ("POST".equals(request.getMethod())) {
+        if ("POST".equals(request.getMethod()) && request.getHeader("Content-Type").toLowerCase().startsWith("application/json")) {
             String requestBody = this.getRequestBody((HttpServletRequest) request);
-            JSONObject jsonBody = JSONObject.fromObject(requestBody);
-            String secretType = jsonBody.optString("secretType");
-            if (ToolsUtil.isNotNull(secretType)) {
-                String uri = request.getRequestURI();
-                //todo aes 加密
-                if (AesWrapMapper.ENCODE_TYPE.equalsIgnoreCase(secretType)) {
-                    String aes = jsonBody.optString("secretData");
-                    logger.debug("接收到加密内容：" + aes);
-                    try {
-                        String jsonStr = null;
-                        JSONObject jsonObject = null;
-                        synchronized (this) {
-                            jsonStr = QEncodeUtil.aesDecrypt(aes, "abcdefgabcdefg12");
-                            jsonObject = JSONObject.fromObject(jsonStr);
-                            logger.info("app请求[" + uri + "]密参数:" + jsonObject.toString());
+            if (null != requestBody && !"".equals(requestBody)) {
+                JSONObject jsonBody = JSONObject.fromObject(requestBody);
+                String secretType = jsonBody.optString("secretType");
+                if (ToolsUtil.isNotNull(secretType)) {
+                    String uri = request.getRequestURI();
+                    //todo aes 加密
+                    if (AesWrapMapper.ENCODE_TYPE.equalsIgnoreCase(secretType)) {
+                        String aes = jsonBody.optString("secretData");
+                        logger.debug("接收到加密内容：" + aes);
+                        try {
+                            String jsonStr = null;
+                            JSONObject jsonObject = null;
+                            synchronized (this) {
+                                jsonStr = QEncodeUtil.aesDecrypt(aes, "abcdefgabcdefg12");
+                                jsonObject = JSONObject.fromObject(jsonStr);
+                                logger.info("app请求[" + uri + "]密参数:" + jsonObject.toString());
+                            }
+                            request = this.getNewHttpServletRequest(request, jsonObject);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                        request = this.getNewHttpServletRequest(request, jsonObject);
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                }
-                //todo des加密
-                if (DesWrapMapper.ENCODE_TYPE.equalsIgnoreCase(secretType)) {
-                    String des = jsonBody.optString("secretData");
-                    logger.debug("接收到加密内容：" + des);
-                    try {
-                        String jsonStr = null;
-                        JSONObject jsonObject = null;
-                        synchronized (this) {
-                            jsonStr = DesUtils.decode(des, "tx,anlinxi,top");
-                            jsonObject = JSONObject.fromObject(jsonStr);
-                            logger.info("app请求[" + uri + "]密参数:" + jsonObject.toString());
+                    //todo des加密
+                    if (DesWrapMapper.ENCODE_TYPE.equalsIgnoreCase(secretType)) {
+                        String des = jsonBody.optString("secretData");
+                        logger.debug("接收到加密内容：" + des);
+                        try {
+                            String jsonStr = null;
+                            JSONObject jsonObject = null;
+                            synchronized (this) {
+                                jsonStr = DesUtils.decode(des, "tx,anlinxi,top");
+                                jsonObject = JSONObject.fromObject(jsonStr);
+                                logger.info("app请求[" + uri + "]密参数:" + jsonObject.toString());
+                            }
+                            request = this.getNewHttpServletRequest(request, jsonObject);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                        request = this.getNewHttpServletRequest(request, jsonObject);
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                }
-                //todo rsa加密
-                if (RsaWrapMapper.ENCODE_TYPE.equalsIgnoreCase(secretType)) {
-                    String rsa = jsonBody.optString("secretData");
-                    logger.debug("接收到加密内容：" + rsa);
-                    try {
-                        String jsonStr = null;
-                        JSONObject jsonObject = null;
-                        synchronized (this) {
-                            jsonStr = RsaUtils.decryptPub(rsa, RsaUtils.PUBLIC_KEY);
-                            jsonObject = JSONObject.fromObject(jsonStr);
-                            logger.info("app请求[" + uri + "]密参数:" + jsonObject.toString());
+                    //todo rsa加密
+                    if (RsaWrapMapper.ENCODE_TYPE.equalsIgnoreCase(secretType)) {
+                        String rsa = jsonBody.optString("secretData");
+                        logger.debug("接收到加密内容：" + rsa);
+                        try {
+                            String jsonStr = null;
+                            JSONObject jsonObject = null;
+                            synchronized (this) {
+                                jsonStr = RsaUtils.decryptPub(rsa, RsaUtils.PUBLIC_KEY);
+                                jsonObject = JSONObject.fromObject(jsonStr);
+                                logger.info("app请求[" + uri + "]密参数:" + jsonObject.toString());
+                            }
+                            request = this.getNewHttpServletRequest(request, jsonObject);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                        request = this.getNewHttpServletRequest(request, jsonObject);
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                }
 
-            } else {
-                try {
-                    request = this.getNewHttpServletRequest(request, jsonBody);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } else {
+                    try {
+                        request = this.getNewHttpServletRequest(request, jsonBody);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-
         } else {
             //一旦获取了值。strus的表单就会中文乱码...
             String secretType = request.getParameter("secretType");

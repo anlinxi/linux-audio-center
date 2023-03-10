@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.faker.audioStation.model.ano.SqliteCreater;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -42,6 +43,7 @@ public class Music implements Serializable {
     @TableId(value = "ID", type = IdType.ASSIGN_ID)
     private Long id;
 
+    @SqliteCreater(unique = true)
     @ApiModelProperty("音频文件哈希值")
     @Excel(name = "音频文件哈希值")
     @TableField(value = "HASH_CODE")
@@ -139,6 +141,7 @@ public class Music implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 
+    @SqliteCreater(unique = true)
     @ApiModelProperty("网易云音乐id")
     @Excel(name = "网易云音乐id")
     @TableField("WYY_ID")

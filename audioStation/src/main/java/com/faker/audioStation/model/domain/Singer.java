@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.faker.audioStation.model.ano.SqliteCreater;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -80,8 +81,9 @@ public class Singer implements Serializable {
     @TableField("ALBUM_SIZE")
     private Long albumSize;
 
+    @SqliteCreater(unique = true)
     @ApiModelProperty("网易云音乐id")
     @Excel(name = "网易云音乐id")
-    @TableField("WYY_ID")
+    @TableField(value = "WYY_ID")
     private Long wyyId;
 }

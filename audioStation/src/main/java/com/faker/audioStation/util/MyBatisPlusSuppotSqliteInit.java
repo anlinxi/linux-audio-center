@@ -3,6 +3,7 @@ package com.faker.audioStation.util;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.faker.audioStation.model.ano.SqliteCreater;
 import com.faker.audioStation.model.dto.ModelField;
 import com.faker.audioStation.model.dto.SqliteTableStructureDto;
 import io.swagger.annotations.ApiModel;
@@ -131,7 +132,6 @@ public class MyBatisPlusSuppotSqliteInit {
                     } else {
                         log.debug("类" + clazz.getName() + "的字段" + fields[i].getName() + "没有注解ApiModelProperty");
                     }
-                    mybatisPlusDto.modelFieldList.add(modelField);
                 } else {
                     log.warn("属性[" + modelField.getModelName() + "]对应表字段为空！");
                 }
@@ -147,10 +147,21 @@ public class MyBatisPlusSuppotSqliteInit {
                     } else {
                         log.debug("类" + clazz.getName() + "的字段" + fields[i].getName() + "没有注解ApiModelProperty");
                     }
-                    mybatisPlusDto.modelFieldList.add(modelField);
+
                 } else {
                     log.warn("属性[" + modelField.getModelName() + "]对应表字段为空！");
                 }
+            }
+            if (modelField.getApiModelProperty() != null) {
+                if (fields[i].isAnnotationPresent(SqliteCreater.class)) {
+                    SqliteCreater sqliteCreater = fields[i].getAnnotation(SqliteCreater.class);
+                    modelField.setPk(sqliteCreater.isPk());
+                    modelField.setUnique(sqliteCreater.unique());
+                    if (-1 != sqliteCreater.length()) {
+                        modelField.setLength(sqliteCreater.length());
+                    }
+                }
+                mybatisPlusDto.modelFieldList.add(modelField);
             }
         }
 //        log.debug("类[" + clazz.getName() + "]的表名为[" + mybatisPlusDto.tableName + "];字段信息为:" + mybatisPlusDto.modelFieldList);
@@ -181,11 +192,25 @@ public class MyBatisPlusSuppotSqliteInit {
                     sql.append("\"" + modelField.getTableField() + "\" TEXT NOT NULL PRIMARY KEY,\n");
                 }
             } else {
-                sql.append("\"" + modelField.getTableField() + "\" ").append(this.getSqliteType(modelField.getModelType())).append(",\n");
+                sql.append("\"" + modelField.getTableField() + "\" ").append(this.getSqliteType(modelField.getModelType()));
+                if (modelField.isPk()) {
+                    sql.append("PRIMARY KEY");
+                }
+                sql.append(",\n");
             }
         }
         sql.setLength(sql.length() - 2);
         sql.append(");\n");
+
+        //唯一索引
+        sql.append("\n");
+        for (ModelField modelField : modelFieldList) {
+            if (modelField.isUnique()) {
+                sql.append("CREATE UNIQUE INDEX UNIQUE_" + dto.getTableName() + "_" + modelField.getTableField() +
+                        " ON " + dto.getTableName() + " (" + modelField.getTableField() + ");\n");
+            }
+        }
+
 //        log.info(sql.toString());
         return sql.toString();
     }

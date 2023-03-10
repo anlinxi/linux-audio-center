@@ -229,12 +229,13 @@ public class MusicScanner implements Scanner {
                             ImageIO.write(ImageIO.read(new URL(img1v1Url)), formatName, os);
                             InputStream inputStream = new ByteArrayInputStream(os.toByteArray());
                             String sha256MusicCover = SecureUtil.sha256(inputStream);
-                            ImageIO.write(audioScanInfoDto.getCover(), formatName, new File(coverPath));
+                            ImageIO.write(ImageIO.read(new URL(img1v1Url)), formatName, new File(coverPath));
                             musicCover.setHashCode(sha256MusicCover);
                             musicCover.setPath(coverPath);
                             musicCover.setName(music.getTitle());
+                            musicCover.setWyyId(album.getLong("id"));
                             musicCoverMapper.insert(musicCover);
-                            music.setAlbumId(album.getLong("id"));
+                            music.setAlbumId(musicCover.getId());
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -281,7 +282,7 @@ public class MusicScanner implements Scanner {
                                 singer.setIntroduction(briefDesc);
                                 singer.setMusicSize(musicSize);
                                 singer.setAlbumSize(albumSize);
-                                singer.setWyy_id(wyyId);
+                                singer.setWyyId(wyyId);
                                 singerMapper.insert(singer);
                             }
                             music.setArtistId(singer.getId());
@@ -307,6 +308,7 @@ public class MusicScanner implements Scanner {
                         lyric.setId(music.getId());
                         lyric.setPath(lyricPath);
                         lyric.setName(music.getTitle());
+                        lyric.setWyyId(searchlyricResult.getJSONObject("lrc").getLong("id"));
                         lyricMapper.insert(lyric);
                         music.setLyricId(lyric.getId());
                     } catch (Exception e) {

@@ -33,7 +33,7 @@ public class Songs implements Serializable {
 
     @ApiModelProperty(value = "编号")
     private int no;
-    @ApiModelProperty(value = "搬迁信息")
+    @ApiModelProperty(value = "版权信息")
     private int copyright;
     private int fee;
     private int mst;
@@ -54,6 +54,7 @@ public class Songs implements Serializable {
     private int originCoverType;
     private H h;
     private long mv;
+    @ApiModelProperty(value = "专辑信息")
     private Al al;
     private L l;
     private M m;

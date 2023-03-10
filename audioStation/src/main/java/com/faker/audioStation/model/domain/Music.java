@@ -139,4 +139,9 @@ public class Music implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 
+    @ApiModelProperty("网易云音乐id")
+    @Excel(name = "网易云音乐id")
+    @TableField("WYY_ID")
+    private Long wyyId;
+
 }

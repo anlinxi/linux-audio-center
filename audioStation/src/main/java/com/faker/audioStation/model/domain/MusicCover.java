@@ -52,4 +52,9 @@ public class MusicCover {
     @Excel(name = "专辑图片名称")
     @TableField("NAME")
     private String name;
+
+    @ApiModelProperty("网易云音乐id")
+    @Excel(name = "网易云音乐id")
+    @TableField("WYY_ID")
+    private Long wyyId;
 }

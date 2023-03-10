@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.vo.LayuiColVo;
+import com.faker.audioStation.wrapper.WrapMapper;
 import io.swagger.annotations.ApiModelProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -403,4 +404,65 @@ public class ToolsUtil {
     public static String getFileName(Music music) {
         return getFileName(music.getArtist() + " - " + music.getTitle());
     }
+
+    /**
+     * 设置返回码状态
+     *
+     * @param response 响应
+     * @param code     响应编码
+     * @param msg      响应信息
+     */
+    public static void setStateInfo(HttpServletResponse response, int code, String msg) {
+        try {
+            response.setContentType("application/json; charset=utf-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(code);
+            OutputStream out = response.getOutputStream();
+            out.write(JSONObject.toJSONString(WrapMapper.wrap(code, msg)).getBytes("UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 下载文件到响应流
+     *
+     * @param response
+     * @param file
+     */
+    public static void downloadFile(HttpServletResponse response, File file) {
+        OutputStream toClient = null;
+
+        try {
+            // 取得文件名。
+            String filename = file.getName();
+            // 取得文件的后缀名。
+            String ext = filename.substring(filename.lastIndexOf(".") + 1).toUpperCase();
+            // 以流的形式下载文件。
+            InputStream fis = new BufferedInputStream(new FileInputStream(file.getPath()));
+            byte[] buffer = new byte[fis.available()];
+            fis.read(buffer);
+            fis.close();
+            // 清空response
+            response.reset();
+            // 设置response的Header
+            response.addHeader("Content-Disposition", "attachment;filename=" + new String(filename.getBytes()));
+            response.addHeader("Content-Length", "" + file.length());
+            toClient = new BufferedOutputStream(response.getOutputStream());
+            response.setContentType("application/octet-stream");
+            toClient.write(buffer);
+            toClient.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (null != toClient) {
+                try {
+                    toClient.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 }

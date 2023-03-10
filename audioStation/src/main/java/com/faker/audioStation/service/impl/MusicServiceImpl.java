@@ -1,5 +1,6 @@
 package com.faker.audioStation.service.impl;
 
+import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -7,10 +8,18 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.faker.audioStation.enums.PathEnum;
+import com.faker.audioStation.mapper.LyricMapper;
+import com.faker.audioStation.mapper.MusicCoverMapper;
 import com.faker.audioStation.mapper.MusicMapper;
+import com.faker.audioStation.mapper.SingerMapper;
+import com.faker.audioStation.model.domain.Lyric;
 import com.faker.audioStation.model.domain.Music;
+import com.faker.audioStation.model.domain.MusicCover;
+import com.faker.audioStation.model.domain.Singer;
 import com.faker.audioStation.model.dto.GetMusicPageParamDto;
+import com.faker.audioStation.model.dto.wyy.songDetail.Al;
 import com.faker.audioStation.model.dto.wyy.songDetail.SongDetailRootBean;
+import com.faker.audioStation.model.dto.wyy.songDetail.Songs;
 import com.faker.audioStation.model.dto.wyy.songUrl.JsonData;
 import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
 import com.faker.audioStation.model.vo.LayuiColVo;
@@ -26,8 +35,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
-import java.io.File;
+import javax.imageio.ImageIO;
+import java.io.*;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -54,6 +66,23 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
 
     @ApiModelProperty("网易云音乐api")
     NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
+
+    @Autowired
+    @ApiModelProperty("音乐封面图片文件Mapper")
+    MusicCoverMapper musicCoverMapper;
+
+    @Autowired
+    @ApiModelProperty("歌手Mapper")
+    SingerMapper singerMapper;
+
+    @Autowired
+    @ApiModelProperty("歌词Mapper")
+    LyricMapper lyricMapper;
+
+
+    @ApiModelProperty(value = "歌曲封面图片类型", notes = "bmp|gif|jpg|jpeg|png")
+    private String formatName = "png";
+
 
     /**
      * 获取音乐文件的layui参数
@@ -99,16 +128,20 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
      */
     @Override
     public SongUrlRootBean downLoadMusic(SongUrlRootBean songUrlRootBean) {
-        String musicPath = resourcePath + PathEnum.DOWNLOAD_MUSIC_PATH.getPath() + "/";
         if (null != songUrlRootBean && songUrlRootBean.getData().size() > 0) {
             JsonData jsonData = songUrlRootBean.getData().get(0);
-
-
-            SongDetailRootBean songJson = this.songDetail(new String[]{jsonData.getId() + ""});
-            log.info(songJson.toString());
-            String url = jsonData.getUrl();
-            if (null != url) {
-//                HttpUtil.downloadFile(url, new File(musicPath));
+            long wyyId = jsonData.getId();
+            QueryWrapper<Music> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("WYY_ID", wyyId);
+            Music music = this.getOne(queryWrapper);
+            if (null != music) {
+                songUrlRootBean.getData().get(0).setUrl("/api/music/getMusic?id=" + music.getId());
+                return songUrlRootBean;
+            }
+            SongDetailRootBean songJson = this.songDetail(new String[]{wyyId + ""});
+            if (null != jsonData.getUrl() && songJson.getSongs().size() > 0) {
+                Songs songs = songJson.getSongs().get(0);
+                music = this.saveMusicByWyy(songUrlRootBean, songs, songJson);
             }
         }
         return songUrlRootBean;
@@ -132,5 +165,191 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
         songDetailRootBean = JSONObject.parseObject(neteaseCloudMusicInfo.songDetail(parameter).toJSONString(), SongDetailRootBean.class);
         cacheService.set(ids, songDetailRootBean, 30, TimeUnit.DAYS);
         return songDetailRootBean;
+    }
+
+    /**
+     * 保存在线音乐到本地
+     *
+     * @param songUrlRootBean
+     * @param songs
+     * @param songJson
+     */
+    @Override
+    public Music saveMusicByWyy(SongUrlRootBean songUrlRootBean, Songs songs, SongDetailRootBean songJson) {
+        Music music = new Music();
+        String musicName = songs.getName();
+        String artist = "佚名";
+        Integer artistIdWyy = null;
+        if (songs.getAr().size() > 0) {
+            artist = songs.getAr().get(0).getName();
+            artistIdWyy = songs.getAr().get(0).getId();
+        }
+        String musicPath = resourcePath + PathEnum.DOWNLOAD_MUSIC_PATH.getPath() + "/" + ToolsUtil.getFileName(artist + " - " + musicName);
+        JsonData jsonData = songUrlRootBean.getData().get(0);
+        String url = jsonData.getUrl();
+        File audio = new File(musicPath);
+        if (!audio.getParentFile().exists()) {
+            audio.getParentFile().mkdirs();
+        }
+        HttpUtil.downloadFile(url, audio);
+        String sha256 = SecureUtil.sha256(new File(audio.getAbsolutePath()));
+
+        music.setHashCode(sha256);
+        music.setPath(audio.getAbsolutePath());
+        music.setTitle(musicName);
+        music.setArtist(artist);
+        if (null != artistIdWyy && artistIdWyy != 0) {
+            //获取歌手信息
+            Singer singer = this.getSingerByWyyId(artistIdWyy);
+            music.setArtistId(singer.getId());
+        }
+        String albumPicUrl = null;
+        String albumWyy = null;
+        Long albumIdWyy = null;
+        if (songs.getAl() != null) {
+            albumWyy = songs.getAl().getName();
+            albumIdWyy = songs.getAl().getId();
+            albumPicUrl = songs.getAl().getPicUrl();
+        }
+        if (null != albumPicUrl && null != albumWyy) {
+            //获取专辑封面
+            MusicCover musicCover = this.getMusicCoverByWyyId(songs.getAl(), music);
+            music.setCoverId(musicCover.getId());
+        }
+
+        //获取歌词信息
+        Lyric lyric = this.getLyricByWyyId(songs.getId(), music);
+        music.setLyricId(lyric.getId());
+
+        music.setAlbum(albumWyy);
+        music.setAlbumId(albumIdWyy);
+//        music.setRate();
+//        music.setSongLength();
+//        music.setFormat();
+        music.setTrack(songs.getCd());
+//        music.setYears();
+//        music.setType();
+//        music.setNote();
+//        music.setLanguage();
+        music.setCreateTime(new Date());
+        music.setWyyId(songs.getId());
+        this.save(music);
+        return music;
+
+    }
+
+    /**
+     * 通过网易云id获取歌手信息
+     *
+     * @param artistIdWyy
+     * @return
+     */
+    @Override
+    public Singer getSingerByWyyId(Integer artistIdWyy) {
+        QueryWrapper<Singer> query = new QueryWrapper<>();
+        query.eq("WYY_ID", artistIdWyy);
+        Singer singer = singerMapper.selectOne(query);
+        if (null == singer) {
+            JSONObject searchartist = new JSONObject();
+            searchartist.put("id", artistIdWyy + "");
+            JSONObject artistJson = neteaseCloudMusicInfo.artistDetail(searchartist);
+            JSONObject artistJson2 = artistJson.getJSONObject("data").getJSONObject("artist");
+            String coverUrl = artistJson2.getString("cover");
+
+            //歌手名称
+            String name = artistJson2.getString("name");
+            //歌手简介
+            String briefDesc = artistJson2.getString("briefDesc");
+            //音乐数量
+            Long musicSize = artistJson2.getLong("musicSize");
+            //专辑数量
+            Long albumSize = artistJson2.getLong("albumSize");
+            //网易云音乐id
+            Long wyyId = artistJson2.getLong("id");
+            singer = new Singer();
+            singer.setName(name);
+            String artistsCoverPath = resourcePath + PathEnum.SINGER_COVER.getPath() + "/" + ToolsUtil.getFileName(name + "—" + wyyId) + "." + formatName;
+            try {
+                ImageIO.write(ImageIO.read(new URL(coverUrl)), formatName, new File(artistsCoverPath));
+                singer.setPic(artistsCoverPath);
+            } catch (Exception e) {
+                e.printStackTrace();
+                singer.setPic(coverUrl);
+            }
+            singer.setIntroduction(briefDesc);
+            singer.setMusicSize(musicSize);
+            singer.setAlbumSize(albumSize);
+            singer.setWyyId(wyyId);
+            singerMapper.insert(singer);
+        }
+        return singer;
+    }
+
+    /**
+     * 通过网易云id获取专辑信息
+     *
+     * @param albumWyy
+     * @param music
+     * @return
+     */
+    @Override
+    public MusicCover getMusicCoverByWyyId(Al albumWyy, Music music) {
+        String coverPath = resourcePath + PathEnum.MUSIC_COVER.getPath() + "/" + ToolsUtil.getFileName(music) + "." + formatName;
+        QueryWrapper<MusicCover> query = new QueryWrapper<>();
+        query.eq("WYY_ID", albumWyy.getId());
+        MusicCover musicCover = musicCoverMapper.selectOne(query);
+        if (null == musicCover) {
+            try {
+                musicCover = new MusicCover();
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                ImageIO.write(ImageIO.read(new URL(albumWyy.getPicUrl())), formatName, os);
+                InputStream inputStream = new ByteArrayInputStream(os.toByteArray());
+                String sha256MusicCover = SecureUtil.sha256(inputStream);
+                ImageIO.write(ImageIO.read(new URL(albumWyy.getPicUrl())), formatName, new File(coverPath));
+                musicCover.setHashCode(sha256MusicCover);
+                musicCover.setPath(coverPath);
+                musicCover.setName(music.getTitle());
+                musicCover.setWyyId(albumWyy.getId());
+                musicCoverMapper.insert(musicCover);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return musicCover;
+    }
+
+    /**
+     * 通过网易云id获取歌词信息
+     *
+     * @param id
+     * @param music
+     * @return
+     */
+    @Override
+    public Lyric getLyricByWyyId(Long id, Music music) {
+        QueryWrapper<Lyric> query = new QueryWrapper<>();
+        query.eq("WYY_ID", id);
+        Lyric lyric = lyricMapper.selectOne(query);
+        if (null == lyric) {
+            try {
+                JSONObject searchlyric = new JSONObject();
+                searchlyric.put("id", id + "");
+                JSONObject searchlyricResult = neteaseCloudMusicInfo.lyric(searchlyric);
+                String lyricText = searchlyricResult.getJSONObject("lrc").getString("lyric");
+                String lyricPath = resourcePath + PathEnum.LYRIC_PATH.getPath() + "/" + ToolsUtil.getFileName(music) + ".lrc";
+                FileWriter writer = new FileWriter(lyricPath);
+                writer.write(lyricText);
+                writer.flush();
+                writer.close();
+                lyric.setId(music.getId());
+                lyric.setPath(lyricPath);
+                lyric.setName(music.getTitle());
+                lyric.setWyyId(searchlyricResult.getJSONObject("lrc").getLong("id"));
+                lyricMapper.insert(lyric);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return lyric;
     }
 }

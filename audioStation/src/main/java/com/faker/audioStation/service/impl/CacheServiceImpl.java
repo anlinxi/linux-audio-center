@@ -1,7 +1,6 @@
 package com.faker.audioStation.service.impl;
 
 import cn.hutool.core.convert.Convert;
-import com.alibaba.fastjson.JSONObject;
 import com.faker.audioStation.enums.PathEnum;
 import com.faker.audioStation.model.dto.CacheDto;
 import com.faker.audioStation.service.CacheService;
@@ -174,7 +173,7 @@ public class CacheServiceImpl implements CacheService {
                     //读取对象
                     webSocketMap = (ConcurrentHashMap) ois.readObject();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error("缓存加载失败", e);
                 }
             }
             initialized = true;

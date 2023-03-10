@@ -83,5 +83,5 @@ public class Singer implements Serializable {
     @ApiModelProperty("网易云音乐id")
     @Excel(name = "网易云音乐id")
     @TableField("WYY_ID")
-    private Long wyy_id;
+    private Long wyyId;
 }

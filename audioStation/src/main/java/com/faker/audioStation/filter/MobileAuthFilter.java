@@ -6,6 +6,7 @@ import com.faker.audioStation.model.domain.JsMobileUser;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.IJsMobileUserService;
 import com.faker.audioStation.util.SpringContextUtils;
+import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.wrapper.WrapMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -99,6 +101,12 @@ public class MobileAuthFilter implements Filter {
             }
         }
         if (null != token) {
+            if (null == __token || "".equals(__token)) {
+                Map params = ToolsUtil.getAllParameterMap(httpServletRequest);
+                if (params.get("__token") != null) {
+                    __token = String.valueOf(params.get("__token"));
+                }
+            }
             if (token.equals(__token)) {
                 log.warn("用户[" + __userId + "]app验证sid[" + __token + "]通过!");
             } else {

@@ -2,9 +2,14 @@ package com.faker.audioStation.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.faker.audioStation.model.domain.Lyric;
 import com.faker.audioStation.model.domain.Music;
+import com.faker.audioStation.model.domain.MusicCover;
+import com.faker.audioStation.model.domain.Singer;
 import com.faker.audioStation.model.dto.GetMusicPageParamDto;
+import com.faker.audioStation.model.dto.wyy.songDetail.Al;
 import com.faker.audioStation.model.dto.wyy.songDetail.SongDetailRootBean;
+import com.faker.audioStation.model.dto.wyy.songDetail.Songs;
 import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
 import com.faker.audioStation.model.vo.LayuiColVo;
 import com.faker.audioStation.wrapper.Wrapper;
@@ -52,4 +57,39 @@ public interface MusicService extends IService<Music> {
      * @return
      */
     SongDetailRootBean songDetail(String[] ids);
+
+    /**
+     * 保存在线音乐到本地
+     *
+     * @param songUrlRootBean
+     * @param songs
+     * @param songJson
+     */
+    Music saveMusicByWyy(SongUrlRootBean songUrlRootBean, Songs songs, SongDetailRootBean songJson);
+
+    /**
+     * 通过网易云id获取歌手信息
+     *
+     * @param artistIdWyy
+     * @return
+     */
+    Singer getSingerByWyyId(Integer artistIdWyy);
+
+    /**
+     * 通过网易云id获取专辑信息
+     *
+     * @param albumWyy
+     * @param music
+     * @return
+     */
+    MusicCover getMusicCoverByWyyId(Al albumWyy, Music music);
+
+    /**
+     * 通过网易云id获取歌词信息
+     *
+     * @param id
+     * @param music
+     * @return
+     */
+    Lyric getLyricByWyyId(Long id, Music music);
 }

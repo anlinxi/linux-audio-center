@@ -13,19 +13,20 @@ import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
 import com.faker.audioStation.model.vo.LayuiColVo;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.MusicService;
+import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,6 +127,27 @@ public class MusicController {
         //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
         cacheService.set(key, JSONObject.toJSONString(songUrlRootBean), 7, TimeUnit.DAYS);
         return songUrlRootBean;
+    }
+
+    @ApiOperation(value = "根据网易云音乐id获取歌曲信息", notes = "根据网易云音乐id获取歌曲信息")
+    @GetMapping(value = "getMusic")
+    @ResponseBody
+    @LogAndPermissions
+    public void getMusic(@ApiParam("音乐文件id") @RequestParam String id, @ApiParam("token") @RequestParam("__token") String token, HttpServletResponse response) {
+        log.info("token=" + token);
+        Music music = musicService.getById(id);
+        if (null == music) {
+            ToolsUtil.setStateInfo(response, 404, "根据[" + id + "]未找到音乐信息");
+            return;
+        }
+        File file = new File(music.getPath());
+        if (!file.exists()) {
+            log.error("音乐文件地址不存在:" + file.getAbsolutePath());
+            ToolsUtil.setStateInfo(response, 404, "音乐文件不存在");
+            return;
+        }
+        ToolsUtil.downloadFile(response, file);
+        return;
     }
 
 }

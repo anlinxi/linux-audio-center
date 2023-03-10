@@ -95,6 +95,9 @@ public class TableController {
             return WrapMapper.error("未查询到对应的实体类[" + pageSizeDto.getDomainName() + "]");
         }
         IPage<?> iPage = tableService.getPage(pageSizeDto);
+        if (null == iPage) {
+            return WrapMapper.error("未查询到对应的Mapper[" + pageSizeDto.getDomainName() + "]");
+        }
         return WrapMapper.ok(iPage);
     }
 }

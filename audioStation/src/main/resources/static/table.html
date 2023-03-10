@@ -35,7 +35,7 @@
 <form class="layui-form">
     <div class="layui-form-item">
 
-        <div class="layui-inline">
+        <div class="layui-inline" style="display:none;">
             <label class="layui-form-label">名称</label>
             <div class="layui-input-inline">
                 <div class="layui-input-block" style="margin-left:0px">
@@ -99,8 +99,7 @@
 
         //初始化加载表格
         loadTable(table);
-        //加载表名
-        loadTalbeName(layer, table, form);
+
         //按钮事件，生成属性名等
         showTable(layer, table, form);
         //渲染代码域
@@ -139,6 +138,8 @@
                 document.getElementById('flag3').innerHTML = html;
                 //渲染单选框下拉框
                 form.render();
+                //加载表名
+                loadTalbeName(layer, table, form);
             },
             error: function (error) {
                 console.log(error);
@@ -435,8 +436,7 @@
                     //接口的其它参数
                     where: {
                         name: $("#name").val(),
-                        stateCode: $("#flag3").val()
-
+                        domainName: $("#flag3").val()
                     },
                     //指定原始表格元素选择器（推荐id选择器）
                     elem: '#attrTable',

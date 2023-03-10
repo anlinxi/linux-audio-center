@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  * @version 2020-07-25
  */
 @Controller
-@Api("移动端登录鉴权方法")
+@Api("web端登录鉴权方法")
 @RequestMapping(value = "pc/")
 public class PcUserAppController extends MobileUserAppController {
 

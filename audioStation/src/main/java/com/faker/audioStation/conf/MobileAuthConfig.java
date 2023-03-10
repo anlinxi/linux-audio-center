@@ -38,7 +38,7 @@ public class MobileAuthConfig {
     @Bean
     public FilterRegistrationBean<MobileAuthFilter> mobileAuthFilter() {
         FilterRegistrationBean<MobileAuthFilter> bean = new FilterRegistrationBean<>();
-        bean.addUrlPatterns("/mobile/*", "/music/*");
+        bean.addUrlPatterns("/mobile/*", "/api/*");
         bean.setFilter(this.getMobileAuthFilterBean());
         //过滤器名称
         bean.setName("MobileAuthFilter");

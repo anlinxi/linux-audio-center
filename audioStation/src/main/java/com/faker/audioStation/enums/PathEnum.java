@@ -20,27 +20,27 @@ public enum PathEnum {
     /**
      * 音乐封面目录
      */
-    MUSIC_COVER("image/music"),
+    MUSIC_COVER("audioCenter/image/music"),
 
     /**
      * 歌手图片
      */
-    SINGER_COVER("image/singer"),
+    SINGER_COVER("audioCenter/image/singer"),
 
     /**
      * 歌单图片
      */
-    PLAYLIST_COVER("image/playlist"),
+    PLAYLIST_COVER("audioCenter/image/playlist"),
 
     /**
      * 歌词地址
      */
-    LYRIC_PATH("lyric/"),
+    LYRIC_PATH("audioCenter/lyric"),
 
     /**
      * 音乐地址
      */
-    MUSIC_PATH("music/");
+    DOWNLOAD_MUSIC_PATH("audioCenter/music");
 
     /**
      * 路径

@@ -23,7 +23,7 @@ import java.util.Map;
 
 @Controller
 @Api("音乐控制层")
-@RequestMapping(value = "music/")
+@RequestMapping(value = "/api/music/")
 public class MusicController {
 
     @Autowired

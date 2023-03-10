@@ -34,8 +34,8 @@ public class FileConfig implements WebMvcConfigurer {
                 "file:" + resourcePath + System.getProperty("file.separator") + "img"
                         + System.getProperty("file.separator") + "songPic" + System.getProperty("file.separator")
         );
-        //歌曲地址
-        registry.addResourceHandler("/" + PathEnum.MUSIC_PATH + "/song/**").addResourceLocations(
+        //下载歌曲地址
+        registry.addResourceHandler("/" + PathEnum.DOWNLOAD_MUSIC_PATH + "/song/**").addResourceLocations(
                 "file:" + resourcePath + System.getProperty("file.separator") + "song" + System.getProperty("file.separator")
         );
         //前端用户头像地址

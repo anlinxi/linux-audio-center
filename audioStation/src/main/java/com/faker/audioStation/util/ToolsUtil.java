@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.vo.LayuiColVo;
 import io.swagger.annotations.ApiModelProperty;
 import org.slf4j.Logger;
@@ -391,5 +392,15 @@ public class ToolsUtil {
         return name.replaceAll("\"", "").replaceAll("\\*", "").replaceAll("\\<", "").replaceAll("\\>", "")
                 .replaceAll("\\?", "").replaceAll("\\\\", "").replaceAll("/", "").replaceAll("|", "")
                 .replaceAll(":", "");
+    }
+
+    /**
+     * 转换文件名
+     *
+     * @param music
+     * @return
+     */
+    public static String getFileName(Music music) {
+        return getFileName(music.getArtist() + " - " + music.getTitle());
     }
 }

@@ -1,5 +1,6 @@
 package com.faker.audioStation.service.impl;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -142,6 +143,7 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
             if (null != jsonData.getUrl() && songJson.getSongs().size() > 0) {
                 Songs songs = songJson.getSongs().get(0);
                 music = this.saveMusicByWyy(songUrlRootBean, songs, songJson);
+                songUrlRootBean.getData().get(0).setUrl("/api/music/getMusic?id=" + music.getId());
             }
         }
         return songUrlRootBean;
@@ -184,7 +186,13 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
             artist = songs.getAr().get(0).getName();
             artistIdWyy = songs.getAr().get(0).getId();
         }
-        String musicPath = resourcePath + PathEnum.DOWNLOAD_MUSIC_PATH.getPath() + "/" + ToolsUtil.getFileName(artist + " - " + musicName);
+        String type = "mp3";
+        try {
+            type = songUrlRootBean.getData().get(0).getType();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String musicPath = resourcePath + PathEnum.DOWNLOAD_MUSIC_PATH.getPath() + "/" + ToolsUtil.getFileName(artist + " - " + musicName + "." + type);
         JsonData jsonData = songUrlRootBean.getData().get(0);
         String url = jsonData.getUrl();
         File audio = new File(musicPath);
@@ -193,9 +201,17 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
         }
         HttpUtil.downloadFile(url, audio);
         String sha256 = SecureUtil.sha256(new File(audio.getAbsolutePath()));
+        //481,115 小文件试听音乐移入缓存
+        if (audio.length() == 481115) {
+            log.info("小文件试听音乐移入缓存:" + audio.length());
+            String tmp = resourcePath + PathEnum.DOWNLOAD_MUSIC_PATH.getPath() + "/tmp/" + ToolsUtil.getFileName(artist + " - " + musicName + "." + type);
+            FileUtil.copy(musicPath, tmp, false);
+            musicPath = tmp;
+            audio.delete();
+        }
 
         music.setHashCode(sha256);
-        music.setPath(audio.getAbsolutePath());
+        music.setPath(new File(musicPath).getAbsolutePath());
         music.setTitle(musicName);
         music.setArtist(artist);
         if (null != artistIdWyy && artistIdWyy != 0) {
@@ -341,6 +357,7 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
                 writer.write(lyricText);
                 writer.flush();
                 writer.close();
+                lyric = new Lyric();
                 lyric.setId(music.getId());
                 lyric.setPath(lyricPath);
                 lyric.setName(music.getTitle());

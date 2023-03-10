@@ -84,6 +84,20 @@ public class MobileAuthFilter implements Filter {
         //获取当前用户
         String __token = httpServletRequest.getHeader("__token");
         String __userId = httpServletRequest.getHeader("__userId");
+        if (null == __userId || "".equals(__userId) || null == __token || "".equals(__token)) {
+            Map params = ToolsUtil.getAllParameterMap(httpServletRequest);
+            if (null == __userId || "".equals(__userId)) {
+                if (params.get("__userId") != null) {
+                    __userId = String.valueOf(params.get("__userId"));
+                }
+            }
+            if (null == __token || "".equals(__token)) {
+                if (params.get("__token") != null) {
+                    __token = String.valueOf(params.get("__token"));
+                }
+            }
+        }
+
         String redisKey = "userInfo:" + __userId;
         if (null == __userId) {
             String errorMsg = "无用户验证消息";
@@ -101,12 +115,6 @@ public class MobileAuthFilter implements Filter {
             }
         }
         if (null != token) {
-            if (null == __token || "".equals(__token)) {
-                Map params = ToolsUtil.getAllParameterMap(httpServletRequest);
-                if (params.get("__token") != null) {
-                    __token = String.valueOf(params.get("__token"));
-                }
-            }
             if (token.equals(__token)) {
                 log.warn("用户[" + __userId + "]app验证sid[" + __token + "]通过!");
             } else {

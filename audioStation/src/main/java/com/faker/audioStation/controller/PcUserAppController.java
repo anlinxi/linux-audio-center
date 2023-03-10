@@ -98,7 +98,7 @@ public class PcUserAppController extends MobileUserAppController {
             BeanUtils.copyProperties(user1, user2);
             user2.setPassword("");
             user2.setToken(uuid);
-            cacheService.set("mobileLogin:" + user1.getUserCode(), JSONObject.fromObject(user1).toString(), 36, TimeUnit.HOURS);
+            cacheService.set("mobileLogin:" + user1.getUserCode(), user1, 36, TimeUnit.HOURS);
             cacheService.delete(RandomValidateCodeUtil.RANDOMCODEKEY + ":" + username);
             return AesWrapMapper.ok(user2);
         } else {

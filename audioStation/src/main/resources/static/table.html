@@ -47,12 +47,11 @@
         </div>
 
         <div class="layui-inline">
-            <label class="layui-form-label">状态</label>
+            <label class="layui-form-label">数据类型</label>
             <div class="layui-input-inline">
                 <div class="layui-input-block" style="margin-left:0px">
                     <select name="flag3" lay-verify="required" id="flag3" lay-search="" lay-filter="flag3">
-                        <option value="">全部</option>
-                        <option value="download">已下载</option>
+                        <option value="Music">音乐</option>
                     </select>
                 </div>
             </div>
@@ -393,11 +392,12 @@
         var index = layer.load();
         var formData = {
             pageIndex: 0,
-            pageSize: 10
+            pageSize: 10,
+            name: $("#flag3").val()
         };
         ajax({
             type: "post",
-            "url": "/api/music/getMusicLayuiColVo",
+            "url": "/api/table/getLayuiColVo",
             data: formData,
             dataType: "json",
             success: function (result) {

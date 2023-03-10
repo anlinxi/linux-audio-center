@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -66,6 +67,8 @@ public class SqliteInit {
     @ApiModelProperty("mybatisPlus 实体类位置")
     private final String DOMAIN_PACKAGE = "com.faker.audioStation.model.domain";
 
+    @ApiModelProperty("扫描到的实体类Map")
+    public static ConcurrentHashMap<String,Class> classMap = new ConcurrentHashMap<>();
 
     /**
      * 初始化数据库
@@ -96,7 +99,6 @@ public class SqliteInit {
         List<String> tables = jdbcTemplate.queryForList("SELECT name FROM sqlite_master ", String.class);
         log.info("已存在的数据库:" + tables);
         List<String> domainTableNames = new ArrayList<String>();
-        Map<String, Class> classMap = new HashMap<String, Class>();
         //spring工具类，可以获取指定路径下的全部类
         ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
         try {
@@ -154,7 +156,7 @@ public class SqliteInit {
         int userCount = jdbcTemplate.queryForObject("SELECT COUNT(1) FROM js_mobile_user", Integer.class);
         if (userCount <= 0) {
             jdbcTemplate.update("INSERT INTO `JS_MOBILE_USER`(`USER_CODE`, `LOGIN_CODE`, `USER_NAME`, `TOKEN`, `PASSWORD`, `EMAIL`, `MOBILE`, `PHONE`, `SEX`, `AVATAR`, `SIGN`, `WX_OPENID`, `MOBILE_IMEI`, `USER_TYPE`, `REF_CODE`, `REF_NAME`, `MGR_TYPE`, `PWD_SECURITY_LEVEL`, `PWD_UPDATE_DATE`, `PWD_UPDATE_RECORD`, `PWD_QUESTION`, `PWD_QUESTION_ANSWER`, `PWD_QUESTION_2`, `PWD_QUESTION_ANSWER_2`, `PWD_QUESTION_3`, `PWD_QUESTION_ANSWER_3`, `PWD_QUEST_UPDATE_DATE`, `LAST_LOGIN_IP`, `LAST_LOGIN_DATE`, `FREEZE_DATE`, `FREEZE_CAUSE`, `USER_WEIGHT`, `STATUS`, `CREATE_BY`, `CREATE_DATE`, `UPDATE_BY`, `UPDATE_DATE`, `REMARKS`, `CORP_CODE`, `CORP_NAME`, `EXTEND_S1`, `EXTEND_S2`, `EXTEND_S3`, `EXTEND_S4`, `EXTEND_S5`, `EXTEND_S6`, `EXTEND_S7`, `EXTEND_S8`, `EXTEND_I1`, `EXTEND_I2`, `EXTEND_I3`, `EXTEND_I4`, `EXTEND_F1`, `EXTEND_F2`, `EXTEND_F3`, `EXTEND_F4`, `EXTEND_D1`, `EXTEND_D2`, `EXTEND_D3`, `EXTEND_D4`, `EXTEND_JSON`) " +
-                    " VALUES ('001_8f5770b703f24eff90d514e47a66f8c4', 'admin', '管理员', '', '95F8E9E2B22A01857F068E2CD8B6E521', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'employee', NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '172.17.0.1', '2021-03-23 12:18:22', NULL, NULL, 0, '0', '1185868924', '2020-12-31 14:30:34', 'system', '2021-03-23 12:18:22', NULL, '0', 'audio Station', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);");
+                    " VALUES ('001_8f5770b703f24eff90d514e47a66f8c4', 'admin', '管理员', '', '95F8E9E2B22A01857F068E2CD8B6E521', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'employee', NULL, NULL, '1', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '172.17.0.1', '2021-03-23 12:18:22', NULL, NULL, 0, '0', '1185868924', '2020-12-31 14:30:34', 'system', '2021-03-23 12:18:22', NULL, '0', 'audio Station', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);");
         }
     }
 

@@ -11,16 +11,16 @@ import lombok.NoArgsConstructor;
 public class LayuiPageSizeDto {
 
     @ApiModelProperty(value = "每页记录条数", example = "10")
-    private Long limit = 10L;
+    protected Long limit = 10L;
 
     @ApiModelProperty("页码")
-    private Long page = 1L;
+    protected Long page = 1L;
 
     @ApiModelProperty(value = "排序字段", example = "")
-    private String field;
+    protected String field;
 
     @ApiModelProperty(value = "排序方式", example = "desc")
-    private String order;
+    protected String order;
 
     public long getPageIndex() {
         return page;

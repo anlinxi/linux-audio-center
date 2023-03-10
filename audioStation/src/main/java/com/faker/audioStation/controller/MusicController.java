@@ -1,6 +1,7 @@
 package com.faker.audioStation.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.faker.audioStation.aop.LogAndPermissions;
 import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.dto.GetMusicPageParamDto;
 import com.faker.audioStation.model.dto.LayuiPageSizeDto;
@@ -33,6 +34,7 @@ public class MusicController {
     @ApiOperation(value = "获取音乐文件的layui参数", notes = "layui表头参数")
     @RequestMapping(value = "getMusicLayuiColVo")
     @ResponseBody
+    @LogAndPermissions("1")
     public Wrapper<List<LayuiColVo>> getMusicLayuiColVo() {
         return musicService.getMusicLayuiColVo();
     }
@@ -40,6 +42,7 @@ public class MusicController {
     @ApiOperation(value = "获取音乐文件的分页数据", notes = "分页查询")
     @RequestMapping(value = "getMusicPage")
     @ResponseBody
+    @LogAndPermissions
     public Wrapper<IPage<Music>> getMusicPage(@RequestBody GetMusicPageParamDto pageSizeDto) {
         return musicService.getMusicPage(pageSizeDto);
     }

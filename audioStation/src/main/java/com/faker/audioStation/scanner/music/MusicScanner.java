@@ -135,6 +135,10 @@ public class MusicScanner implements Scanner {
         if (!lyricCoverDir.exists()) {
             lyricCoverDir.mkdirs();
         }
+        File musicDir = new File(resourcePath + PathEnum.DOWNLOAD_MUSIC_PATH.getPath() + "/");
+        if (!musicDir.exists()) {
+            musicDir.mkdirs();
+        }
 
         //网易云音乐api
         NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();

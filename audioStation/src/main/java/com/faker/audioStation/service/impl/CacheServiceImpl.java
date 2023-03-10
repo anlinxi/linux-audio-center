@@ -57,7 +57,7 @@ public class CacheServiceImpl implements CacheService {
      * @param unit
      */
     @Override
-    public void set(String key, Object value, long timeout, TimeUnit unit) {
+    public void set(String key, Serializable value, long timeout, TimeUnit unit) {
         CacheDto cacheDto = new CacheDto();
         cacheDto.setKey(key);
         cacheDto.setValue(value);
@@ -76,7 +76,7 @@ public class CacheServiceImpl implements CacheService {
      * @param timeout
      */
     @Override
-    public void set(String key, Object value, long timeout) {
+    public void set(String key, Serializable value, long timeout) {
         set(key, value, timeout, TimeUnit.MINUTES);
     }
 
@@ -87,7 +87,7 @@ public class CacheServiceImpl implements CacheService {
      * @param value
      */
     @Override
-    public void set(String key, Object value) {
+    public void set(String key, Serializable value) {
         set(key, value, 30);
     }
 
@@ -191,14 +191,14 @@ public class CacheServiceImpl implements CacheService {
                 it.remove();
             }
         }
-        try {
-            FileWriter writer = new FileWriter(cachePath + "cache.json");
-            writer.write(JSONObject.toJSONString(webSocketMap));
-            writer.flush();
-            writer.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            FileWriter writer = new FileWriter(cachePath + "cache.json");
+//            writer.write(JSONObject.toJSONString(webSocketMap));
+//            writer.flush();
+//            writer.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         try {
             FileOutputStream fos = new FileOutputStream(cachePath + "cache.xlh");
             ObjectOutputStream oos = new ObjectOutputStream(fos);

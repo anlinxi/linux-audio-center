@@ -7,8 +7,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.faker.audioStation.aop.LogAndPermissions;
 import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.dto.GetMusicPageParamDto;
-import com.faker.audioStation.model.dto.IdsDto;
+import com.faker.audioStation.model.dto.IdDto;
 import com.faker.audioStation.model.dto.WyyApiDto;
+import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
 import com.faker.audioStation.model.vo.LayuiColVo;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.MusicService;
@@ -92,7 +93,7 @@ public class MusicController {
             return null;
         }
         //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
-        cacheService.set(key, resultText, 10, TimeUnit.HOURS);
+        cacheService.set(key, resultText, 7, TimeUnit.DAYS);
         return JSONObject.parseObject(resultText);
     }
 
@@ -100,12 +101,12 @@ public class MusicController {
     @PostMapping(value = "getMusicUrl")
     @ResponseBody
     @LogAndPermissions
-    public JSONObject getMusicUrl(@RequestBody IdsDto params) {
+    public SongUrlRootBean getMusicUrl(@RequestBody IdDto params) {
         String key = SecureUtil.md5(JSONObject.toJSONString(params));
         String value = cacheService.get(key);
         if (null != value) {
             try {
-                return JSONObject.parseObject(value);
+                return JSONObject.parseObject(value, SongUrlRootBean.class);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -113,15 +114,18 @@ public class MusicController {
         String url = music163Api + "/song/url";
         log.info("网易云音乐api请求地址:" + url);
         Map<String, Object> paramsMap = new HashMap<>();
-        paramsMap.put("ids", params.getIds());
+        paramsMap.put("id", params.getId());
         String resultText = HttpUtil.get(url, paramsMap);
         log.info("网易云音乐api返回:" + resultText);
         if (null == resultText) {
             return null;
         }
+        SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
+        log.info(songUrlRootBean.toString());
+        songUrlRootBean = musicService.downLoadMusic(songUrlRootBean);
         //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
-        cacheService.set(key, resultText, 24, TimeUnit.HOURS);
-        return JSONObject.parseObject(resultText);
+        cacheService.set(key, JSONObject.toJSONString(songUrlRootBean), 7, TimeUnit.DAYS);
+        return songUrlRootBean;
     }
 
 }

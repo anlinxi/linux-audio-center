@@ -1,5 +1,6 @@
 package com.faker.audioStation.service;
 
+import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -28,7 +29,7 @@ public interface CacheService {
      * @param timeout
      * @param unit
      */
-    public void set(String key, Object value, long timeout, TimeUnit unit);
+    public void set(String key, Serializable value, long timeout, TimeUnit unit);
 
     /**
      * 设置值
@@ -37,7 +38,7 @@ public interface CacheService {
      * @param value
      * @param timeout
      */
-    public void set(String key, Object value, long timeout);
+    public void set(String key, Serializable value, long timeout);
 
     /**
      * 设置值
@@ -45,7 +46,7 @@ public interface CacheService {
      * @param key
      * @param value
      */
-    public void set(String key, Object value);
+    public void set(String key, Serializable value);
 
     /**
      * 获取缓存值

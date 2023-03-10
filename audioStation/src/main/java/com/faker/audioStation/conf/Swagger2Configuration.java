@@ -21,7 +21,7 @@ public class Swagger2Configuration implements WebMvcConfigurer {
     /**
      * api接口包扫描路径
      */
-    public static final String SWAGGER_SCAN_BASE_PACKAGE = "com.faker.haveFunCenter";
+    public static final String SWAGGER_SCAN_BASE_PACKAGE = "com.faker.audioStation";
     /**
      * 版本
      */

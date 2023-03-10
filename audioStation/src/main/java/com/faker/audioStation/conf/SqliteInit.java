@@ -26,11 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * <p>SqliteInit</p>
@@ -68,7 +66,10 @@ public class SqliteInit {
     private final String DOMAIN_PACKAGE = "com.faker.audioStation.model.domain";
 
     @ApiModelProperty("扫描到的实体类Map")
-    public static ConcurrentHashMap<String,Class> classMap = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<String, Class> classMap = new ConcurrentHashMap<>();
+
+    @ApiModelProperty("扫描到的实体类Map")
+    public static ConcurrentHashMap<String, Class> classTableMap = new ConcurrentHashMap<>();
 
     /**
      * 初始化数据库
@@ -118,7 +119,8 @@ public class SqliteInit {
                 if (anno != null) {
                     //将注解中的类型值作为key，对应的类作为 value
                     domainTableNames.add(anno.value());
-                    classMap.put(anno.value(), clazz);
+                    classTableMap.put(anno.value(), clazz);
+                    classMap.put(clazz.getSimpleName(), clazz);
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -129,7 +131,7 @@ public class SqliteInit {
         for (String tableName : domainTableNames) {
             if (!tables.contains(tableName)) {
                 log.info("数据库[" + tableName + "]不存在，正在创建");
-                String createTableSql = MyBatisPlusSuppotSqliteInit.getInstance().createTable(classMap.get(tableName));
+                String createTableSql = MyBatisPlusSuppotSqliteInit.getInstance().createTable(classTableMap.get(tableName));
                 jdbcTemplate.update(createTableSql);
             } else {
                 List<Map<String, Object>> sqliteTableMapList = jdbcTemplate.queryForList("PRAGMA  table_info(" + tableName + ")");
@@ -144,10 +146,10 @@ public class SqliteInit {
                 }
                 sqliteTableMapList = null;
 //                log.info(sqliteTableStructureDto.toString());
-                List<String> createFieldSqlList = MyBatisPlusSuppotSqliteInit.getInstance().createField(classMap.get(tableName), sqliteTableStructureDto);
+                List<String> createFieldSqlList = MyBatisPlusSuppotSqliteInit.getInstance().createField(classTableMap.get(tableName), sqliteTableStructureDto);
 //                String createFieldSql = createFieldSqlList.stream().collect(Collectors.joining(";\n"));
 //                jdbcTemplate.update(createFieldSql);
-                for(String sql:createFieldSqlList){
+                for (String sql : createFieldSqlList) {
                     jdbcTemplate.update(sql);
                 }
             }

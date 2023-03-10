@@ -22,7 +22,7 @@ public class ScanMusicTest1 {
 
     @Test
     public void test1() throws Exception {
-        Wrapper wrapper = scanner.startScan("D:\\CloudMusic");
+        Wrapper wrapper = scanner.startScan("E:\\CloudMusic");
         log.info(wrapper.toString());
     }
 }

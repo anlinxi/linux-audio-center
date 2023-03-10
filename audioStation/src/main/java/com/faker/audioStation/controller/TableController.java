@@ -54,11 +54,11 @@ public class TableController {
     @RequestMapping(value = "getAllDomainList")
     @ResponseBody
     @LogAndPermissions("1")
-    public Wrapper<List<Map<String, String>>> getAllDomainList() {
-        List<Map<String, String>> optionList = new ArrayList<Map<String, String>>();
+    public Wrapper<Map<String, String>> getAllDomainList() {
+        Map<String, String> map = new HashMap<String, String>();
         for (Map.Entry<String, Class> entry : SqliteInit.classMap.entrySet()) {
 
-            Map<String, String> map = new HashMap<String, String>();
+
             //判断是否有指定主解
             Annotation anno = entry.getValue().getAnnotation(ApiModel.class);
             if (anno != null && anno instanceof ApiModel) {
@@ -68,9 +68,8 @@ public class TableController {
             } else {
                 map.put(entry.getKey(), entry.getValue().getSimpleName());
             }
-            optionList.add(map);
         }
-        return WrapMapper.ok(optionList);
+        return WrapMapper.ok(map);
     }
 
     @ApiOperation(value = "获取mybatis plus实体类参数", notes = "layui表头参数")
@@ -87,7 +86,7 @@ public class TableController {
     }
 
     @ApiOperation(value = "获取实体类文件的分页数据", notes = "分页查询")
-    @RequestMapping(value = "getMusicPage")
+    @RequestMapping(value = "getPage")
     @ResponseBody
     @LogAndPermissions
     public Wrapper<IPage<?>> getPage(@RequestBody GetPageDto pageSizeDto) {

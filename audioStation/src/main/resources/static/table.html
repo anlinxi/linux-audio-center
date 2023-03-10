@@ -50,7 +50,8 @@
             <label class="layui-form-label">数据类型</label>
             <div class="layui-input-inline">
                 <div class="layui-input-block" style="margin-left:0px">
-                    <select name="flag3" lay-verify="required" id="flag3" lay-search="" lay-filter="flag3">
+                    <select name="flag3" lay-verify="required" id="flag3" lay-search="" lay-filter="flag3"
+                            change="reload()">
                         <option value="Music">音乐</option>
                     </select>
                 </div>
@@ -125,6 +126,25 @@
      * @param table
      */
     function loadTable(table) {
+        ajax({
+            type: "post",
+            "url": "/api/table/getAllDomainList",
+            data: {},
+            dataType: "json",
+            success: function (res) {
+                let html = ''
+                for (let key in res) {
+                    html += "<option value=\"" + key + "\">" + res[key] + "</option>"
+                }
+                document.getElementById('flag3').innerHTML = html;
+                //渲染单选框下拉框
+                form.render();
+            },
+            error: function (error) {
+                console.log(error);
+                layer.msg(error);
+            }
+        });
         //执行渲染
         tableIns = table.render({
             id: 'attrTable',
@@ -405,7 +425,7 @@
                 layer.close(index);
                 tableIns = table.render({
                     id: 'attrTable',
-                    url: '/api/music/getMusicPage',
+                    url: '/api/table/getPage',
                     method: 'post',
                     contentType: 'application/json',
                     headers: {

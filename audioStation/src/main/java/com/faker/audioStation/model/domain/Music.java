@@ -147,4 +147,8 @@ public class Music implements Serializable {
     @TableField("WYY_ID")
     private Long wyyId;
 
+    @ApiModelProperty(value = "状态编码", example = "1", notes = "1:正常;2:隐藏;7:试听版;9:删除;")
+    @Excel(name = "状态编码")
+    @TableField("STATE_CODE")
+    private String stateCode;
 }

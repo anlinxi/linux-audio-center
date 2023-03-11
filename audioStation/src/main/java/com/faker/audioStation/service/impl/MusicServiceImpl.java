@@ -210,6 +210,7 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
             FileUtil.copy(musicPath, tmp, false);
             musicPath = tmp;
             audio.delete();
+            music.setStateCode("7");
         }
 
         music.setHashCode(sha256);

@@ -32,7 +32,7 @@ public class CacheDto implements Serializable {
     private String key;
 
     @ApiModelProperty("缓存值")
-    private Object value;
+    private Serializable value;
 
     @ApiModelProperty("缓存值类型")
     private Class classz;

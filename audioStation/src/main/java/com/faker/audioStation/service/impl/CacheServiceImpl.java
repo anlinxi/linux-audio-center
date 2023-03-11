@@ -1,6 +1,7 @@
 package com.faker.audioStation.service.impl;
 
 import cn.hutool.core.convert.Convert;
+import com.alibaba.fastjson.JSONObject;
 import com.faker.audioStation.enums.PathEnum;
 import com.faker.audioStation.model.dto.CacheDto;
 import com.faker.audioStation.service.CacheService;
@@ -47,6 +48,10 @@ public class CacheServiceImpl implements CacheService {
     @ApiModelProperty("资源文件路径")
     private String resourcePath;
 
+
+    @ApiModelProperty("是否变化值")
+    private Boolean chaneged = false;
+
     /**
      * 设置值
      *
@@ -65,6 +70,7 @@ public class CacheServiceImpl implements CacheService {
         cacheDto.setOverTime(timeout);
         cacheDto.setTimeUnit(unit);
         webSocketMap.put(key, cacheDto);
+        chaneged = true;
     }
 
     /**
@@ -131,6 +137,7 @@ public class CacheServiceImpl implements CacheService {
     @Override
     public void delete(String key) {
         webSocketMap.remove(key);
+        chaneged = true;
     }
 
 
@@ -190,25 +197,30 @@ public class CacheServiceImpl implements CacheService {
                 it.remove();
             }
         }
-//        try {
-//            FileWriter writer = new FileWriter(cachePath + "cache.json");
-//            writer.write(JSONObject.toJSONString(webSocketMap));
-//            writer.flush();
-//            writer.close();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-        try {
-            FileOutputStream fos = new FileOutputStream(cachePath + "cache.xlh");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            //调用 ObjectOutputStream 中的 writeObject() 方法 写对象
-            oos.writeObject(webSocketMap);
-            //flush方法刷新缓冲区，写字符时会用，因为字符会先进入缓冲区，将内存中的数据立刻写出
-            oos.flush();
-            fos.close();
-            oos.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+
+        if (chaneged) {
+            try {
+                FileOutputStream fos = new FileOutputStream(cachePath + "cache.xlh");
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                //调用 ObjectOutputStream 中的 writeObject() 方法 写对象
+                oos.writeObject(webSocketMap);
+                //flush方法刷新缓冲区，写字符时会用，因为字符会先进入缓冲区，将内存中的数据立刻写出
+                oos.flush();
+                fos.close();
+                oos.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                chaneged = false;
+            }
+            try {
+                FileWriter writer = new FileWriter(cachePath + "cache.json");
+                writer.write(JSONObject.toJSONString(webSocketMap));
+                writer.flush();
+                writer.close();
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
         }
     }
 

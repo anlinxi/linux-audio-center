@@ -1,6 +1,7 @@
 package com.faker.audioStation.service;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -85,4 +86,11 @@ public interface CacheService {
      * 清理过期缓存
      */
     void cleanCache();
+
+    /**
+     * 获取所有缓存key参数
+     *
+     * @return
+     */
+    List<String> allCacheKeys();
 }

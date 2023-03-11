@@ -11,9 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -222,6 +220,17 @@ public class CacheServiceImpl implements CacheService {
                 e2.printStackTrace();
             }
         }
+    }
+
+    /**
+     * 获取所有缓存key参数
+     *
+     * @return
+     */
+    @Override
+    public List<String> allCacheKeys() {
+        Enumeration<String> keyNames = webSocketMap.keys();
+        return Collections.list(keyNames);
     }
 
 }

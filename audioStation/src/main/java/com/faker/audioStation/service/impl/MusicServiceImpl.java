@@ -381,7 +381,7 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
     @Override
     public Wrapper<JSONObject> getLyricByWyyId(IdDto param) {
         QueryWrapper<Music> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("WYY_ID", param.getId());
+        queryWrapper.eq("WYY_ID", param.getId()).or().eq("ID", param.getId());
         Music music = this.getOne(queryWrapper);
         if (null == music) {
             JSONObject searchlyric = new JSONObject();

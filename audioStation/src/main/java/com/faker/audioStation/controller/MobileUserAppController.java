@@ -56,14 +56,14 @@ public class MobileUserAppController extends BaseController {
     @ResponseBody
     @ApiOperation(value = "移动端登录", notes = "移动端登录方法")
     @RequestMapping(value = "login")
-    public String login(String username, String password, String __sid, HttpServletRequest request) {
+    public JSONObject login(String username, String password, String __sid, HttpServletRequest request) {
         JSONObject result = new JSONObject();
         result.put("message", "登录失败");
         result.put("result", "false");
         if (StringUtils.isEmpty(password)) {
             result.put("message", "密码不能为空");
             result.put("isValidCodeLogin", false);
-            return result.toString();
+            return result;
         }
         if (null == __sid || "".equals(__sid)) {
             __sid = IdGen.uuid();
@@ -78,7 +78,7 @@ public class MobileUserAppController extends BaseController {
             if (Integer.parseInt(n) > 6 && t != null && t > 0) {
                 result.put("message", "密码错误超过最大次数限制,还需等待" + t + "分钟");
                 result.put("isValidCodeLogin", false);
-                return result.toString();
+                return result;
             }
         }
 
@@ -121,7 +121,7 @@ public class MobileUserAppController extends BaseController {
             result.put("username", loginCode);
             result.put("isValidCodeLogin", false);
         }
-        return result.toString();
+        return result;
     }
 
     @ApiOperation(value = "注销登录", notes = "注销的方法")

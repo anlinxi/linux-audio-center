@@ -161,7 +161,7 @@ public class MusicController {
     @ResponseBody
     @LogAndPermissions
     public Wrapper<JSONObject> getLyricByWyyId(@RequestBody IdDto params) {
-        String key = SecureUtil.md5(JSONObject.toJSONString(params));
+        String key = SecureUtil.md5("getLyricByWyyId:" + JSONObject.toJSONString(params));
         JSONObject value = cacheService.get(key);
         if (null != value) {
             return WrapMapper.ok(value);

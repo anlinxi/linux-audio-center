@@ -1,5 +1,6 @@
 package com.faker.audioStation.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.faker.audioStation.model.domain.Lyric;
@@ -7,6 +8,7 @@ import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.domain.MusicCover;
 import com.faker.audioStation.model.domain.Singer;
 import com.faker.audioStation.model.dto.GetMusicPageParamDto;
+import com.faker.audioStation.model.dto.IdDto;
 import com.faker.audioStation.model.dto.wyy.songDetail.Al;
 import com.faker.audioStation.model.dto.wyy.songDetail.SongDetailRootBean;
 import com.faker.audioStation.model.dto.wyy.songDetail.Songs;
@@ -14,6 +16,7 @@ import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
 import com.faker.audioStation.model.vo.LayuiColVo;
 import com.faker.audioStation.wrapper.Wrapper;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -92,4 +95,20 @@ public interface MusicService extends IService<Music> {
      * @return
      */
     Lyric getLyricByWyyId(Long id, Music music);
+
+    /**
+     * 通过网易云id获取歌词信息
+     *
+     * @param param
+     * @return
+     */
+    Wrapper<JSONObject> getLyricByWyyId(IdDto param);
+
+    /**
+     * 根据封面文件id获取封面图片
+     *
+     * @param id
+     * @param response
+     */
+    void getMusicCoverById(String id, HttpServletResponse response);
 }

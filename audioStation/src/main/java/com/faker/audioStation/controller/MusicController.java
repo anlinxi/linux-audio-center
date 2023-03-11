@@ -14,6 +14,7 @@ import com.faker.audioStation.model.vo.LayuiColVo;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.MusicService;
 import com.faker.audioStation.util.ToolsUtil;
+import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
@@ -24,9 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +52,9 @@ public class MusicController {
     @Autowired
     @ApiModelProperty("缓存服务")
     CacheService cacheService;
+
+    @ApiModelProperty("网易云音乐api")
+    NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
 
     @ApiOperation(value = "获取音乐文件的layui参数", notes = "layui表头参数")
     @PostMapping(value = "getMusicLayuiColVo")
@@ -150,4 +156,50 @@ public class MusicController {
         return;
     }
 
+    @ApiOperation(value = "通过网易云id获取歌词信息", notes = "通过网易云id获取歌词")
+    @PostMapping(value = "getLyricByWyyId")
+    @ResponseBody
+    @LogAndPermissions
+    public Wrapper<JSONObject> getLyricByWyyId(@RequestBody IdDto params) {
+        String key = SecureUtil.md5(JSONObject.toJSONString(params));
+        JSONObject value = cacheService.get(key);
+        if (null != value) {
+            return WrapMapper.ok(value);
+        }
+        Wrapper<JSONObject> wrapper = musicService.getLyricByWyyId(params);
+        if (wrapper.success()) {
+            cacheService.set(key, wrapper.getResult());
+        }
+        return wrapper;
+    }
+
+    @ApiOperation(value = "获取本地的所有音乐", notes = "")
+    @PostMapping(value = "getAllMusic")
+    @ResponseBody
+    @LogAndPermissions("1")
+    public Wrapper<List<Music>> getAllMusic() {
+        String key = "getAllMusic";
+        ArrayList<Music> value = cacheService.get(key);
+        if (null != value) {
+            return WrapMapper.ok(value);
+        }
+        List<Music> list = musicService.list();
+        ArrayList<Music> arrayList = new ArrayList<Music>();
+        for (Music music : list) {
+            music.setPath(null);
+            music.setHashCode(null);
+            arrayList.add(music);
+        }
+        list = null;
+        cacheService.set(key, arrayList, 10, TimeUnit.MINUTES);
+        return WrapMapper.ok(arrayList);
+    }
+
+    @ApiOperation(value = "根据封面文件id获取封面图片", notes = "根据网易云音乐id获取歌曲信息")
+    @GetMapping(value = "getMusicCoverById")
+    @ResponseBody
+    @LogAndPermissions
+    public void getMusicCoverById(@ApiParam("封面文件id") @RequestParam String id, HttpServletResponse response) {
+        musicService.getMusicCoverById(id, response);
+    }
 }

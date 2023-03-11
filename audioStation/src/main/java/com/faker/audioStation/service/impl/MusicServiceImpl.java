@@ -18,6 +18,7 @@ import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.domain.MusicCover;
 import com.faker.audioStation.model.domain.Singer;
 import com.faker.audioStation.model.dto.GetMusicPageParamDto;
+import com.faker.audioStation.model.dto.IdDto;
 import com.faker.audioStation.model.dto.wyy.songDetail.Al;
 import com.faker.audioStation.model.dto.wyy.songDetail.SongDetailRootBean;
 import com.faker.audioStation.model.dto.wyy.songDetail.Songs;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Service;
 import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URL;
 import java.util.Arrays;
@@ -368,5 +370,55 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
             }
         }
         return lyric;
+    }
+
+    /**
+     * 通过网易云id获取歌词信息
+     *
+     * @param param
+     * @return
+     */
+    @Override
+    public Wrapper<JSONObject> getLyricByWyyId(IdDto param) {
+        QueryWrapper<Music> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("WYY_ID", param.getId());
+        Music music = this.getOne(queryWrapper);
+        if (null == music) {
+            JSONObject searchlyric = new JSONObject();
+            searchlyric.put("id", param.getId() + "");
+            JSONObject searchlyricResult = neteaseCloudMusicInfo.lyric(searchlyric);
+            return WrapMapper.ok(searchlyricResult);
+        }
+        Lyric lyric = this.getLyricByWyyId(Long.parseLong(param.getId()), music);
+        cn.hutool.core.io.file.FileReader reader = new cn.hutool.core.io.file.FileReader(lyric.getPath());
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code", 200);
+        JSONObject lrc = new JSONObject();
+        lrc.put("lyric", reader.readString());
+        jsonObject.put("lrc", lrc);
+        return WrapMapper.ok(jsonObject);
+    }
+
+    /**
+     * 根据封面文件id获取封面图片
+     *
+     * @param id
+     * @param response
+     */
+    @Override
+    public void getMusicCoverById(String id, HttpServletResponse response) {
+        MusicCover musicCover = musicCoverMapper.selectById(id);
+        if (null == musicCover) {
+            ToolsUtil.setStateInfo(response, 404, "根据[" + id + "]未找到音乐封面信息");
+            return;
+        }
+        File file = new File(musicCover.getPath());
+        if (!file.exists()) {
+            log.error("封面图片文件地址不存在:" + file.getAbsolutePath());
+            ToolsUtil.setStateInfo(response, 404, "封面图片文件不存在");
+            return;
+        }
+        ToolsUtil.downloadFile(response, file);
     }
 }

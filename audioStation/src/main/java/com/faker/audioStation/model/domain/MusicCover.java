@@ -12,6 +12,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
+
 /**
  * <p>AlbumCoverDto</p>
  *
@@ -32,7 +34,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @TableName("MUSIC_COVER")
 @ApiModel(value = "音频文件专辑信息对象", description = "音频文件专辑信息表")
-public class MusicCover {
+public class MusicCover  implements Serializable {
 
     @ApiModelProperty("主键")
     @Excel(name = "主键")

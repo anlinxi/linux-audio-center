@@ -12,6 +12,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
+
 /**
  * <p>歌词信息对象</p>
  *
@@ -32,7 +34,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @TableName("LYRIC")
 @ApiModel(value = "歌词信息对象", description = "")
-public class Lyric {
+public class Lyric implements Serializable {
 
     @ApiModelProperty("主键")
     @Excel(name = "主键")

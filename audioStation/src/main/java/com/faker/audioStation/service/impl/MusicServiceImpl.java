@@ -266,7 +266,7 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
     @Override
     public Singer getSingerByWyyId(Integer artistIdWyy) {
         QueryWrapper<Singer> query = new QueryWrapper<>();
-        query.eq("WYY_ID", artistIdWyy);
+        query.eq("WYY_ID", artistIdWyy).or().eq("ID", artistIdWyy);
         Singer singer = singerMapper.selectOne(query);
         if (null == singer) {
             JSONObject searchartist = new JSONObject();
@@ -389,6 +389,9 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
             searchlyric.put("id", param.getId() + "");
             JSONObject searchlyricResult = neteaseCloudMusicInfo.lyric(searchlyric);
             return WrapMapper.ok(searchlyricResult);
+        }
+        if (param.getId().equals(music.getId() + "")) {
+            param.setId(music.getWyyId() + "");
         }
         Lyric lyric = this.getLyricByWyyId(Long.parseLong(param.getId()), music);
         cn.hutool.core.io.file.FileReader reader = new cn.hutool.core.io.file.FileReader(lyric.getPath());

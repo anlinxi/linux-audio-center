@@ -21,8 +21,13 @@
             loadTopArtists()
             //加载新歌速递
             loadPersonalizedNewsong()
+            //加载热门榜单
+            loadToplistDetail()
         })
 
+        /**
+         * 转到数据后台
+         */
         function toTable() {
             let a = document.createElement('a')
             a.href = '/table.html'
@@ -129,6 +134,123 @@
                             "                    </div>"
                     }
                     $('.disk').html(html)
+                }
+            })
+        }
+
+        /**
+         * 加载热门榜单
+         */
+        function loadToplistDetail() {
+            loadToplistSongByIdAndDomId(19723756, '#bsb')
+            loadToplistSongByIdAndDomId(3779629, '#xgb')
+            loadToplistSongByIdAndDomId(3778678, '#rgb')
+        }
+
+        /**
+         * 通过id加载热门榜单前10位
+         * @param songId
+         * @param domId
+         */
+        function loadToplistSongByIdAndDomId(songId, domId) {
+            loadToplistSongById(songId).then(ids => {
+                post('/api/music/getWyyApi', {
+                    method: "GET",
+                    url: "/song/detail",
+                    data: {ids: ids}
+                }).then(res => {
+                    if (res.code == 200) {
+                        let list = res.songs
+                        let html = ''
+                        for (let i = 0; i < list.length; i++) {
+                            let item = list[i];
+                            html += "" +
+                                "                      <div class=\"ranking-body\">\n" +
+                                "                                <div class=\"body-left changeColor\">" + (i + 1) + "</div>\n" +
+                                "                                <div class=\"body-right\">\n" +
+                                "                                    <span>" + item.name + "</span>\n" +
+                                "                                    <div class=\"control\">\n" +
+                                "                                        <div class=\"c-one\"></div>\n" +
+                                "                                        <div class=\"c-two\"></div>\n" +
+                                "                                        <div class=\"c-thr\"></div>\n" +
+                                "                                    </div>\n" +
+                                "                                </div>\n" +
+                                "                            </div>"
+                        }
+                        $(domId).html(html)
+
+                    }
+                })
+            })
+        }
+
+        /**
+         * 通过id加载热门榜单前10位
+         * @param songId
+         * @returns {Promise<unknown>}
+         */
+        function loadToplistSongById(songId) {
+            return new Promise((resolve, reject) => {
+                post('/api/music/getWyyApi', {
+                    method: "GET",
+                    url: "/playlist/detail",
+                    data: {id: songId}
+                }).then(res => {
+                    if (res.code == 200) {
+                        let list = res.privileges
+                        let ids = [];
+                        for (let i = 0; i < list.length; i++) {
+                            if (i >= 10) {
+                                break
+                            }
+                            ids.push(list[i].id)
+                        }
+                        let idArr = ids.join();
+                        resolve(idArr);
+                    } else {
+                        reject(res)
+                    }
+                })
+            })
+        }
+
+        /**
+         * 根据id加载歌单
+         * @param songId
+         * @param domId
+         */
+        function loadToplistDetailById(songId, domId) {
+            post('/api/music/getWyyApi', {
+                method: "GET",
+                url: "/playlist/detail",
+                data: {id: songId}
+            }).then(res => {
+                if (res.code == 200) {
+                    let list = res.result
+                    let html = ''
+                    for (let i = 0; i < list.length; i++) {
+                        let item = list[i];
+                        if (i >= 5) {
+                            break
+                        }
+                        let artist = ''
+                        if (item.song && item.song.artists && item.song.artists.length > 0 && item.song.artists[0].name) {
+                            artist = item.song.artists[0].name
+                        }
+                        html += "" +
+                            "                            <div class=\"ranking-body\">\n" +
+                            "                                <div class=\"body-left changeColor\">1</div>\n" +
+                            "                                <div class=\"body-right\">\n" +
+                            "                                    <span>不再需要你</span>\n" +
+                            "                                    <div class=\"control\">\n" +
+                            "                                        <div class=\"c-one\"></div>\n" +
+                            "                                        <div class=\"c-two\"></div>\n" +
+                            "                                        <div class=\"c-thr\"></div>\n" +
+                            "                                    </div>\n" +
+                            "                                </div>\n" +
+                            "                            </div>"
+                    }
+                    $(domId).html(html)
                 }
             })
         }
@@ -394,117 +516,120 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="ranking-body">
-                            <div class="body-left changeColor">1</div>
-                            <div class="body-right">
-                                <span>不再需要你</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                        <div id="bsb">
+                            <div class="ranking-body">
+                                <div class="body-left changeColor">1</div>
+                                <div class="body-right">
+                                    <span>不再需要你</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left changeColor">2</div>
-                            <div class="body-right">
-                                <span>小城夏天</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left changeColor">2</div>
+                                <div class="body-right">
+                                    <span>小城夏天</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left changeColor">3</div>
-                            <div class="body-right">
-                                <span>耿</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left changeColor">3</div>
+                                <div class="body-right">
+                                    <span>耿</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">4</div>
-                            <div class="body-right">
-                                <span>The King and I (From the Original Motion Picture Soundtrack ELVIS)</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">4</div>
+                                <div class="body-right">
+                                    <span>The King and I (From the Original Motion Picture Soundtrack ELVIS)</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">5</div>
-                            <div class="body-right">
-                                <span>忘记时间</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">5</div>
+                                <div class="body-right">
+                                    <span>忘记时间</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">6</div>
-                            <div class="body-right">
-                                <span>Adventure Time</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">6</div>
+                                <div class="body-right">
+                                    <span>Adventure Time</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">7</div>
-                            <div class="body-right">
-                                <span>也许是你拯救了我</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">7</div>
+                                <div class="body-right">
+                                    <span>也许是你拯救了我</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">8</div>
-                            <div class="body-right">
-                                <span>Attention (with Justin Bieber) [Disclosure Remix]</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">8</div>
+                                <div class="body-right">
+                                    <span>Attention (with Justin Bieber) [Disclosure Remix]</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">9</div>
-                            <div class="body-right">
-                                <span>拿捏 Kill it ft.Thomeboydontkill/Psy.P</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">9</div>
+                                <div class="body-right">
+                                    <span>拿捏 Kill it ft.Thomeboydontkill/Psy.P</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">10</div>
-                            <div class="body-right">
-                                <span>账号已注销</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">10</div>
+                                <div class="body-right">
+                                    <span>账号已注销</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="checkMore">查看全部 ></div>
                         </div>
-                        <div class="checkMore">查看全部 ></div>
+
                     </div>
 
 
@@ -519,242 +644,246 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="ranking-body">
-                            <div class="body-left changeColor">1</div>
-                            <div class="body-right">
-                                <span>不再需要你</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                        <div id="xgb">
+                            <div class="ranking-body">
+                                <div class="body-left changeColor">1</div>
+                                <div class="body-right">
+                                    <span>不再需要你</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left changeColor">2</div>
-                            <div class="body-right">
-                                <span>小城夏天</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left changeColor">2</div>
+                                <div class="body-right">
+                                    <span>小城夏天</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left changeColor">3</div>
-                            <div class="body-right">
-                                <span>耿</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left changeColor">3</div>
+                                <div class="body-right">
+                                    <span>耿</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">4</div>
-                            <div class="body-right">
-                                <span>The King and I (From the Original Motion Picture Soundtrack ELVIS)</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">4</div>
+                                <div class="body-right">
+                                    <span>The King and I (From the Original Motion Picture Soundtrack ELVIS)</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">5</div>
-                            <div class="body-right">
-                                <span>忘记时间</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">5</div>
+                                <div class="body-right">
+                                    <span>忘记时间</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">6</div>
-                            <div class="body-right">
-                                <span>Adventure Time</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">6</div>
+                                <div class="body-right">
+                                    <span>Adventure Time</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">7</div>
-                            <div class="body-right">
-                                <span>也许是你拯救了我</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">7</div>
+                                <div class="body-right">
+                                    <span>也许是你拯救了我</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">8</div>
-                            <div class="body-right">
-                                <span>Attention (with Justin Bieber) [Disclosure Remix]</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">8</div>
+                                <div class="body-right">
+                                    <span>Attention (with Justin Bieber) [Disclosure Remix]</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">9</div>
-                            <div class="body-right">
-                                <span>拿捏 Kill it ft.Thomeboydontkill/Psy.P</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">9</div>
+                                <div class="body-right">
+                                    <span>拿捏 Kill it ft.Thomeboydontkill/Psy.P</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">10</div>
-                            <div class="body-right">
-                                <span>账号已注销</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">10</div>
+                                <div class="body-right">
+                                    <span>账号已注销</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="checkMore">查看全部 ></div>
                         </div>
-                        <div class="checkMore">查看全部 ></div>
                     </div>
 
 
                     <div class="ranking">
                         <div class="ranking-head">
-                            <img src="./pngs/ycb.jpg" alt="">
+                            <img src="./pngs/rgb.jpg" alt="">
                             <div class="mrl-10">
-                                <p class="rank-name">原创榜</p>
+                                <p class="rank-name">热歌榜</p>
                                 <div class="icons">
                                     <div class="icons-play"></div>
                                     <div class="icons-file mrl-10"></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="ranking-body">
-                            <div class="body-left changeColor">1</div>
-                            <div class="body-right">
-                                <span>不再需要你</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                        <div id="rgb">
+                            <div class="ranking-body">
+                                <div class="body-left changeColor">1</div>
+                                <div class="body-right">
+                                    <span>不再需要你</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left changeColor">2</div>
-                            <div class="body-right">
-                                <span>小城夏天</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left changeColor">2</div>
+                                <div class="body-right">
+                                    <span>小城夏天</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left changeColor">3</div>
-                            <div class="body-right">
-                                <span>耿</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left changeColor">3</div>
+                                <div class="body-right">
+                                    <span>耿</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">4</div>
-                            <div class="body-right">
-                                <span>The King and I (From the Original Motion Picture Soundtrack ELVIS)</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">4</div>
+                                <div class="body-right">
+                                    <span>The King and I (From the Original Motion Picture Soundtrack ELVIS)</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">5</div>
-                            <div class="body-right">
-                                <span>忘记时间</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">5</div>
+                                <div class="body-right">
+                                    <span>忘记时间</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">6</div>
-                            <div class="body-right">
-                                <span>Adventure Time</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">6</div>
+                                <div class="body-right">
+                                    <span>Adventure Time</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">7</div>
-                            <div class="body-right">
-                                <span>也许是你拯救了我</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">7</div>
+                                <div class="body-right">
+                                    <span>也许是你拯救了我</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">8</div>
-                            <div class="body-right">
-                                <span>Attention (with Justin Bieber) [Disclosure Remix]</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">8</div>
+                                <div class="body-right">
+                                    <span>Attention (with Justin Bieber) [Disclosure Remix]</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">9</div>
-                            <div class="body-right">
-                                <span>拿捏 Kill it ft.Thomeboydontkill/Psy.P</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">9</div>
+                                <div class="body-right">
+                                    <span>拿捏 Kill it ft.Thomeboydontkill/Psy.P</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="ranking-body">
-                            <div class="body-left">10</div>
-                            <div class="body-right">
-                                <span>账号已注销</span>
-                                <div class="control">
-                                    <div class="c-one"></div>
-                                    <div class="c-two"></div>
-                                    <div class="c-thr"></div>
+                            <div class="ranking-body">
+                                <div class="body-left">10</div>
+                                <div class="body-right">
+                                    <span>账号已注销</span>
+                                    <div class="control">
+                                        <div class="c-one"></div>
+                                        <div class="c-two"></div>
+                                        <div class="c-thr"></div>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="checkMore">查看全部 ></div>
                         </div>
-                        <div class="checkMore">查看全部 ></div>
                     </div>
 
                 </div>

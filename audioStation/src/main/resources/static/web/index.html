@@ -15,7 +15,40 @@
                 const user = JSON.parse(localStorage.user)
                 $(".login").html(user.userName)
             }
+            //加载热门歌单
+            loadPersonalized()
         })
+
+        /**
+         * 加载热门歌单
+         */
+        function loadPersonalized() {
+            post('/api/music/getWyyApi', {
+                method: "POST",
+                url: "/personalized"
+            }).then(res => {
+                if (res.code == 200) {
+                    let list = res.result
+                    let html = ''
+                    for (let i = 0; i < list.length; i++) {
+                        let item = list[i];
+                        html = "" +
+                            "                    <div class=\"mCard\">\n" +
+                            "                        <div class=\"mImg\">\n" +
+                            "                            <img src=\"" + item.picUrl + "\" alt=\"\">\n" +
+                            "                            <div class=\"daohang\">\n" +
+                            "                                <span class=\"erji\"></span>\n" +
+                            "                                <span class=\"number\">" + (item.playCount / 10000).toFixed(0) + "万</span>\n" +
+                            "                                <div class=\"play\"></div>\n" +
+                            "                            </div>\n" +
+                            "                        </div>\n" +
+                            "                        <p>" + item.name + "</p>\n" +
+                            "                    </div>"
+                    }
+                    $('#personalized').html(html)
+                }
+            })
+        }
     </script>
 </head>
 
@@ -87,7 +120,7 @@
                     <li><a href="#">电子</a></li>
                 </ul>
                 <div class="line"></div>
-                <div class="cardContent">
+                <div class="cardContent" id="personalized">
                     <div class="mCard">
                         <div class="mImg">
                             <img src="./imgs/109951163017978367.jpg" alt="">

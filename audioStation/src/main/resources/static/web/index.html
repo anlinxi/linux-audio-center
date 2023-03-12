@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>钵仔糕音乐</title>
+    <title>音乐中心</title>
     <link rel="stylesheet" href="./wyy.css">
     <script src="../js/common.js"></script>
     <script src="../js/jquery-3.1.1.min.js"></script>
@@ -13,11 +13,21 @@
         $(function () {
             if (localStorage.user) {
                 const user = JSON.parse(localStorage.user)
-                $(".login").html(user.userName)
+                $(".btn").html(user.userName)
             }
             //加载热门歌单
             loadPersonalized()
+            //加载热门艺术家
+            loadTopArtists()
+            //加载新歌速递
+            loadPersonalizedNewsong()
         })
+
+        function toTable() {
+            let a = document.createElement('a')
+            a.href = '/table.html'
+            a.click()
+        }
 
         /**
          * 加载热门歌单
@@ -32,10 +42,13 @@
                     let html = ''
                     for (let i = 0; i < list.length; i++) {
                         let item = list[i];
-                        html = "" +
+                        if (i >= 8) {
+                            break
+                        }
+                        html += "" +
                             "                    <div class=\"mCard\">\n" +
                             "                        <div class=\"mImg\">\n" +
-                            "                            <img src=\"" + item.picUrl + "\" alt=\"\">\n" +
+                            "                            <img src=\"" + item.picUrl + "\" alt=\"\" width='140' height='140'>\n" +
                             "                            <div class=\"daohang\">\n" +
                             "                                <span class=\"erji\"></span>\n" +
                             "                                <span class=\"number\">" + (item.playCount / 10000).toFixed(0) + "万</span>\n" +
@@ -46,6 +59,76 @@
                             "                    </div>"
                     }
                     $('#personalized').html(html)
+                }
+            })
+        }
+
+        /**
+         * 加载热门艺术家
+         */
+        function loadTopArtists() {
+            post('/api/music/getWyyApi', {
+                method: "POST",
+                url: "/top/artists",
+                data: {offset: 0, limit: 5}
+            }).then(res => {
+                if (res.artists.length > 0) {
+                    let list = res.artists
+                    let html = ''
+                    for (let i = 0; i < list.length; i++) {
+                        let item = list[i];
+                        html += "" +
+                            "                    <div class=\"songer-card mgt-15\">\n" +
+                            "                        <img src=\"" + item.picUrl + "\" alt=\"\">\n" +
+                            "                        <div class=\"songer-list\">\n" +
+                            "                            <div class=\"songer-name\">\n" +
+                            "                                <h4>" + item.name + "</h4>\n" +
+                            "                            </div>\n" +
+                            "                            <div class=\"songer-con\">专辑数量:" + item.albumSize + "张</div>\n" +
+                            "                        </div>\n" +
+                            "                    </div>";
+                    }
+                    $('.card-main').html(html)
+                }
+            })
+        }
+
+        /**
+         * 加载新歌速递
+         */
+        function loadPersonalizedNewsong() {
+            post('/api/music/getWyyApi', {
+                method: "GET",
+                url: "/personalized/newsong"
+            }).then(res => {
+                if (res.code == 200) {
+                    let list = res.result
+                    let html = '                    <div class="disk-left"></div>\n' +
+                        '                    <div class="disk-right"></div>'
+                    for (let i = 0; i < list.length; i++) {
+                        let item = list[i];
+                        if (i >= 5) {
+                            break
+                        }
+                        let artist = ''
+                        if (item.song && item.song.artists && item.song.artists.length > 0 && item.song.artists[0].name) {
+                            artist = item.song.artists[0].name
+                        }
+                        html += "" +
+                            "                      <div class=\"disk-c\">\n" +
+                            "                        <div class=\"disk-d\">\n" +
+                            "                            <img src=\"" + item.picUrl + "\" alt=\"\">\n" +
+                            "                            <div class=\"disk-play\"></div>\n" +
+                            "                        </div>\n" +
+                            "                        <div class=\"disk-name\">\n" +
+                            "                            " + item.name + "\n" +
+                            "                        </div>\n" +
+                            "                        <div class=\"disk-songer\">\n" +
+                            "                            " + artist + "\n" +
+                            "                        </div>\n" +
+                            "                    </div>"
+                    }
+                    $('.disk').html(html)
                 }
             })
         }
@@ -74,7 +157,7 @@
                 </div>
             </div>
             <div class="btn">创作者中心</div>
-            <div class="login">登录</div>
+            <div class="login" onclick="toTable()">后台</div>
             <div class="three"></div>
         </div>
     </div>

@@ -105,11 +105,11 @@ function post(url, data) {
         xhr.onload = function () {
             if (xhr.status == 200) {
                 const result = JSON.parse(xhr.responseText);
-                console.log('%c [信息]ajax请求返回:', 'color:rgba(77,194,43,0.81)', result, params.url, xhr);
+                console.log('%c [信息]ajax请求返回:', 'color:rgba(77,194,43,0.81)', result, url, xhr);
                 if (!result.code) {
                     resolve(result, result, xhr);
                 } else if (result.code == 200) {
-                    resolve(result.result, result, xhr);
+                    resolve(result, result, xhr);
                 } else if (result.code == 401) {
                     location.href = '/login.html';
                 } else {
@@ -117,10 +117,10 @@ function post(url, data) {
                 }
 
             } else if (xhr.status == 401) {
-                layer.msg("鉴权失败，请重新登录！")
                 setTimeout(function () {
                     location.href = '/login.html';
                 }, 3000)
+                layer.msg("鉴权失败，请重新登录！")
             } else {
                 reject(xhr.responseText, xhr.status, xhr);
             }

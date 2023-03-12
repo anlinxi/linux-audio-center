@@ -2,6 +2,9 @@
  * 公用js文件
  */
 
+//根路径
+const ROOT_RUL = localStorage.ROOT_RUL ? localStorage.ROOT_RUL : '';
+
 /**
  * 建单的ajax封装
  * @param params
@@ -83,4 +86,45 @@ function fristLowerCase(text) {
         reText = "_" + text;
     }
     return reText;
+}
+
+/**
+ * 二次封装的请求
+ * @param {Object} url
+ * @param {Object} data
+ * @param {Object} method
+ */
+function post(url, data) {
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", ROOT_RUL + url);
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('__token', localStorage.token);
+        xhr.setRequestHeader('__userId', localStorage.username);
+        xhr.onload = function () {
+            if (xhr.status == 200) {
+                const result = JSON.parse(xhr.responseText);
+                console.log('%c [信息]ajax请求返回:', 'color:rgba(77,194,43,0.81)', result, params.url, xhr);
+                if (!result.code) {
+                    resolve(result, result, xhr);
+                } else if (result.code == 200) {
+                    resolve(result.result, result, xhr);
+                } else if (result.code == 401) {
+                    location.href = '/login.html';
+                } else {
+                    reject(result.message, result, xhr);
+                }
+
+            } else if (xhr.status == 401) {
+                layer.msg("鉴权失败，请重新登录！")
+                setTimeout(function () {
+                    location.href = '/login.html';
+                }, 3000)
+            } else {
+                reject(xhr.responseText, xhr.status, xhr);
+            }
+        }
+        xhr.send(JSON.stringify(data));
+    })
 }

@@ -274,15 +274,17 @@
          * @param json
          */
         function onMessage(json) {
-            console.log('[信息]返回websocket消息', json)
+            // console.log('[信息]返回websocket消息', json)
             var p = document.createElement('p')
             if (json.action == 'pong') {
-                p.innerHTML = json.action + "  " + json.timestamp
-                $("#wsMsg").append(p)
+                // p.innerHTML = json.action + "  " + json.timestamp
+                // $("#wsMsg").append(p);
+                // $("#wsMsg").scrollTop($("#wsMsg")[0].scrollHeight)
             } else {
                 if (json.content) {
                     p.innerHTML = json.content
-                    $("#wsMsg").append(p)
+                    $("#wsMsg").append(p);
+                    $("#wsMsg").scrollTop($("#wsMsg")[0].scrollHeight)
                 }
             }
         }

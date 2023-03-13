@@ -25,6 +25,7 @@ import com.faker.audioStation.model.dto.wyy.songDetail.Songs;
 import com.faker.audioStation.model.dto.wyy.songUrl.JsonData;
 import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
 import com.faker.audioStation.model.vo.LayuiColVo;
+import com.faker.audioStation.scanner.Scanner;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.MusicService;
 import com.faker.audioStation.util.ToolsUtil;
@@ -69,6 +70,10 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
 
     @ApiModelProperty("网易云音乐api")
     NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
+
+    @Autowired
+    @ApiModelProperty("扫描器")
+    Scanner scanner;
 
     @Autowired
     @ApiModelProperty("音乐封面图片文件Mapper")
@@ -424,5 +429,15 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
             return;
         }
         ToolsUtil.downloadFile(response, file);
+    }
+
+    /**
+     * 扫描本地音乐
+     *
+     * @return
+     */
+    @Override
+    public Wrapper scanDiskMusic() {
+        return scanner.startScan(resourcePath);
     }
 }

@@ -41,12 +41,13 @@ public class JsMobileUserServiceImpl extends ServiceImpl<JsMobileUserMapper, JsM
         if (userTokenMap.get(token) != null) {
             return userTokenMap.get(token);
         }
-        String redisKey = "userInfo:*";
+        String redisKey = "userInfo:";
         Set<String> userSet = cacheService.keys(redisKey);
         for (String userId : userSet) {
-            String userToken = cacheService.get("userInfo:" + userId);
+            String userToken = cacheService.get(userId);
             if (userToken != null) {
-                userTokenMap.put(userToken, userId);
+                userTokenMap.put(userToken, userId.substring(redisKey.length()));
+                break;
             }
         }
         return userTokenMap.get(token);
@@ -68,6 +69,7 @@ public class JsMobileUserServiceImpl extends ServiceImpl<JsMobileUserMapper, JsM
             this.updateById(update);
             String redisKey = "userInfo:" + userId;
             cacheService.set(redisKey, token, 60, TimeUnit.HOURS);
+            userTokenMap.put(redisKey, userId);
             return token;
         } catch (Exception e) {
             e.printStackTrace();

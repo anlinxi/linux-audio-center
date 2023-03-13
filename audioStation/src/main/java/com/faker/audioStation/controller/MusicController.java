@@ -202,4 +202,12 @@ public class MusicController {
     public void getMusicCoverById(@ApiParam("封面文件id") @RequestParam String id, HttpServletResponse response) {
         musicService.getMusicCoverById(id, response);
     }
+
+    @ApiOperation(value = "扫描本地音乐", notes = "")
+    @PostMapping(value = "scanDiskMusic")
+    @ResponseBody
+    @LogAndPermissions
+    public Wrapper scanDiskMusic() {
+        return musicService.scanDiskMusic();
+    }
 }

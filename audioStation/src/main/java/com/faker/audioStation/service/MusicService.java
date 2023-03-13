@@ -111,4 +111,11 @@ public interface MusicService extends IService<Music> {
      * @param response
      */
     void getMusicCoverById(String id, HttpServletResponse response);
+
+    /**
+     * 扫描本地音乐
+     *
+     * @return
+     */
+    Wrapper scanDiskMusic();
 }

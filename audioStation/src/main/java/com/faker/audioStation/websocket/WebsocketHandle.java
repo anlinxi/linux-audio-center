@@ -93,7 +93,7 @@ public class WebsocketHandle {
             webSocketMap.put(userId, this);
             String userName = userId;
 
-            Message message = WebSocketMessageWrapper.ok("用户[" + userName + "]连接成功!");
+            Message message = WebSocketMessageWrapper.ok("用户[" + jsMobileUser.getUserName() + "]连接成功!");
             message.setReceiver(userId);
             session.getBasicRemote().sendText(message.jsonString());
 

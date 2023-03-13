@@ -38,11 +38,17 @@ const ichat = {
      * @param event
      */
     onmessage: function (event) {
-        if (typeof event.data === String) {
-            console.log("Received data string");
+        // console.log('[信息]返回sw消息信息', event, event.data);
+        if (typeof event.data == 'string') {
+            //页面个性化返回
+            try {
+                onMessage(JSON.parse(event.data), event)
+            } catch (e) {
+                onMessage(event.data, event)
+            }
         } else if (event.data instanceof ArrayBuffer) {
             var buffer = event.data;
-            console.log("Received arraybuffer");
+            onMessage(event)
         }
     },
     /**

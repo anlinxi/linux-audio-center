@@ -128,3 +128,25 @@ function post(url, data) {
         xhr.send(JSON.stringify(data));
     })
 }
+
+/**
+ * 获取url的传参
+ * @returns {{}}
+ */
+function getParams(parent) {
+    const urlParams = {};
+    let query = null;
+    if (parent) {
+        query = parent.location.search.substring(1);
+    } else {
+        query = window.location.search.substring(1);
+    }
+    const vars = query.split("&");
+    for (let i = 0; i < vars.length; i++) {
+        const pair = vars[i].split("=");
+        if (pair.length >= 2 && pair[0] && pair[1]) {
+            urlParams[pair[0]] = pair[1]
+        }
+    }
+    return urlParams;
+}

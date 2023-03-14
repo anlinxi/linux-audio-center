@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>音乐中心</title>
     <link rel="stylesheet" href="./wyy.css">
-    <script src="../js/common.js"></script>
     <script src="../js/jquery-3.1.1.min.js"></script>
+    <script src="../js/common.js"></script>
     <script src="../js/websocket/ichat.js"></script>
     <script>
         $(function () {
@@ -52,7 +52,7 @@
                             break
                         }
                         html += "" +
-                            "                    <div class=\"mCard\">\n" +
+                            "                    <div class=\"mCard\" onclick=\"navigateToPlayList(\'" + item.id + "\')\">\n" +
                             "                        <div class=\"mImg\">\n" +
                             "                            <img src=\"" + item.picUrl + "\" alt=\"\" width='140' height='140'>\n" +
                             "                            <div class=\"daohang\">\n" +
@@ -121,7 +121,7 @@
                             artist = item.song.artists[0].name
                         }
                         html += "" +
-                            "                      <div class=\"disk-c\">\n" +
+                            "                      <div class=\"disk-c\" onclick=\"navigateToPlayer('" + item.id + "')\">\n" +
                             "                        <div class=\"disk-d\">\n" +
                             "                            <img src=\"" + item.picUrl + "\" alt=\"\">\n" +
                             "                            <div class=\"disk-play\"></div>\n" +
@@ -166,7 +166,7 @@
                         for (let i = 0; i < list.length; i++) {
                             let item = list[i];
                             html += "" +
-                                "                      <div class=\"ranking-body\">\n" +
+                                "                      <div class=\"ranking-body\" onclick=\"navigateToPlayer('" + item.id + "')\">\n" +
                                 "                                <div class=\"body-left changeColor\">" + (i + 1) + "</div>\n" +
                                 "                                <div class=\"body-right\">\n" +
                                 "                                    <span>" + item.name + "</span>\n" +
@@ -287,6 +287,22 @@
                     $("#wsMsg").scrollTop($("#wsMsg")[0].scrollHeight)
                 }
             }
+        }
+
+        /**
+         * 跳转到播放列表
+         * @param id
+         */
+        function navigateToPlayList(id) {
+            window.location.href = './playlist/playlist.html?wyyId=' + id
+        }
+
+        /**
+         * 跳转到播放页面
+         * @param id
+         */
+        function navigateToPlayer(id) {
+            window.location.href = './player/player.html?wyyId=' + id
         }
     </script>
 </head>

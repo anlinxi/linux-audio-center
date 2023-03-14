@@ -243,7 +243,9 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
 
         //获取歌词信息
         Lyric lyric = this.getLyricByWyyId(songs.getId(), music);
-        music.setLyricId(lyric.getId());
+        if (null != lyric) {
+            music.setLyricId(lyric.getId());
+        }
 
         music.setAlbum(albumWyy);
         music.setAlbumId(albumIdWyy);

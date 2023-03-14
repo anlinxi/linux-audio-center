@@ -38,12 +38,29 @@
         if (!urlParams.wyyId && !urlParams.id) {
             urlParams = getParams(parent);
         }
+
+        //播放对象
+        const player = {
+            //播放对象
+            audio: null,
+            //播放状态 0暂停 1播放
+            stateCode: 0,
+            //播放时间
+            playTime: 0,
+            //歌曲总时间
+            totalTime: 0,
+            //进度条定时任务
+            progressBarInterval: null,
+        }
+
         $(function () {
             if (urlParams.id) {
                 loadSongData(urlParams.id)
             } else if (urlParams.wyyId) {
                 loadSongData(urlParams.wyyId)
             }
+
+            player.audio = document.getElementById("audio")
         })
 
         /**
@@ -53,8 +70,8 @@
         function loadSongData(id) {
             post('/api/music/getMusicUrl', {id: id}).then(res => {
                 if (res.code == 200) {
-                    console.log('[信息]加载歌曲信息', data)
-                    loadData(data[0])
+                    console.log('[信息]加载歌曲信息', res.data)
+                    loadData(res.data[0])
                 }
             })
             post('/api/music/getWyyApi', {
@@ -64,6 +81,7 @@
             }).then(res => {
                 if (res.code == 200 && res.songs.length > 0) {
                     let song = res.songs[0];
+                    player.totalTime = song.dt;
                     //歌手
                     let ar = song.ar
                     if (song.ar[0]) {
@@ -82,6 +100,7 @@
                     $("#al").text(al.name)
                     $("#al").attr("src", "https://music.163.com/album?id=" + al.id)
                     $("#lyric-content").attr("data-song-id", song.id)
+                    showProgressBar(player.playTime, player.totalTime)
                 }
             })
 
@@ -91,11 +110,79 @@
          * 渲染音乐数据到面板上
          * @param data
          */
-        function loadData(data) {
+        function loadData(song) {
+            player.audio.src = song.url + "&__userId=" + localStorage.username + "&__token=" + localStorage.token;
+        }
 
+        /**
+         * 播放/暂停
+         */
+        function play() {
+            if (player.stateCode == 0) {
+                player.audio.play()
+                player.stateCode = 1
+                $("#playControl").addClass('pas')
+                showProgressBar(player.playTime, player.totalTime)
+                player.progressBarInterval = setInterval(function () {
+                    player.playTime += 1000;
+                    showProgressBar(player.playTime, player.totalTime)
+                    if (player.playTime > player.totalTime) {
+                        clearInterval(player.progressBarInterval)
+                        //todo 继续播放下一首
+                    }
+                }, 1000)
+            } else if (player.stateCode == 1) {
+                player.stateCode = 0
+                clearInterval(player.progressBarInterval)
+                player.audio.pause()
+                $("#playControl").removeClass('pas')
+            }
+        }
+
+        /**
+         * 显示进度条
+         * @param now 当前毫秒
+         * @param total 总毫秒
+         */
+        function showProgressBar(now, total) {
+            let jdt = (now / total * 100).toFixed(2);
+            $(".rdy").css("width", jdt + "%")
+            $(".cur").css("width", jdt + "%")
+            $("#playTime").html("<em>" + getSongRunTime(now) + "</em> / " + getSongRunTime(total));
+        }
+
+        /**
+         * 歌曲毫秒转时分秒
+         * @param mss
+         * @returns {number}
+         */
+        function getSongRunTime(msd) {
+            //先将毫秒转化成秒
+            var time = parseFloat(msd) / 1000;
+            if (null != time && "" != time) {
+                if (time > 60 && time < 60 * 60) {
+                    time = formatV1(parseInt(time / 60.0)) + ":" + formatV1(parseInt((parseFloat(time / 60.0) - parseInt(time / 60.0)) * 60)) + "";
+                } else if (time >= 60 * 60 && time < 60 * 60 * 24) {
+                    time = parseInt(time / 3600.0) + ":" + formatV1(parseInt((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60)) + ":" + formatV1(parseInt((parseFloat((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60) - parseInt((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60)) * 60)) + "";
+                } else {
+                    time = formatV1(parseInt(time)) + "";
+                }
+            }
+            return time;
+        }
+
+        /**
+         * 格式化数值
+         * @param num
+         */
+        function formatV1(num) {
+            if (num < 10) {
+                return "0" + num;
+            }
+            return num;
         }
     </script>
-    <script src="./music-corona.min.js" async="" crossorigin="anonymous"></script>
+    <!--    <script src="./music-corona.min.js" async="" crossorigin="anonymous"></script>-->
     <script>(function () {
         if (window.MusicCorona) {
             var puzzleEnv = 'prod' || 'prod';
@@ -149,11 +236,11 @@
         (function () {
             if (window.CMFrontEncryptedValidator) {
                 var validatorOptions = {
-                            "captchaOptions": {
-                                "qrSize": 150
-                            }
+                        "captchaOptions": {
+                            "qrSize": 150
                         }
-                        || {}
+                    }
+                    || {}
                 ;
                 var env = 'prod' || 'prod';
                 var sampleRate = 1
@@ -6214,7 +6301,9 @@
 <script src="./safentesid1.0.1.js"></script>
 <script src="./tool.min.js"></script>
 <div>
-    <div></div>
+    <div>
+        <audio id="audio" style="display: none"/>
+    </div>
 </div>
 <div class="new-toast"></div>
 <div class="g-btmbar">
@@ -6227,9 +6316,13 @@
         <div class="hand" title="展开播放条"></div>
         <div class="wrap" id="g_player" style="margin-left: -498.5px;">
             <div class="btns">
-                <a href="javascript:;" hidefocus="true" data-action="prev" class="prv" title="上一首(ctrl+←)">上一首</a>
-                <a href="javascript:;" hidefocus="true" data-action="play" class="ply j-flag" title="播放/暂停(p)">播放/暂停</a>
-                <a href="javascript:;" hidefocus="true" data-action="next" class="nxt" title="下一首(ctrl+→)">下一首</a>
+                <a href="javascript:;" onclick="prev()" hidefocus="true" data-action="prev" class="prv"
+                   title="上一首(ctrl+←)">上一首</a>
+                <a href="javascript:;" onclick="play()" id="playControl" hidefocus="true" data-action="play"
+                   class="ply j-flag"
+                   title="播放/暂停(p)">播放/暂停</a>
+                <a href="javascript:;" onclick="next()" hidefocus="true" data-action="next" class="nxt"
+                   title="下一首(ctrl+→)">下一首</a>
             </div>
             <div class="head j-flag"><img
                     src="https://p2.music.126.net/5sPuyuhWLua-7_lGat8pQQ==/109951168458706068.jpg?param=34y34"><a
@@ -6252,7 +6345,7 @@
                         <div class="cur" style="width: 0%;"><span class="btn f-tdn f-alpha"
                                                                   id="auto-id-gcPf2qQAp3eyiWEZ"><i></i></span></div>
                     </div>
-                    <span class="j-flag time"><em>00:00</em> / 00:00</span>
+                    <span class="j-flag time" id="playTime"><em>00:00</em> / 00:00</span>
                 </div>
             </div>
             <div class="oper f-fl"><a href="javascript:;" hidefocus="true" class="icn icn-pip" title="画中画歌词">画中画歌词</a>

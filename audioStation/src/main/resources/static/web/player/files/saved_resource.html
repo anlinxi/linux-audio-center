@@ -157,6 +157,9 @@
          * @returns {number}
          */
         function getSongRunTime(msd) {
+            if (msd == 0) {
+                return "00:00";
+            }
             //先将毫秒转化成秒
             var time = parseFloat(msd) / 1000;
             if (null != time && "" != time) {
@@ -165,7 +168,7 @@
                 } else if (time >= 60 * 60 && time < 60 * 60 * 24) {
                     time = parseInt(time / 3600.0) + ":" + formatV1(parseInt((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60)) + ":" + formatV1(parseInt((parseFloat((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60) - parseInt((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60)) * 60)) + "";
                 } else {
-                    time = formatV1(parseInt(time)) + "";
+                    time = "00:" + formatV1(parseInt(time)) + "";
                 }
             }
             return time;
@@ -236,11 +239,11 @@
         (function () {
             if (window.CMFrontEncryptedValidator) {
                 var validatorOptions = {
-                        "captchaOptions": {
-                            "qrSize": 150
+                            "captchaOptions": {
+                                "qrSize": 150
+                            }
                         }
-                    }
-                    || {}
+                        || {}
                 ;
                 var env = 'prod' || 'prod';
                 var sampleRate = 1

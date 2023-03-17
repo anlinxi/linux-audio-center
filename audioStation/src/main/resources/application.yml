@@ -51,4 +51,5 @@ faker:
   proxy:
     dev:
       url: /dev/*
-      target_url: http://127.0.0.1:8080/web
+      #对应web的vue_pc_music项目dev端口
+      target_url: http://127.0.0.1:9902/dev

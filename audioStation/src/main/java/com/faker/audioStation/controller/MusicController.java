@@ -181,8 +181,26 @@ public class MusicController {
         queryWrapper.eq("ID", id).or().eq("WYY_ID", id);
         Music music = musicService.getOne(queryWrapper);
         if (null == music) {
-            ToolsUtil.setStateInfo(response, 404, "根据[" + id + "]未找到音乐信息");
-            return;
+            String url = music163Api + "/song/url";
+            log.info("网易云音乐api请求地址:" + url);
+            Map<String, Object> paramsMap = new HashMap<>();
+            paramsMap.put("id", id);
+            String resultText = HttpUtil.get(url, paramsMap);
+            log.info("网易云音乐api返回:" + resultText);
+            if (null == resultText) {
+                ToolsUtil.setStateInfo(response, 404, "根据[" + id + "]未找到音乐信息");
+                return;
+            }
+            SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
+            log.info(songUrlRootBean.toString());
+            songUrlRootBean = musicService.downLoadMusic(songUrlRootBean);
+            QueryWrapper<Music> queryWrapper2 = new QueryWrapper<>();
+            queryWrapper2.eq("WYY_ID", id);
+            music = musicService.getOne(queryWrapper2);
+            if (null == music) {
+                ToolsUtil.setStateInfo(response, 404, "根据[" + id + "]未找到音乐信息");
+                return;
+            }
         }
         File file = new File(music.getPath());
         if (!file.exists()) {

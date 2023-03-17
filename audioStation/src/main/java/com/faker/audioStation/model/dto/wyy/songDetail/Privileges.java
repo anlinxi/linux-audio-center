@@ -19,30 +19,30 @@ import java.util.List;
 @NoArgsConstructor
 public class Privileges implements Serializable {
 
-    private int flag;
+    private Long flag;
     private String dlLevel;
-    private int subp;
-    private long fl;
-    private int fee;
-    private int dl;
+    private Long subp;
+    private Long fl;
+    private Long fee;
+    private Long dl;
     private String plLevel;
     private String maxBrLevel;
-    private long maxbr;
-    private long id;
-    private int sp;
-    private int payed;
-    private int st;
+    private Long maxbr;
+    private Long id;
+    private Long sp;
+    private Long payed;
+    private Long st;
     private List<ChargeInfoList> chargeInfoList;
     private FreeTrialPrivilege freeTrialPrivilege;
-    private long downloadMaxbr;
+    private Long downloadMaxbr;
     private String downloadMaxBrLevel;
-    private int cp;
+    private Long cp;
     private boolean preSell;
     private String playMaxBrLevel;
     private boolean cs;
     private boolean toast;
-    private long playMaxbr;
+    private Long playMaxbr;
     private String flLevel;
-    private long pl;
+    private Long pl;
 
 }

@@ -23,7 +23,7 @@ import java.util.List;
 public class Songs implements Serializable {
 
     @ApiModelProperty(value = "歌曲id", example = "1959528822")
-    private long id;
+    private Long id;
 
     @ApiModelProperty(value = "歌曲名称", example = "紫荆花盛开")
     private String name;
@@ -32,26 +32,26 @@ public class Songs implements Serializable {
     private String cd;
 
     @ApiModelProperty(value = "编号")
-    private int no;
+    private Long no;
     @ApiModelProperty(value = "版权信息")
-    private int copyright;
-    private int fee;
-    private int mst;
-    private int pst;
-    private int pop;
+    private Long copyright;
+    private Long fee;
+    private Long mst;
+    private Long pst;
+    private Long pop;
     private long dt;
-    private int rtype;
-    private int s_id;
+    private Long rtype;
+    private Long s_id;
     private List<String> rtUrls;
     @ApiModelProperty(value = "资源状态")
     private boolean resourceState;
 
     private Sq sq;
-    private int st;
+    private Long st;
     @ApiModelProperty(value = "发布时间戳", example = "1656518400000")
     private long publishTime;
     private String cf;
-    private int originCoverType;
+    private Long originCoverType;
     private H h;
     private long mv;
     @ApiModelProperty(value = "专辑信息")
@@ -59,16 +59,16 @@ public class Songs implements Serializable {
     private L l;
     private M m;
     @ApiModelProperty(value = "版本号", example = "20")
-    private int version;
-    private int cp;
+    private Long version;
+    private Long cp;
     private List<String> alia;
-    private int djId;
-    private int single;
+    private Long djId;
+    private Long single;
     @ApiModelProperty(value = "艺术家")
     private List<Ar> ar;
-    private int ftype;
-    private int t;
-    private int v;
+    private Long ftype;
+    private Long t;
+    private Long v;
     @ApiModelProperty(value = "标记型号", example = "536879104")
-    private int mark;
+    private String mark;
 }

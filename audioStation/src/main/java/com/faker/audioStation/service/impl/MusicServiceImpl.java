@@ -178,7 +178,9 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
         }
         JSONObject parameter = new JSONObject();
         parameter.put("ids", ids);
-        songDetailRootBean = JSONObject.parseObject(neteaseCloudMusicInfo.songDetail(parameter).toJSONString(), SongDetailRootBean.class);
+        String songJson = neteaseCloudMusicInfo.songDetail(parameter).toJSONString();
+        log.info(songJson);
+        songDetailRootBean = JSONObject.parseObject(songJson, SongDetailRootBean.class);
         cacheService.set(ids, songDetailRootBean, 30, TimeUnit.DAYS);
         return songDetailRootBean;
     }

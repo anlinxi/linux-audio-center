@@ -18,7 +18,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class ChargeInfoList implements Serializable {
 
-    private long rate;
-    private int chargeType;
+    private Long rate;
+    private Long chargeType;
 
 }

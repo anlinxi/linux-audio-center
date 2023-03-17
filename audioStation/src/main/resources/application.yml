@@ -34,6 +34,7 @@ logging:
     com.alibaba: ERROR
     org.jaudiotagger: ERROR
 
+
 #自定义设置
 faker:
   #ffmpeg设置
@@ -46,3 +47,8 @@ faker:
   music163Api: 'http://192.168.123.223:3000'
   #UnblockNeteaseMusic代理端口地址
   unblockNeteaseMusic.proxy: '192.168.123.224:33335'
+  #开发库反向代理
+  proxy:
+    dev:
+      url: /dev/*
+      target_url: http://127.0.0.1:8080/web

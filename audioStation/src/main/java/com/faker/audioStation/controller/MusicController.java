@@ -102,7 +102,7 @@ public class MusicController {
             return null;
         }
         //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
-        cacheService.set(key, resultText, 7, TimeUnit.DAYS);
+        cacheService.set(key, resultText, 8, TimeUnit.HOURS);
         return JSONObject.parseObject(resultText);
     }
 

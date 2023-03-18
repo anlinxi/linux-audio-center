@@ -47,7 +47,7 @@
                 </div>
             </div>
             <div class="layui-form-item" style="margin-bottom: 20px;">
-                <input type="checkbox" name="remember" lay-skin="primary" title="记住密码">
+                <input type="checkbox" name="remember" value="true" lay-skin="primary" title="记住密码">
                 <a href="#" class="layadmin-user-jump-change layadmin-link" style="margin-top: 7px;">忘记密码？</a>
             </div>
             <div class="layui-form-item">
@@ -132,12 +132,19 @@
                     localStorage.username = username;
                     localStorage.password = password;
                     localStorage.user = JSON.stringify(result.result);
+                    //兼容vue pc music
+                    window.localStorage.setItem('LOGIN_RESULT', JSON.stringify(result.result))
+                    window.localStorage.setItem('token', result.result.token)
+                    window.localStorage.setItem('userId', result.result.loginCode)
+                    window.sessionStorage.setItem('userInfo', JSON.stringify(result.result))
+                    window.sessionStorage.setItem('isLogin', true)
                     layer.msg('登录成功', {
                         offset: '15px'
                         , icon: 1
                         , time: 1000
                     }, function () {
-                        location.href = '../web/index.html'; //后台主页
+                        //后台主页
+                        location.href = '../web/index.html';
                     });
                 } else {
                     layer.msg(result.message);

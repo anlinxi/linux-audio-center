@@ -107,7 +107,7 @@ public class MobileAuthFilter implements Filter {
         }
         // 查看最近登录验证的次数
         String token = cacheService.get(redisKey);
-        if (null == token) {
+        if (ToolsUtil.isNullOrEmpty(token)) {
             JsMobileUser jsMobileUser = iJsMobileUserService.getById(__userId);
             if (null != jsMobileUser) {
                 token = jsMobileUser.getToken();

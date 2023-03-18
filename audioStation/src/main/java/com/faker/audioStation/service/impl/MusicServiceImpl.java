@@ -2,6 +2,7 @@ package com.faker.audioStation.service.impl;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -41,6 +42,8 @@ import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
@@ -63,6 +66,10 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
     @Value("${faker.resources:/music/}")
     @ApiModelProperty("资源文件路径")
     private String resourcePath;
+
+    @Value("${faker.unblockNeteaseMusic.proxy:}")
+    @ApiModelProperty("解锁网易云灰色音乐的代理")
+    private String unblockNeteaseMusicProxy;
 
     @Autowired
     @ApiModelProperty("缓存服务")
@@ -171,7 +178,9 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
         }
         JSONObject parameter = new JSONObject();
         parameter.put("ids", ids);
-        songDetailRootBean = JSONObject.parseObject(neteaseCloudMusicInfo.songDetail(parameter).toJSONString(), SongDetailRootBean.class);
+        String songJson = neteaseCloudMusicInfo.songDetail(parameter).toJSONString();
+        log.info(songJson);
+        songDetailRootBean = JSONObject.parseObject(songJson, SongDetailRootBean.class);
         cacheService.set(ids, songDetailRootBean, 30, TimeUnit.DAYS);
         return songDetailRootBean;
     }
@@ -206,7 +215,24 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
         if (!audio.getParentFile().exists()) {
             audio.getParentFile().mkdirs();
         }
-        HttpUtil.downloadFile(url, audio);
+        boolean isProxy = false;
+        if (ToolsUtil.isNotNull(unblockNeteaseMusicProxy) && unblockNeteaseMusicProxy.contains(":")) {
+            try {
+                String[] unblockNeteaseMusicProxyArr = unblockNeteaseMusicProxy.split(":");
+                String proxyIp = unblockNeteaseMusicProxyArr[0];
+                Integer proxyPort = Integer.parseInt(unblockNeteaseMusicProxyArr[1]);
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
+                HttpResponse response = HttpUtil.createGet(url, true).timeout(-1).setProxy(proxy).executeAsync();
+                response.writeBodyForFile(audio, null);
+                isProxy = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (!isProxy) {
+            HttpUtil.downloadFile(url, audio);
+        }
+
         String sha256 = SecureUtil.sha256(new File(audio.getAbsolutePath()));
         //481,115 小文件试听音乐移入缓存
         if (audio.length() == 481115) {
@@ -243,7 +269,9 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
 
         //获取歌词信息
         Lyric lyric = this.getLyricByWyyId(songs.getId(), music);
-        music.setLyricId(lyric.getId());
+        if (null != lyric) {
+            music.setLyricId(lyric.getId());
+        }
 
         music.setAlbum(albumWyy);
         music.setAlbumId(albumIdWyy);
@@ -294,6 +322,10 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
             singer.setName(name);
             String artistsCoverPath = resourcePath + PathEnum.SINGER_COVER.getPath() + "/" + ToolsUtil.getFileName(name + "—" + wyyId) + "." + formatName;
             try {
+                File dir = new File(artistsCoverPath);
+                if (!dir.getParentFile().exists()) {
+                    dir.getParentFile().mkdirs();
+                }
                 ImageIO.write(ImageIO.read(new URL(coverUrl)), formatName, new File(artistsCoverPath));
                 singer.setPic(artistsCoverPath);
             } catch (Exception e) {
@@ -324,6 +356,10 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
         MusicCover musicCover = musicCoverMapper.selectOne(query);
         if (null == musicCover) {
             try {
+                File dir = new File(coverPath);
+                if (!dir.getParentFile().exists()) {
+                    dir.getParentFile().mkdirs();
+                }
                 musicCover = new MusicCover();
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
                 ImageIO.write(ImageIO.read(new URL(albumWyy.getPicUrl())), formatName, os);
@@ -361,7 +397,11 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
                 JSONObject searchlyricResult = neteaseCloudMusicInfo.lyric(searchlyric);
                 String lyricText = searchlyricResult.getJSONObject("lrc").getString("lyric");
                 String lyricPath = resourcePath + PathEnum.LYRIC_PATH.getPath() + "/" + ToolsUtil.getFileName(music) + ".lrc";
-                FileWriter writer = new FileWriter(lyricPath);
+                File lyricPathFile = new File(lyricPath);
+                if (!lyricPathFile.getParentFile().exists()) {
+                    lyricPathFile.getParentFile().mkdirs();
+                }
+                FileWriter writer = new FileWriter(lyricPathFile);
                 writer.write(lyricText);
                 writer.flush();
                 writer.close();

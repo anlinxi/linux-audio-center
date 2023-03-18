@@ -341,9 +341,9 @@ public class MusicScanner implements Scanner {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            if (index++ > 3) {
-                break;
-            }
+//            if (index++ > 3) {
+//                break;
+//            }
         }
 
 

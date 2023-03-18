@@ -182,6 +182,13 @@
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
         </dependency>
+        <!-- 开发库反向代理 -->
+        <dependency>
+            <groupId>org.mitre.dsmiley.httpproxy</groupId>
+            <artifactId>smiley-http-proxy-servlet</artifactId>
+            <version>1.12.1</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -78,7 +78,6 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
             Wrapper<JSONObject> wrapper = this.doSomeThing(params);
             log.info("策略执行结果:" + wrapper);
             if (wrapper.success() && null != wrapper.getResult()) {
-                cacheService.set(key, wrapper.getResult().toJSONString(), 8, TimeUnit.HOURS);
                 return wrapper.getResult();
             }
         } catch (Exception e) {

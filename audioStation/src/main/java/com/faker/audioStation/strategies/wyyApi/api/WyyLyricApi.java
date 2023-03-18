@@ -2,6 +2,7 @@ package com.faker.audioStation.strategies.wyyApi.api;
 
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.util.URLUtil;
+import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -61,6 +62,7 @@ public class WyyLyricApi extends WyyApiAbstract {
      */
     @Override
     public Wrapper<JSONObject> doSomeThing(WyyApiDto params) {
+        String key = SecureUtil.md5(JSONObject.toJSONString(params));
         Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
         if (null != urlQuery.get("id")) {
             String id = urlQuery.get("id");
@@ -78,6 +80,8 @@ public class WyyLyricApi extends WyyApiAbstract {
                 WrapMapper.ok(result);
             }
         }
-        return WrapMapper.ok(super.callWyyAPi(params));
+        JSONObject resultJson = super.callWyyAPi(params);
+        cacheService.set(key, resultJson.toJSONString(), 8, TimeUnit.HOURS);
+        return WrapMapper.ok(resultJson);
     }
 }

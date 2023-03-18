@@ -10,6 +10,7 @@ import com.faker.audioStation.model.domain.Lyric;
 import com.faker.audioStation.model.domain.Mv;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.strategies.wyyApi.WyyApiAbstract;
+import com.faker.audioStation.util.StringUtils;
 import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * mv策略
@@ -81,28 +83,39 @@ public class WyyMvApi extends WyyApiAbstract {
                 }
 
             } else {
-                JSONObject json = super.callWyyAPi(params);
-                Mv mvInsert = new Mv();
-                mvInsert.setWyyId(json.getLong("id"));
-                mvInsert.setUrl(json.getString("url"));
-                String mvPath = resourcePath + PathEnum.MV_PATH.getPath() + "/" + ToolsUtil.getFileName(mv.getWyyId() + "") + ".mp4";
-                mvInsert.setPath(mvPath);
-                mvInsert.setResolution(resolution);
-                //下载mv
-                File mvFile = new File(mvPath);
-                if (!mvFile.getParentFile().exists()) {
-                    mvFile.getParentFile().mkdirs();
+                String key = "LOCK:" + this.getClass().getSimpleName() + ":doSomeThing:" + params.getUrl();
+                Boolean lock = cacheService.get(key);
+                if (null != lock && lock) {
+                    try {
+                        cacheService.set(key, true, 1, TimeUnit.MINUTES);
+                        JSONObject json = super.callWyyAPi(params);
+                        Mv mvInsert = new Mv();
+                        if (200 == json.getInteger("code")) {
+                            mvInsert.setWyyId(json.getJSONObject("data").getLong("id"));
+                            mvInsert.setUrl(json.getJSONObject("data").getString("url"));
+                            String mvPath = resourcePath + PathEnum.MV_PATH.getPath() + "/" + ToolsUtil.getFileName(mvInsert.getWyyId() + "") + ".mp4";
+                            mvInsert.setPath(mvPath);
+                            mvInsert.setResolution(resolution);
+                            //下载mv
+                            File mvFile = new File(mvPath);
+                            if (!mvFile.getParentFile().exists()) {
+                                mvFile.getParentFile().mkdirs();
+                            }
+                            //异步下载
+                            new Thread(() -> {
+                                HttpUtil.downloadFile(mvInsert.getUrl(), mvFile);
+                                //mv大小
+                                mvInsert.setSize(new File(mvFile.getAbsolutePath()).length());
+                                mvMapper.insert(mvInsert);
+                            }).start();
+
+                            return WrapMapper.ok(json);
+                        }
+                    } finally {
+                        cacheService.delete(key);
+                    }
                 }
-                HttpUtil.downloadFile(mvInsert.getUrl(), mvFile);
-                //mv大小
-                mvInsert.setSize(new File(mvFile.getAbsolutePath()).length());
-                mvMapper.insert(mvInsert);
-
-                json.put("url", "/api/mv/getMvByWyyId?id=" + mv.getWyyId());
-
-                return WrapMapper.ok(json);
             }
-
         }
         return WrapMapper.error("查询参数id不能为空");
     }

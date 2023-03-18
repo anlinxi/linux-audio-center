@@ -1,5 +1,6 @@
 package com.faker.audioStation;
 
+import com.faker.audioStation.util.TestStatut;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -22,6 +23,7 @@ public class AudioCenterApplication {
         String port = env.getProperty("server.port");
         String property = env.getProperty("server.servlet.context-path");
         String path = property == null ? "" : property;
+        TestStatut.ROOT_URL = "http://" + ip + ":" + port + path + "";
         log.info(
                 "\n\t" +
                         "----------------------------------------------------------\n\t" +

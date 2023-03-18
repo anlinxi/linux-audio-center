@@ -252,6 +252,8 @@
                                     <bind>
                                         <!--挂载到群晖的music目录，这里volume请使用自己的卷序号-->
                                         <volume>/volume2/music/:/music</volume>
+                                        <!--自定义配置yml文件-->
+                                        <volume>/volume2/music/audioCenter/application.yml:/music/application.yml</volume>
                                     </bind>
                                 </volumes>
                             </run>

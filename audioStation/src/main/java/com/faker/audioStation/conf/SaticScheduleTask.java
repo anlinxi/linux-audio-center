@@ -61,9 +61,10 @@ public class SaticScheduleTask {
     /**
      * 定时扫描音乐
      * 每天晚上2点钟扫描目录下音乐文件建立索引
+     * 算了 还是改为页面触发
      */
-    @Scheduled(cron = "* * 2 * * ? ")
-    private void scanDiskMusic() {
-        musicService.scanDiskMusic();
-    }
+//    @Scheduled(cron = "* * 2 * * ? ")
+//    private void scanDiskMusic() {
+//        musicService.scanDiskMusic();
+//    }
 }

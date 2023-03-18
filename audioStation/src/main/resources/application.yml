@@ -48,8 +48,8 @@ faker:
   #UnblockNeteaseMusic代理端口地址
   unblockNeteaseMusic.proxy: ''
   #开发库反向代理
-#  proxy:
-#    dev:
-#      url: /dev/*
-#      #对应web的vue_pc_music项目dev端口
-#      target_url: http://127.0.0.1:9902/dev
+  proxy:
+    dev:
+      url: /dev/*
+      #对应web的vue_pc_music项目dev端口
+      target_url: http://127.0.0.1:9902/dev

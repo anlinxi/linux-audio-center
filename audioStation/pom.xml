@@ -8,7 +8,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <groupId>com.faker.service</groupId>
-    <artifactId>audioStation</artifactId>
+    <artifactId>audio-station</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>audioStation</name>
     <description>音乐中心</description>
@@ -16,7 +16,7 @@
     <properties>
         <java.version>1.8</java.version>
         <!-- docker setting -->
-        <docker.run.port>9300:9300</docker.run.port>
+        <docker.run.port>9306:9306</docker.run.port>
         <docker.dockerHost>http://192.168.123.223:2375</docker.dockerHost>
         <docker.imageName>godkiller/${project.artifactId}:1.0.0.1</docker.imageName>
     </properties>
@@ -219,26 +219,41 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.38.0</version>
                 <configuration>
+                    <!--配置远程docker守护进程url-->
                     <dockerHost>${docker.dockerHost}</dockerHost>
+                    <!--认证配置,用于私有registry认证-->
+                    <!--<authConfig>
+                        <username>admin</username>
+                        <password>xxxxxx</password>
+                    </authConfig>-->
                     <verbose>true</verbose>
                     <images>
                         <image>
+                            <!--镜像名(含版本号)-->
                             <name>${docker.imageName}</name>
                             <alias>${project.artifactId}</alias>
                             <build>
+                                <!--使用dockerFile文件-->
                                 <dockerFile>${project.basedir}/Dockerfile</dockerFile>
                                 <assembly>
                                     <descriptorRef>artifact</descriptorRef>
                                 </assembly>
                             </build>
+                            <!--容器run相关配置-->
                             <run>
                                 <ports>
                                     <port>${docker.run.port}</port>
-                                    <port>5514:5514/udp</port>
                                 </ports>
                                 <network>
                                     <mode>bridge</mode>
                                 </network>
+                                <!--挂载设置-->
+                                <volumes>
+                                    <bind>
+                                        <!--挂载到群晖的music目录，这里volume请使用自己的卷序号-->
+                                        <volume>/volume2/music/:/music</volume>
+                                    </bind>
+                                </volumes>
                             </run>
                         </image>
                     </images>

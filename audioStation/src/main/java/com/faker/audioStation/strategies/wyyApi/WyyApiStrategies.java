@@ -39,5 +39,5 @@ public interface WyyApiStrategies {
      * @param params
      * @return
      */
-    Wrapper doSomeThing(WyyApiDto params);
+    Wrapper<JSONObject> doSomeThing(WyyApiDto params);
 }

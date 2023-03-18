@@ -118,4 +118,12 @@ public interface MusicService extends IService<Music> {
      * @return
      */
     Wrapper scanDiskMusic();
+
+    /**
+     * 根据网易云id获取mv视频
+     *
+     * @param id
+     * @param response
+     */
+    void getMvByWyyId(String id, HttpServletResponse response);
 }

@@ -47,6 +47,11 @@ public enum PathEnum {
      */
     CACHE_JSON_PATH("audioCenter/cache/"),
 
+    /**
+     * mv地址
+     */
+    MV_PATH("audioCenter/mv"),
+
     ;
 
     /**

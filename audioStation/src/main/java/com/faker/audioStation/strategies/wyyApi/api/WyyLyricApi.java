@@ -19,6 +19,9 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 歌词策略
+ */
 @Slf4j
 @Component
 public class WyyLyricApi extends WyyApiAbstract {
@@ -57,7 +60,7 @@ public class WyyLyricApi extends WyyApiAbstract {
      * @return
      */
     @Override
-    public Wrapper doSomeThing(WyyApiDto params) {
+    public Wrapper<JSONObject> doSomeThing(WyyApiDto params) {
         Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
         if (null != urlQuery.get("id")) {
             String id = urlQuery.get("id");

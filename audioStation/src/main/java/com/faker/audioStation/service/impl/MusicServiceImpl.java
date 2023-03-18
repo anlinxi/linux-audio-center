@@ -10,16 +10,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.faker.audioStation.enums.PathEnum;
-import com.faker.audioStation.mapper.LyricMapper;
-import com.faker.audioStation.mapper.MusicCoverMapper;
-import com.faker.audioStation.mapper.MusicMapper;
-import com.faker.audioStation.mapper.SingerMapper;
-import com.faker.audioStation.model.domain.Lyric;
-import com.faker.audioStation.model.domain.Music;
-import com.faker.audioStation.model.domain.MusicCover;
-import com.faker.audioStation.model.domain.Singer;
+import com.faker.audioStation.mapper.*;
+import com.faker.audioStation.model.domain.*;
 import com.faker.audioStation.model.dto.GetMusicPageParamDto;
 import com.faker.audioStation.model.dto.IdDto;
+import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.model.dto.wyy.songDetail.Al;
 import com.faker.audioStation.model.dto.wyy.songDetail.SongDetailRootBean;
 import com.faker.audioStation.model.dto.wyy.songDetail.Songs;
@@ -29,6 +24,8 @@ import com.faker.audioStation.model.vo.LayuiColVo;
 import com.faker.audioStation.scanner.Scanner;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.MusicService;
+import com.faker.audioStation.strategies.wyyApi.WyyApiStrategies;
+import com.faker.audioStation.strategies.wyyApi.WyyApiStrategyContext;
 import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
@@ -93,6 +90,14 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
     @Autowired
     @ApiModelProperty("歌词Mapper")
     LyricMapper lyricMapper;
+
+    @Autowired
+    @ApiModelProperty("Mv信息mapper")
+    protected MvMapper mvMapper;
+
+    @Autowired
+    @ApiModelProperty("网易云api策略")
+    WyyApiStrategyContext wyyApiStrategyContext;
 
 
     @ApiModelProperty(value = "歌曲封面图片类型", notes = "bmp|gif|jpg|jpeg|png")
@@ -479,5 +484,37 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
     @Override
     public Wrapper scanDiskMusic() {
         return scanner.startScan(resourcePath);
+    }
+
+    /**
+     * 根据网易云id获取mv视频
+     *
+     * @param id
+     * @param response
+     */
+    @Override
+    public void getMvByWyyId(String id, HttpServletResponse response) {
+        Mv mv = mvMapper.selectById(id);
+        if (null == mv) {
+            WyyApiDto params = new WyyApiDto();
+            params.setUrl("/mv/url?id=" + id + "&r=1080");
+            params.setMethod("get");
+            WyyApiStrategies wyyApiStrategies = wyyApiStrategyContext.getWyyApiStrategies(params.getUrl(), params.getMethod());
+            Wrapper<JSONObject> jsonObjectWrapper = wyyApiStrategies.doSomeThing(params);
+            if (jsonObjectWrapper.success()) {
+                mv = mvMapper.selectById(jsonObjectWrapper.getResult().getLong("id"));
+            }
+        }
+        if (null == mv) {
+            ToolsUtil.setStateInfo(response, 404, "根据[" + id + "]未找到mv信息");
+            return;
+        }
+        File file = new File(mv.getPath());
+        if (!file.exists()) {
+            log.error("mv视频文件地址不存在:" + file.getAbsolutePath());
+            ToolsUtil.setStateInfo(response, 404, "mv视频文件地址不存在");
+            return;
+        }
+        ToolsUtil.downloadFile(response, file);
     }
 }

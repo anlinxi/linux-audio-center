@@ -6,6 +6,7 @@ import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
 import com.faker.audioStation.mapper.LyricMapper;
 import com.faker.audioStation.mapper.MusicCoverMapper;
+import com.faker.audioStation.mapper.MvMapper;
 import com.faker.audioStation.mapper.SingerMapper;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.service.CacheService;
@@ -24,14 +25,18 @@ import java.util.concurrent.TimeUnit;
 public abstract class WyyApiAbstract implements WyyApiStrategies {
 
     @ApiModelProperty("定义的网易云请求参数")
-    private String url = "";
+    protected String url = "";
 
     @ApiModelProperty("定义的网易云请求方法")
-    private String method = Method.OPTIONS.name();
+    protected String method = Method.OPTIONS.name();
 
     @Value("${faker.music163Api:http://yumbo.top:3000}")
     @ApiModelProperty("网易云音乐API地址")
     protected String music163Api;
+
+    @Value("${faker.resources:/music/}")
+    @ApiModelProperty("资源文件路径")
+    protected String resourcePath;
 
     @Autowired
     @ApiModelProperty("缓存服务")
@@ -48,6 +53,10 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
     @Autowired
     @ApiModelProperty("歌词Mapper")
     protected LyricMapper lyricMapper;
+
+    @Autowired
+    @ApiModelProperty("Mv信息mapper")
+    protected MvMapper mvMapper;
 
     /**
      * 网易云方法调用入口
@@ -76,13 +85,13 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
             log.info("策略执行异常:" + e.getMessage());
             e.printStackTrace();
         }
-        String resultText = this.callWyyAPi(params);
-        if (null == resultText) {
+        JSONObject resultJson = this.callWyyAPi(params);
+        if (null == resultJson) {
             return null;
         }
         //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
-        cacheService.set(key, resultText, 8, TimeUnit.HOURS);
-        return JSONObject.parseObject(resultText);
+        cacheService.set(key, resultJson.toJSONString(), 8, TimeUnit.HOURS);
+        return resultJson;
     }
 
     /**
@@ -91,7 +100,7 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
      * @param params
      * @return
      */
-    public String callWyyAPi(WyyApiDto params) {
+    public JSONObject callWyyAPi(WyyApiDto params) {
         String method = params.getMethod().toUpperCase();
         String resultText = null;
         String url = music163Api + params.getUrl();
@@ -102,7 +111,7 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
             resultText = HttpUtil.get(url, params.getData());
         }
         log.info("网易云音乐api返回:" + resultText);
-        return resultText;
+        return JSONObject.parseObject(resultText);
     }
 
     /**
@@ -111,5 +120,5 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
      * @param params
      * @return
      */
-    public abstract Wrapper doSomeThing(WyyApiDto params);
+    public abstract Wrapper<JSONObject> doSomeThing(WyyApiDto params);
 }

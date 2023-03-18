@@ -15,6 +15,7 @@ import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
 import com.faker.audioStation.model.vo.LayuiColVo;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.MusicService;
+import com.faker.audioStation.strategies.wyyApi.WyyApiStrategyContext;
 import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
@@ -55,6 +56,10 @@ public class MusicController {
     @ApiModelProperty("缓存服务")
     CacheService cacheService;
 
+    @Autowired
+    @ApiModelProperty("网易云api策略")
+    WyyApiStrategyContext wyyApiStrategyContext;
+
     @ApiModelProperty("网易云音乐api")
     NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
 
@@ -87,6 +92,11 @@ public class MusicController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+        //如果有自定义策略 优先执行策略内容
+        JSONObject jsonObject = wyyApiStrategyContext.doWyyApiStrategies(params);
+        if (null != jsonObject) {
+            return jsonObject;
         }
         String method = params.getMethod().toUpperCase();
         String resultText = null;

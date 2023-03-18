@@ -4,6 +4,9 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
+import com.faker.audioStation.mapper.LyricMapper;
+import com.faker.audioStation.mapper.MusicCoverMapper;
+import com.faker.audioStation.mapper.SingerMapper;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.wrapper.Wrapper;
@@ -32,7 +35,19 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
 
     @Autowired
     @ApiModelProperty("缓存服务")
-    CacheService cacheService;
+    protected CacheService cacheService;
+
+    @Autowired
+    @ApiModelProperty("音乐封面图片文件Mapper")
+    protected MusicCoverMapper musicCoverMapper;
+
+    @Autowired
+    @ApiModelProperty("歌手Mapper")
+    protected SingerMapper singerMapper;
+
+    @Autowired
+    @ApiModelProperty("歌词Mapper")
+    protected LyricMapper lyricMapper;
 
     /**
      * 网易云方法调用入口
@@ -50,6 +65,33 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
                 e.printStackTrace();
             }
         }
+        try {
+            Wrapper<JSONObject> wrapper = this.doSomeThing(params);
+            log.info("策略执行结果:" + wrapper);
+            if (wrapper.success() && null != wrapper.getResult()) {
+                cacheService.set(key, wrapper.getResult().toJSONString(), 8, TimeUnit.HOURS);
+                return wrapper.getResult();
+            }
+        } catch (Exception e) {
+            log.info("策略执行异常:" + e.getMessage());
+            e.printStackTrace();
+        }
+        String resultText = this.callWyyAPi(params);
+        if (null == resultText) {
+            return null;
+        }
+        //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
+        cacheService.set(key, resultText, 8, TimeUnit.HOURS);
+        return JSONObject.parseObject(resultText);
+    }
+
+    /**
+     * 调用网易云api
+     *
+     * @param params
+     * @return
+     */
+    public String callWyyAPi(WyyApiDto params) {
         String method = params.getMethod().toUpperCase();
         String resultText = null;
         String url = music163Api + params.getUrl();
@@ -60,27 +102,14 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
             resultText = HttpUtil.get(url, params.getData());
         }
         log.info("网易云音乐api返回:" + resultText);
-        if (null == resultText) {
-            return null;
-        }
-        try {
-            Wrapper wrapper = this.doSomeThing(params, JSONObject.parseObject(resultText));
-            log.info("策略执行结果:" + wrapper);
-        } catch (Exception e) {
-            log.info("策略执行异常:" + e.getMessage());
-            e.printStackTrace();
-        }
-        //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
-        cacheService.set(key, resultText, 8, TimeUnit.HOURS);
-        return JSONObject.parseObject(resultText);
+        return resultText;
     }
 
     /**
      * 个性化的策略执行内容
      *
      * @param params
-     * @param parseObject
      * @return
      */
-    public abstract Wrapper doSomeThing(WyyApiDto params, JSONObject parseObject);
+    public abstract Wrapper doSomeThing(WyyApiDto params);
 }

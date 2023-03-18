@@ -2,6 +2,7 @@ package com.faker.audioStation.conf;
 
 import com.alibaba.fastjson.JSONObject;
 import com.faker.audioStation.service.CacheService;
+import com.faker.audioStation.service.MusicService;
 import com.faker.audioStation.websocket.WebsocketHandle;
 import com.faker.audioStation.websocket.model.Message;
 import io.swagger.annotations.ApiModelProperty;
@@ -20,7 +21,12 @@ public class SaticScheduleTask {
 
 
     @Autowired
+    @ApiModelProperty("缓存服务层")
     private CacheService cacheService;
+
+    @Autowired
+    @ApiModelProperty("音乐文件服务层")
+    private MusicService musicService;
 
     @Autowired
     @ApiModelProperty("websocket消息推送工具")
@@ -50,5 +56,14 @@ public class SaticScheduleTask {
     @Scheduled(fixedRate = 30 * 1000)
     private void cleanCache() {
         cacheService.cleanCache();
+    }
+
+    /**
+     * 定时扫描音乐
+     * 每天晚上2点钟扫描目录下音乐文件建立索引
+     */
+    @Scheduled(cron = "* * 2 * * ? ")
+    private void scanDiskMusic() {
+        musicService.scanDiskMusic();
     }
 }

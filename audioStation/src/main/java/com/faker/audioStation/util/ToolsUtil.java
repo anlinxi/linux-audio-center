@@ -465,4 +465,32 @@ public class ToolsUtil {
         }
     }
 
+    /**
+     * 解析url的查询参数
+     *
+     * @param url
+     * @return
+     */
+    public static Map<String, String> parseUrlQuery(String url) {
+        Map<String, String> entity = new HashMap<>();
+        if (url == null) {
+            return entity;
+        }
+        url = url.trim();
+        if (url.equals("")) {
+            return entity;
+        }
+        String[] urlParts = url.split("\\?");
+        //没有参数
+        if (urlParts.length == 1) {
+            return entity;
+        }
+        //有参数
+        String[] params = urlParts[1].split("&");
+        for (String param : params) {
+            String[] keyValue = param.split("=");
+            entity.put(keyValue[0], keyValue[1]);
+        }
+        return entity;
+    }
 }

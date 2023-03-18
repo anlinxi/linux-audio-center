@@ -36,10 +36,8 @@ public interface WyyApiStrategies {
     /**
      * 个性化的策略执行内容
      *
-     *
      * @param params
-     * @param parseObject
      * @return
      */
-    Wrapper doSomeThing(WyyApiDto params, JSONObject parseObject);
+    Wrapper doSomeThing(WyyApiDto params);
 }

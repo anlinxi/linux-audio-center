@@ -3,14 +3,8 @@ package com.faker.audioStation.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.faker.audioStation.mapper.LyricMapper;
-import com.faker.audioStation.mapper.MusicCoverMapper;
-import com.faker.audioStation.mapper.MusicMapper;
-import com.faker.audioStation.mapper.SingerMapper;
-import com.faker.audioStation.model.domain.Lyric;
-import com.faker.audioStation.model.domain.Music;
-import com.faker.audioStation.model.domain.MusicCover;
-import com.faker.audioStation.model.domain.Singer;
+import com.faker.audioStation.mapper.*;
+import com.faker.audioStation.model.domain.*;
 import com.faker.audioStation.model.dto.GetPageDto;
 import com.faker.audioStation.service.TableService;
 import com.faker.audioStation.util.ToolsUtil;
@@ -44,6 +38,10 @@ public class TableServiceImpl implements TableService {
     @Autowired
     @ApiModelProperty("歌词Mapper")
     LyricMapper lyricMapper;
+
+    @Autowired
+    @ApiModelProperty("Mv信息mapper")
+    MvMapper mvMapper;
 
     /**
      * 获取实体类文件的分页数据
@@ -102,6 +100,18 @@ public class TableServiceImpl implements TableService {
                 queryWrapper.orderByDesc(tableField);
             }
             musicIPage = singerMapper.selectPage(pageParam, queryWrapper);
+        } else if ("Mv".equals(pageSizeDto.getDomainName())) {
+            Page<Mv> pageParam = new Page<>(pageSizeDto.getPage(), pageSizeDto.getPageSize());
+            QueryWrapper<Mv> queryWrapper = new QueryWrapper<>();
+            if ("asc".equals(pageSizeDto.getOrder())) {
+                String tableField = ToolsUtil.getTableField(Singer.class, pageSizeDto.getField());
+                queryWrapper.orderByAsc(tableField);
+            }
+            if ("desc".equals(pageSizeDto.getOrder())) {
+                String tableField = ToolsUtil.getTableField(Singer.class, pageSizeDto.getField());
+                queryWrapper.orderByDesc(tableField);
+            }
+            musicIPage = mvMapper.selectPage(pageParam, queryWrapper);
         } else if ("xxx".equals(pageSizeDto.getDomainName())) {
 
         } else {

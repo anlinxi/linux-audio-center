@@ -66,4 +66,19 @@ public class Mv implements Serializable {
     @TableField("CLARITY")
     private String resolution;
 
+    @ApiModelProperty(value = "艺术家名称")
+    @Excel(name = "艺术家")
+    @TableField("ARTIST_NAME")
+    private String artistName;
+
+    @ApiModelProperty(value = "简介")
+    @Excel(name = "简介")
+    @TableField("DESC")
+    private String desc;
+
+    @ApiModelProperty(value = "发布时间", example = "2008-01-01")
+    @Excel(name = "发布时间")
+    @TableField("PUBLISH_TIME")
+    private String publishTime;
+
 }

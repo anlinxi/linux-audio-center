@@ -85,7 +85,7 @@ public class WyyMvApi extends WyyApiAbstract {
             } else {
                 String key = "LOCK:" + this.getClass().getSimpleName() + ":doSomeThing:" + params.getUrl();
                 Boolean lock = cacheService.get(key);
-                if (null != lock && lock) {
+                if (null == lock) {
                     try {
                         cacheService.set(key, true, 1, TimeUnit.MINUTES);
                         JSONObject json = super.callWyyAPi(params);
@@ -93,20 +93,48 @@ public class WyyMvApi extends WyyApiAbstract {
                         if (200 == json.getInteger("code")) {
                             mvInsert.setWyyId(json.getJSONObject("data").getLong("id"));
                             mvInsert.setUrl(json.getJSONObject("data").getString("url"));
-                            String mvPath = resourcePath + PathEnum.MV_PATH.getPath() + "/" + ToolsUtil.getFileName(mvInsert.getWyyId() + "") + ".mp4";
-                            mvInsert.setPath(mvPath);
+
+
                             mvInsert.setResolution(resolution);
-                            //下载mv
-                            File mvFile = new File(mvPath);
-                            if (!mvFile.getParentFile().exists()) {
-                                mvFile.getParentFile().mkdirs();
-                            }
+
                             //异步下载
                             new Thread(() -> {
+                                String mvPath = resourcePath + PathEnum.MV_PATH.getPath() + "/" + ToolsUtil.getFileName(mvInsert.getWyyId() + ".mp4");
+                                try {
+                                    //查询专辑详情
+                                    WyyApiDto paramsMvDetail = new WyyApiDto();
+                                    paramsMvDetail.setUrl("/mv/detail?mvid=" + mvInsert.getWyyId());
+                                    paramsMvDetail.setMethod("get");
+                                    JSONObject mvDetailJson = super.callWyyAPi(paramsMvDetail);
+                                    //艺术家
+                                    String artistName = mvDetailJson.getJSONObject("data").getString("artistName");
+                                    //名称
+                                    String name = mvDetailJson.getJSONObject("data").getString("name");
+                                    //介绍
+                                    String desc = mvDetailJson.getJSONObject("data").getString("desc");
+                                    //发布时间
+                                    String publishTime = mvDetailJson.getJSONObject("data").getString("publishTime");
+                                    mvInsert.setArtistName(artistName);
+                                    mvInsert.setName(name);
+                                    mvInsert.setDesc(desc);
+                                    mvInsert.setPublishTime(publishTime);
+                                    mvPath = resourcePath + PathEnum.MV_PATH.getPath() + "/" + ToolsUtil.getFileName(artistName + " - " + name + ".mp4");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                //下载mv
+                                File mvFile = new File(mvPath);
+                                if (!mvFile.getParentFile().exists()) {
+                                    mvFile.getParentFile().mkdirs();
+                                }
+                                mvInsert.setPath(mvPath);
                                 HttpUtil.downloadFile(mvInsert.getUrl(), mvFile);
                                 //mv大小
                                 mvInsert.setSize(new File(mvFile.getAbsolutePath()).length());
+
+
                                 mvMapper.insert(mvInsert);
+                                log.warn("MV视频[" + mvInsert.getWyyId() + "]下载完毕!");
                             }).start();
 
                             return WrapMapper.ok(json);

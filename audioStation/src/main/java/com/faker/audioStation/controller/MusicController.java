@@ -107,9 +107,11 @@ public class MusicController {
         } else if ("POST".equals(method)) {
             resultText = HttpUtil.get(url, params.getData());
         }
-        log.info("网易云音乐api返回:" + resultText);
         if (null == resultText) {
             return null;
+        }
+        if (resultText.length() < 100) {
+            log.info("网易云音乐api返回:" + resultText);
         }
         //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
         cacheService.set(key, resultText, 8, TimeUnit.HOURS);
@@ -135,9 +137,11 @@ public class MusicController {
         Map<String, Object> paramsMap = new HashMap<>();
         paramsMap.put("id", params.getId());
         String resultText = HttpUtil.get(url, paramsMap);
-        log.info("网易云音乐api返回:" + resultText);
         if (null == resultText) {
             return null;
+        }
+        if (resultText.length() < 100) {
+            log.info("网易云音乐api返回:" + resultText);
         }
         SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
         log.info(songUrlRootBean.toString());
@@ -167,9 +171,11 @@ public class MusicController {
         Map<String, Object> paramsMap = new HashMap<>();
         paramsMap.put("id", params.getId());
         String resultText = HttpUtil.get(url, paramsMap);
-        log.info("网易云音乐api返回:" + resultText);
         if (null == resultText) {
             return null;
+        }
+        if (resultText.length() < 100) {
+            log.info("网易云音乐api返回:" + resultText);
         }
         SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
         //下载音乐
@@ -196,10 +202,12 @@ public class MusicController {
             Map<String, Object> paramsMap = new HashMap<>();
             paramsMap.put("id", id);
             String resultText = HttpUtil.get(url, paramsMap);
-            log.info("网易云音乐api返回:" + resultText);
             if (null == resultText) {
                 ToolsUtil.setStateInfo(response, 404, "根据[" + id + "]未找到音乐信息");
                 return;
+            }
+            if (resultText.length() < 100) {
+                log.info("网易云音乐api返回:" + resultText);
             }
             SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
             log.info(songUrlRootBean.toString());

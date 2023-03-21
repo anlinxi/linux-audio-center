@@ -34,9 +34,11 @@
 
 项目基于vue2的开源项目：[改造后的前端项目地址](http://www.anlinxi.top:30000/an/vue_pc_music)
 
+同时集成了集成了electron框架，可以打包运行到windows，mac、linux等系统上。支持国产deepin、uos等系统
+
 ## 开源社区支持
 
-前端界面使用了[vue_pc_music](https://gitee.com/trtst/vue_pc_music) 项目改造而成，替代了网易云爬取的页面
+前端界面使用了[vue_pc_music](https://gitee.com/trtst/vue_pc_music) 项目改造而成，替代了网易云爬取的页面。
 
 后台调用网易云的内容使用了[网易云音乐api](https://binaryify.github.io/NeteaseCloudMusicApi) 和[java调音乐api](https://github.com/1015770492/yumbo-music-utils)
 

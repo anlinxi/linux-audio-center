@@ -41,5 +41,5 @@
 后台调用网易云的内容使用了[网易云音乐api](https://binaryify.github.io/NeteaseCloudMusicApi) 和[java调音乐api](https://github.com/1015770492/yumbo-music-utils)
 
 ##### 统信UOS和浏览器web上运行
-| ![输入图片说明](codeGenrator/imagesuos.png)  | ![统信UOS上运行](http://tx.anlinxi.top/h5project/image/vue_music_pc/uos.png)  |
+| ![统信UOS上运行](codeGenrator/imagesuos.png)  | ![浏览器web运行](codeGenrator/imagesweb.jpg)  |
 |---|---|

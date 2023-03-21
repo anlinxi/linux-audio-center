@@ -145,9 +145,11 @@ public class MusicController {
         }
         SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
         log.info(songUrlRootBean.toString());
-        songUrlRootBean = musicService.downLoadMusic(songUrlRootBean);
-        //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
-        cacheService.set(key, JSONObject.toJSONString(songUrlRootBean), 7, TimeUnit.DAYS);
+        new Thread(() -> {
+            SongUrlRootBean songUrlRootBeanV2 = musicService.downLoadMusic(songUrlRootBean);
+            //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
+            cacheService.set(key, JSONObject.toJSONString(songUrlRootBeanV2), 7, TimeUnit.DAYS);
+        }).start();
         return songUrlRootBean;
     }
 

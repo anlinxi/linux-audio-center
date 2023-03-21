@@ -32,7 +32,7 @@
 ###### 前端解释及源码地址
 前端使用了[vue_pc_music](https://gitee.com/trtst/vue_pc_music) 项目改造而,
 
-项目基于vue2的开源项目：[改造后的前端项目地址](http://www.anlinxi.top:30000/an/vue_pc_music)
+项目基于vue2的开源项目：[改造后的前端项目地址](https://gitee.com/anlinxi/vue_pc_music.git)
 
 同时集成了集成了electron框架，可以打包运行到windows，mac、linux等系统上。支持国产deepin、uos等系统
 
@@ -49,3 +49,8 @@
 ##### 统信UOS和浏览器web上运行
 | ![统信UOS上运行](codeGenrator/imagesuos.png)  | ![浏览器web运行](codeGenrator/imagesweb.jpg)  |
 |---|---|
+
+##### 群晖dokcer上运行和整理的图片
+|---|---|---|---|
+|![docker运行](codeGenrator/1679368267130.jpg)|![整理信息](codeGenrator/1679368315478.jpg)|![整理的歌词](codeGenrator/1679368339314.jpg)|![整理的图片](codeGenrator/1679368403751.jpg)|
+|---|---|---|---|

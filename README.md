@@ -1,8 +1,8 @@
-# springBoot音乐中心
+# linux音乐中心
 
 群辉audio station不对外开放，每个版本的api差异都很大，不好做统一开发。 干脆直接自己写个后台管理系统来对接web和app算了，功能也能更加自定义化
 
-项目很多资源都是依赖了开源社区提供的方案，通过这个项目整合到了一起。
+项目很多资源都是依赖了开源社区提供的方案，通过这个项目整合到了一起。同时项目代码完全开源，无需担心隐私和信息泄露情况。
 
 ## 项目框架
 
@@ -29,12 +29,16 @@
 
 然后在application.yml的faker.music163Api里改成自己的地址
 
-###### 前端源码
+###### 前端解释及源码地址
 前端使用了[vue_pc_music](https://gitee.com/trtst/vue_pc_music) 项目改造而,
 
 项目基于vue2的开源项目：[改造后的前端项目地址](http://www.anlinxi.top:30000/an/vue_pc_music)
 
 同时集成了集成了electron框架，可以打包运行到windows，mac、linux等系统上。支持国产deepin、uos等系统
+
+###### app解释及源码地址
+
+基于Uni Music(homic音乐播放器) 二次开发的[群晖音乐播放器](https://gitee.com/anlinxi/linux-player-uniapp.git)，支持多端发布。可以在手机上连接音乐中心播放音乐。
 
 ## 开源社区支持
 

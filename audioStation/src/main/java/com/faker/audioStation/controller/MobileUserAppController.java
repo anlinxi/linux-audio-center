@@ -1,6 +1,7 @@
 package com.faker.audioStation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.faker.audioStation.aop.LogAndPermissions;
 import com.faker.audioStation.model.domain.JsMobileUser;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.IJsMobileUserService;
@@ -155,12 +156,14 @@ public class MobileUserAppController extends BaseController {
     @ApiOperation(value = "注册的方法", notes = "注册的方法")
     @RequestMapping(value = "register")
     @ResponseBody
-    public Map register(@ApiParam(value = "用户名") String loginCode, @ApiParam(value = "密码") String password, @ApiParam(value = "昵称") String userName, @ApiParam(value = "token") String __sid) {
+    @LogAndPermissions("1")
+    public Map register(@ApiParam(value = "用户名") String loginCode, @ApiParam(value = "密码") String password, @ApiParam(value = "昵称") String userName, @ApiParam(value = "账户类型") String mgrType, @ApiParam(value = "token") String __sid) {
         // 参数组装对象
         JsMobileUser mobileUser = new JsMobileUser();
         mobileUser.setLoginCode(loginCode);
         mobileUser.setPassword(password);
         mobileUser.setUserName(userName);
+        mobileUser.setMgrType(mgrType);
         Map result = new HashMap();
         result.put("message", "未知异常");
         result.put("result", "false");
@@ -173,15 +176,17 @@ public class MobileUserAppController extends BaseController {
             if (ToolsUtil.isNullOrEmpty(mobileUser.getPassword())) {
                 result.put("message", "密码不能为空！");
             }
-            // 登录密码解密（解决密码明文传输安全问题）
-            String secretKey = DES_SECRET_KEY;
-            String realUserName = DesUtils.decode(mobileUser.getLoginCode(), secretKey);
+            String realUserName = mobileUser.getLoginCode();
             // 用户名不能重名
-            JsMobileUser mobileUser2 = iJsMobileUserService.getById(realUserName);
-            if (mobileUser2 != null && ToolsUtil.isNotNull(mobileUser2.getLoginCode())) {
+            QueryWrapper<JsMobileUser> queryWrapCount = new QueryWrapper<>();
+            queryWrapCount.eq("LOGIN_CODE", mobileUser.getLoginCode());
+            int userCount = iJsMobileUserService.count(queryWrapCount);
+            if (userCount > 0) {
                 result.put("message", "该用户名已注册！");
                 return result;
             } else {
+                String md5Password = DesUtils.encode(password, DES_SECRET_KEY);
+                mobileUser.setPassword(md5Password);
                 // 新增用户
                 Date now = new Date();
                 mobileUser.setLoginCode(realUserName);
@@ -193,8 +198,9 @@ public class MobileUserAppController extends BaseController {
                 mobileUser.setUserCode(realUserName + "_" + uuid);
                 mobileUser.setToken(uuid);
                 mobileUser.setUserType("employee");
-                mobileUser.setMgrType("0");
                 mobileUser.setStatus("0");
+                mobileUser.setCorpCode("0");
+                mobileUser.setCorpName("audio Station");
                 iJsMobileUserService.save(mobileUser);
 
                 result.put("sessionid", uuid);

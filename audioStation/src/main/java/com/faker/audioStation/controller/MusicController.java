@@ -213,6 +213,7 @@ public class MusicController {
             }
             SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
             log.info(songUrlRootBean.toString());
+
             songUrlRootBean = musicService.downLoadMusic(songUrlRootBean);
             QueryWrapper<Music> queryWrapper2 = new QueryWrapper<>();
             queryWrapper2.eq("WYY_ID", id);

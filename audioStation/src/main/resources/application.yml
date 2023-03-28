@@ -45,8 +45,6 @@ faker:
   resources: '/music/'
   #网易云音乐API地址 默认为http://yumbo.top:3000
   music163Api: 'http://192.168.123.223:3000'
-  #UnblockNeteaseMusic代理端口地址
-  unblockNeteaseMusic.proxy: '192.168.123.224:33335'
   #开发库反向代理
   proxy:
     dev:

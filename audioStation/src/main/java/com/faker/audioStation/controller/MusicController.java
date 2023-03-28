@@ -14,6 +14,7 @@ import com.faker.audioStation.model.dto.wyy.songDetail.SongDetailRootBean;
 import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
 import com.faker.audioStation.model.vo.LayuiColVo;
 import com.faker.audioStation.service.CacheService;
+import com.faker.audioStation.service.DownloadService;
 import com.faker.audioStation.service.MusicService;
 import com.faker.audioStation.strategies.wyyApi.WyyApiStrategyContext;
 import com.faker.audioStation.util.ToolsUtil;
@@ -62,6 +63,10 @@ public class MusicController {
 
     @ApiModelProperty("网易云音乐api")
     NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
+
+    @Autowired
+    @ApiModelProperty("下载服务")
+    protected DownloadService downloadService;
 
     @ApiOperation(value = "获取音乐文件的layui参数", notes = "layui表头参数")
     @PostMapping(value = "getMusicLayuiColVo")
@@ -146,7 +151,7 @@ public class MusicController {
         SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
         log.info(songUrlRootBean.toString());
         new Thread(() -> {
-            SongUrlRootBean songUrlRootBeanV2 = musicService.downLoadMusic(songUrlRootBean);
+            SongUrlRootBean songUrlRootBeanV2 = downloadService.downLoadMusic(songUrlRootBean);
             //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
             cacheService.set(key, JSONObject.toJSONString(songUrlRootBeanV2), 7, TimeUnit.DAYS);
         }).start();
@@ -181,7 +186,7 @@ public class MusicController {
         }
         SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
         //下载音乐
-        musicService.downLoadMusic(songUrlRootBean);
+        downloadService.downLoadMusic(songUrlRootBean);
         //返回对象
         SongDetailRootBean songJson = musicService.songDetail(new String[]{params.getId() + ""});
         //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
@@ -214,7 +219,7 @@ public class MusicController {
             SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
             log.info(songUrlRootBean.toString());
 
-            songUrlRootBean = musicService.downLoadMusic(songUrlRootBean);
+            songUrlRootBean = downloadService.downLoadMusic(songUrlRootBean);
             QueryWrapper<Music> queryWrapper2 = new QueryWrapper<>();
             queryWrapper2.eq("WYY_ID", id);
             music = musicService.getOne(queryWrapper2);

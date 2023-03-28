@@ -4,17 +4,16 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
-import com.faker.audioStation.mapper.LyricMapper;
-import com.faker.audioStation.mapper.MusicCoverMapper;
-import com.faker.audioStation.mapper.MvMapper;
-import com.faker.audioStation.mapper.SingerMapper;
+import com.faker.audioStation.mapper.*;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.service.CacheService;
+import com.faker.audioStation.service.MusicService;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
 import java.util.concurrent.TimeUnit;
 
@@ -43,6 +42,10 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
     protected CacheService cacheService;
 
     @Autowired
+    @ApiModelProperty("音乐文件Mapper")
+    protected MusicMapper musicMapper;
+
+    @Autowired
     @ApiModelProperty("音乐封面图片文件Mapper")
     protected MusicCoverMapper musicCoverMapper;
 
@@ -58,12 +61,16 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
     @ApiModelProperty("Mv信息mapper")
     protected MvMapper mvMapper;
 
+    @ApiModelProperty("网易云音乐api")
+    protected NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
+
     /**
      * 网易云方法调用入口
      *
      * @param params
      * @return
      */
+    @Override
     public JSONObject getWyyApi(WyyApiDto params) {
         String key = SecureUtil.md5(JSONObject.toJSONString(params));
         String value = cacheService.get(key);
@@ -119,5 +126,6 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
      * @param params
      * @return
      */
+    @Override
     public abstract Wrapper<JSONObject> doSomeThing(WyyApiDto params);
 }

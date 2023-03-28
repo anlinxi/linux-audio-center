@@ -54,6 +54,7 @@ public class JsonData implements Serializable {
     private double gain;
 
     private int peak;
+    @ApiModelProperty(value = "是否是vip", example = "1", notes = "1为vip")
     private int fee;
     private String uf;
     private int payed;

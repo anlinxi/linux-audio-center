@@ -20,31 +20,30 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
- * <p>
- * 音乐 服务类
- * </p>
+ * <p>DownloadService</p>
  *
- * @author anlin
- * @since 2022-07-26
+ * <p>项目名称：linux-audio-center</p>
+ *
+ * <p>注释:无</p>
+ *
+ * <p>Copyright: Copyright Faker(c) 2023/3/28</p>
+ *
+ * <p>公司: Faker</p>
+ *
+ * @author 淡梦如烟
+ * @version 1.0
+ * @date 2023/3/28 14:19
  */
-public interface MusicService extends IService<Music> {
+public interface DownloadService  extends IService<Music> {
 
 
     /**
-     * 获取音乐文件的layui参数
+     * 下载网易云音乐的歌曲到本地
      *
+     * @param songUrlRootBean
      * @return
      */
-    Wrapper<List<LayuiColVo>> getMusicLayuiColVo();
-
-    /**
-     * 获取音乐文件的分页数据
-     *
-     * @param pageSizeDto
-     * @return
-     */
-    Wrapper<IPage<Music>> getMusicPage(GetMusicPageParamDto pageSizeDto);
-
+    SongUrlRootBean downLoadMusic(SongUrlRootBean songUrlRootBean);
 
     /**
      * 网易云音乐详情
@@ -55,6 +54,32 @@ public interface MusicService extends IService<Music> {
     SongDetailRootBean songDetail(String[] ids);
 
     /**
+     * 保存在线音乐到本地
+     *
+     * @param songUrlRootBean
+     * @param songs
+     * @param songJson
+     */
+    Music saveMusicByWyy(SongUrlRootBean songUrlRootBean, Songs songs, SongDetailRootBean songJson);
+
+    /**
+     * 通过网易云id获取歌手信息
+     *
+     * @param artistIdWyy
+     * @return
+     */
+    Singer getSingerByWyyId(Integer artistIdWyy);
+
+    /**
+     * 通过网易云id获取专辑信息
+     *
+     * @param albumWyy
+     * @param music
+     * @return
+     */
+    MusicCover getMusicCoverByWyyId(Al albumWyy, Music music);
+
+    /**
      * 通过网易云id获取歌词信息
      *
      * @param id
@@ -63,34 +88,4 @@ public interface MusicService extends IService<Music> {
      */
     Lyric getLyricByWyyId(Long id, Music music);
 
-    /**
-     * 通过网易云id获取歌词信息
-     *
-     * @param param
-     * @return
-     */
-    Wrapper<JSONObject> getLyricByWyyId(IdDto param);
-
-    /**
-     * 根据封面文件id获取封面图片
-     *
-     * @param id
-     * @param response
-     */
-    void getMusicCoverById(String id, HttpServletResponse response);
-
-    /**
-     * 扫描本地音乐
-     *
-     * @return
-     */
-    Wrapper scanDiskMusic();
-
-    /**
-     * 根据网易云id获取mv视频
-     *
-     * @param id
-     * @param response
-     */
-    void getMvByWyyId(String id, HttpServletResponse response);
 }

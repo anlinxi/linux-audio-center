@@ -7,7 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.faker.audioStation.mapper.*;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.service.CacheService;
-import com.faker.audioStation.service.MusicService;
+import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,6 +38,10 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
     @Value("${faker.resources:/music/}")
     @ApiModelProperty("资源文件路径")
     protected String resourcePath;
+
+    @Value("${faker.unblockNeteaseMusic.proxy:}")
+    @ApiModelProperty("解锁网易云灰色音乐的代理")
+    private String unblockNeteaseMusicProxy;
 
     @Autowired
     @ApiModelProperty("缓存服务")
@@ -128,4 +134,20 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
      */
     @Override
     public abstract Wrapper<JSONObject> doSomeThing(WyyApiDto params);
+
+    /**
+     * 返回代理对象
+     *
+     * @return
+     */
+    public Proxy getProxy() {
+        if (ToolsUtil.isNotNull(unblockNeteaseMusicProxy) && unblockNeteaseMusicProxy.contains(":")) {
+            String[] unblockNeteaseMusicProxyArr = unblockNeteaseMusicProxy.split(":");
+            String proxyIp = unblockNeteaseMusicProxyArr[0];
+            Integer proxyPort = Integer.parseInt(unblockNeteaseMusicProxyArr[1]);
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
+            return proxy;
+        }
+        return null;
+    }
 }

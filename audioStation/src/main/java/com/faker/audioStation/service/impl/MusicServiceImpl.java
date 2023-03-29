@@ -64,9 +64,9 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
     @ApiModelProperty("资源文件路径")
     private String resourcePath;
 
-//    @Value("${faker.unblockNeteaseMusic.proxy:}")
-//    @ApiModelProperty("解锁网易云灰色音乐的代理")
-//    private String unblockNeteaseMusicProxy;
+    @Value("${faker.unblockNeteaseMusic.proxy:}")
+    @ApiModelProperty("解锁网易云灰色音乐的代理")
+    private String unblockNeteaseMusicProxy;
 
     @Autowired
     @ApiModelProperty("缓存服务")

@@ -1,6 +1,7 @@
 package com.faker.audioStation.strategies.wyyApi.api;
 
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
@@ -18,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -94,7 +97,16 @@ public class WyySongUrlApi extends WyyApiAbstract {
                         cacheService.set(key, JSONObject.toJSONString(songUrlRootBeanV2), 4, TimeUnit.HOURS);
                     }).start();
                     return WrapMapper.ok(JSONObject.parseObject(resultText));
+                } else {
+                    //vip音乐 只能试听 需查询其他音乐源
+                    String url2 = music163Api + "/song/detail?timestamp=" + System.currentTimeMillis();
+                    Map<String, Object> paramsMap2 = new HashMap<>();
+                    paramsMap2.put("ids", id);
+                    Proxy proxy = super.getProxy();
+                    HttpResponse response = HttpUtil.createPost(url2).form(paramsMap2).setProxy(proxy).executeAsync();
+                    String searchText = response.body();
                 }
+
 
             } else {
                 SongUrlRootBean songUrlRootBean = new SongUrlRootBean(music);

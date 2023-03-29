@@ -5,6 +5,7 @@ import cn.hutool.crypto.asymmetric.KeyType;
 import cn.hutool.crypto.asymmetric.RSA;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Test;
 
 import javax.crypto.Cipher;
@@ -52,6 +53,9 @@ public class RSAUtilV2 {
      */
     public static final String PRIVATE_KEY = null;
 
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     /**
      * 生成密钥对
@@ -128,28 +132,9 @@ public class RSAUtilV2 {
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(pubKey);
         KeyFactory keyFactory = KeyFactory.getInstance(RSA_KEY_ALGORITHM);
         PublicKey publicKey = keyFactory.generatePublic(x509KeySpec);
-        Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
+        Cipher cipher = Cipher.getInstance("RSA/None/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-
-        // 最大加密字节数，超出最大字节数需要分组加密
-        int MAX_ENCRYPT_BLOCK = 117;
-        int inputLength = data.length;
-        // 标识
-        int offSet = 0;
-        byte[] resultBytes = {};
-        byte[] cache = {};
-        while (inputLength - offSet > 0) {
-            if (inputLength - offSet > MAX_ENCRYPT_BLOCK) {
-                cache = cipher.doFinal(data, offSet, MAX_ENCRYPT_BLOCK);
-                offSet += MAX_ENCRYPT_BLOCK;
-            } else {
-                cache = cipher.doFinal(data, offSet, inputLength - offSet);
-                offSet = inputLength;
-            }
-            resultBytes = Arrays.copyOf(resultBytes, resultBytes.length + cache.length);
-            System.arraycopy(cache, 0, resultBytes, resultBytes.length - cache.length, cache.length);
-        }
-        return resultBytes;
+        return cipher.doFinal(data);
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.faker.audioStation.util;
 
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.asymmetric.KeyType;
@@ -13,10 +14,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.faker.audioStation.exception.NoMoneyToEatKFCException;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 
+import javax.crypto.Cipher;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,14 +90,17 @@ public class WyyHttpUtil {
      */
     public String httpContent(Method method, String url, JSONObject form) throws Exception {
         String text = form.toJSONString();
+        //获取随机16位秘钥
         String secretKey = this.getSecretKey();
-        secretKey = "jH7pk9jq099zjzuV";
+
+        //一次aes加密
         String aesText1 = AesPkcs7PaddingUtil.encrypt(text, ENCODE_KEY, IV_KEY);
 
+        //二次aes加密
         String params = AesPkcs7PaddingUtil.encrypt(aesText1, secretKey, IV_KEY);
 
+        //准备生成rsa加密参数
         String secretKeyReverse = new StringBuffer(secretKey).reverse().toString();
-        RSA rsa = new RSA(null, PUBLIC_KEY);
         int byteLong = 128;
         byte[] secretKeyReverseByte = new byte[byteLong];
         for (int i = 0; i < (byteLong - secretKeyReverse.length()); i++) {
@@ -101,15 +110,31 @@ public class WyyHttpUtil {
         for (int i = (byteLong - secretKeyReverse.length()); i < byteLong; i++) {
             secretKeyReverseByte[i] = tmpSecretKey[i - (byteLong - secretKeyReverse.length())];
         }
-        String encSecKey = rsa.encryptHex(secretKeyReverseByte, KeyType.PublicKey);
-        encSecKey = "74582dc679bec31d6279e50bcbed931756c8de354187ba51ee35a2abef917153441215fac2588c8efd605348a4dab202a847fa69f62f5610457d8e35a08a3db00aeaedc758f6112c25c236bdee1745650012cbc9ed3f064d0e5de9b2caf2ebd1e898d6ee059e03ce9097218cd2f5342ac4d045b04755eb4b47a228283e7fe2c4";
-        log.info("encSecKey=" + encSecKey);
+        //rsa加密
+        String encSecKey = HexUtil.encodeHexStr(this.encryptByPubKey(secretKeyReverseByte, Base64.decodeBase64(PUBLIC_KEY)));
 
         Map<String, Object> formMap = new HashMap<>(2);
         formMap.put("params", params);
         formMap.put("encSecKey", encSecKey);
         return this.httpContent(method, url, formMap);
 
+    }
+
+    /**
+     * 公钥加密
+     *
+     * @param data   待加密数据
+     * @param pubKey 公钥
+     * @return
+     * @throws Exception
+     */
+    public byte[] encryptByPubKey(byte[] data, byte[] pubKey) throws Exception {
+        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(pubKey);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PublicKey publicKey = keyFactory.generatePublic(x509KeySpec);
+        Cipher cipher = Cipher.getInstance("RSA/None/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        return cipher.doFinal(data);
     }
 
     /**

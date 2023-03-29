@@ -4,25 +4,31 @@ import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.URLUtil;
-import cn.hutool.crypto.asymmetric.KeyType;
-import cn.hutool.crypto.asymmetric.RSA;
+import cn.hutool.crypto.SecureUtil;
+import cn.hutool.crypto.symmetric.AES;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.faker.audioStation.enums.WyyApiTypeEnum;
 import com.faker.audioStation.exception.NoMoneyToEatKFCException;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.security.KeyFactory;
 import java.security.PublicKey;
+import java.security.Security;
 import java.security.spec.X509EncodedKeySpec;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +47,7 @@ import java.util.Map;
  * @version 1.0
  * @date 2023/3/29 10:00
  */
+@Component
 @Slf4j
 public class WyyHttpUtil {
 
@@ -55,7 +62,7 @@ public class WyyHttpUtil {
     @ApiModelProperty("未登录token")
     private String anonymousToken = "bf8bfeabb1aa84f9c8c3906c04a04fb864322804c83f5d607e91a04eae463c9436bd1a17ec353cf780b396507a3f7464e8a60f4bbc019437993166e004087dd32d1490298caf655c2353e58daa0bc13cc7d5c198250968580b12c1b8817e3f5c807e650dd04abd3fb8130b7ae43fcc5b";
 
-    @ApiModelProperty("aes加密秘钥")
+    @ApiModelProperty(value = "aes加密秘钥", notes = "weapi的秘钥")
     private final String ENCODE_KEY = "0CoJUm6Qyw8W8jud";
 
     @ApiModelProperty("aes加密偏移量")
@@ -67,8 +74,23 @@ public class WyyHttpUtil {
     @ApiModelProperty("RSA公钥")
     private final String PUBLIC_KEY = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDgtQn2JZ34ZC28NWYpAUd98iZ37BUrX/aKzmFbt7clFSs6sXqHauqKWqdtLkF2KexO40H1YTX8z2lSgBBOAxLsvaklV8k4cBFK9snQXE9/DDaFt6Rr7iVZMldczhC0JNgTz+SHXT6CBHuX3e9SdB1Ua44oncaTWz7OBGLbCiK45wIDAQAB";
 
+    @ApiModelProperty(value = "aes加密秘钥", notes = "eapi的秘钥")
+    private final String EAPI_KEY = "e82ckenh8dichen8";
+
+    @ApiModelProperty(value = "aes加密秘钥", notes = "linuxApi的秘钥")
+    private final String LINUX_API_KEY = "rFgB&h#%2?^eDg:Q";
+
+    @Value("${faker.unblockNeteaseMusic.proxy:192.168.123.223:33335}")
+    @ApiModelProperty("解锁网易云灰色音乐的代理")
+    private String unblockNeteaseMusicProxy = "192.168.123.223:33335";
+
+    /**
+     * 歌曲详情
+     *
+     * @throws Exception
+     */
     @Test
-    public void test() throws Exception {
+    public void songDetail() throws Exception {
         JSONObject form = new JSONObject();
         JSONArray ids = new JSONArray();
         JSONObject id = new JSONObject();
@@ -76,7 +98,23 @@ public class WyyHttpUtil {
         ids.add(id);
         form.put("c", ids.toJSONString());
         form.put("csrf_token", "");
-        String result = this.httpContent(Method.POST, "http://music.163.com/weapi/v3/song/detail", form);
+        String result = this.httpContent(WyyApiTypeEnum.WE_API, Method.POST, "http://music.163.com/weapi/v3/song/detail", form);
+        log.info(result);
+    }
+
+    /**
+     * 歌曲下载地址
+     *
+     * @throws Exception
+     */
+    @Test
+    public void songUrl() throws Exception {
+        JSONObject form = new JSONObject();
+        JSONArray ids = new JSONArray();
+        ids.add(29850683);
+        form.put("ids", ids.toJSONString());
+        form.put("br", 999000);
+        String result = this.httpContent(WyyApiTypeEnum.E_API, Method.POST, "http://interface3.music.163.com/eapi/song/enhance/player/url", form);
         log.info(result);
     }
 
@@ -88,36 +126,68 @@ public class WyyHttpUtil {
      * @param form
      * @return
      */
-    public String httpContent(Method method, String url, JSONObject form) throws Exception {
+    public String httpContent(WyyApiTypeEnum wyyApiTypeEnum, Method method, String url, JSONObject form) throws Exception {
         String text = form.toJSONString();
-        //获取随机16位秘钥
-        String secretKey = this.getSecretKey();
+        log.debug("原始json字符串:" + text);
+        if (WyyApiTypeEnum.WE_API.equals(wyyApiTypeEnum)) {
+            //获取随机16位秘钥
+            String secretKey = this.getSecretKey();
 
-        //一次aes加密
-        String aesText1 = AesPkcs7PaddingUtil.encrypt(text, ENCODE_KEY, IV_KEY);
+            //一次aes加密
+            String aesText1 = AesPkcs7PaddingUtil.encrypt(text, ENCODE_KEY, IV_KEY);
 
-        //二次aes加密
-        String params = AesPkcs7PaddingUtil.encrypt(aesText1, secretKey, IV_KEY);
+            //二次aes加密
+            String params = AesPkcs7PaddingUtil.encrypt(aesText1, secretKey, IV_KEY);
 
-        //准备生成rsa加密参数
-        String secretKeyReverse = new StringBuffer(secretKey).reverse().toString();
-        int byteLong = 128;
-        byte[] secretKeyReverseByte = new byte[byteLong];
-        for (int i = 0; i < (byteLong - secretKeyReverse.length()); i++) {
-            secretKeyReverseByte[i] = 0;
+            //准备生成rsa加密参数
+            String secretKeyReverse = new StringBuffer(secretKey).reverse().toString();
+            int byteLong = 128;
+            byte[] secretKeyReverseByte = new byte[byteLong];
+            for (int i = 0; i < (byteLong - secretKeyReverse.length()); i++) {
+                secretKeyReverseByte[i] = 0;
+            }
+            byte[] tmpSecretKey = secretKeyReverse.getBytes();
+            for (int i = (byteLong - secretKeyReverse.length()); i < byteLong; i++) {
+                secretKeyReverseByte[i] = tmpSecretKey[i - (byteLong - secretKeyReverse.length())];
+            }
+            //rsa加密
+            String encSecKey = HexUtil.encodeHexStr(this.encryptByPubKey(secretKeyReverseByte, Base64.decodeBase64(PUBLIC_KEY)));
+
+            Map<String, Object> formMap = new HashMap<>(2);
+            formMap.put("params", params);
+            formMap.put("encSecKey", encSecKey);
+            return this.httpContent(method, url, formMap, this.getHeaders(wyyApiTypeEnum));
+        } else if (WyyApiTypeEnum.LINUX_API.equals(wyyApiTypeEnum)) {
+            String params = AesPkcs7PaddingUtil.encryptHex(text, LINUX_API_KEY, null).toUpperCase();
+            Map<String, Object> formMap = new HashMap<>(1);
+            formMap.put("eparams", params);
+            return this.httpContent(method, url, formMap, this.getHeaders(wyyApiTypeEnum));
+        } else if (WyyApiTypeEnum.E_API.equals(wyyApiTypeEnum)) {
+            Map<String, String> cookieMap = this.getCookieMap(wyyApiTypeEnum);
+            Map<String, String> headersTemp = new HashMap<>(cookieMap.size());
+            for (Map.Entry<String, String> entry : cookieMap.entrySet()) {
+                if (!"MUSIC_A".equals(entry.getKey())) {
+                    headersTemp.put(entry.getKey(), entry.getValue());
+                }
+            }
+            form.put("header", headersTemp);
+            text = form.toJSONString();
+            String message = "nobody" + url + "use" + text + "md5forencrypt";
+            String digest = SecureUtil.md5(message);
+            String data = "api/" + url.split(wyyApiTypeEnum.getName())[1] + "-36cd479b6b5-" + text + "-36cd479b6b5-" + digest;
+            log.debug("data=" + data);
+            String params = AesPkcs7PaddingUtil.encryptHex(data, EAPI_KEY, null).toUpperCase();
+            log.debug("params=" + params);
+            Security.addProvider(new BouncyCastleProvider());
+            AES ase = new AES("ECB", "PKCS7Padding", EAPI_KEY.getBytes());
+            params = ase.encryptHex(data);
+            log.debug("params=" + params);
+            Map<String, Object> formMap = new HashMap<>(1);
+            formMap.put("params", params);
+            return this.httpContent(method, url, formMap, this.getHeaders(wyyApiTypeEnum));
+        } else {
+            throw new NoMoneyToEatKFCException("未定义的api" + wyyApiTypeEnum);
         }
-        byte[] tmpSecretKey = secretKeyReverse.getBytes();
-        for (int i = (byteLong - secretKeyReverse.length()); i < byteLong; i++) {
-            secretKeyReverseByte[i] = tmpSecretKey[i - (byteLong - secretKeyReverse.length())];
-        }
-        //rsa加密
-        String encSecKey = HexUtil.encodeHexStr(this.encryptByPubKey(secretKeyReverseByte, Base64.decodeBase64(PUBLIC_KEY)));
-
-        Map<String, Object> formMap = new HashMap<>(2);
-        formMap.put("params", params);
-        formMap.put("encSecKey", encSecKey);
-        return this.httpContent(method, url, formMap);
-
     }
 
     /**
@@ -155,19 +225,29 @@ public class WyyHttpUtil {
      * @return
      * @throws Exception
      */
-    public String httpContent(Method method, String url, Map<String, Object> formMap) throws Exception {
+    public String httpContent(Method method, String url, Map<String, Object> formMap, Map<String, String> headers) throws Exception {
         Proxy proxy = null;
-        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("192.168.123.223", 33335));
+        if (ToolsUtil.isNotNull(unblockNeteaseMusicProxy) && unblockNeteaseMusicProxy.contains(":")) {
+            try {
+                String[] unblockNeteaseMusicProxyArr = unblockNeteaseMusicProxy.split(":");
+                String proxyIp = unblockNeteaseMusicProxyArr[0];
+                Integer proxyPort = Integer.parseInt(unblockNeteaseMusicProxyArr[1]);
+                proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         HttpResponse response = null;
         if (Method.GET.equals(method)) {
-            log.info("[" + method + "]请求地址[" + url + "]发送参数[" + formMap + "]");
-            response = HttpUtil.createGet(url).form(formMap).setProxy(proxy).headerMap(this.getHeaders(), true)
+            log.debug("[" + method + "]请求地址[" + url + "]发送参数[" + formMap + "]");
+            response = HttpUtil.createGet(url).form(formMap).setProxy(proxy).headerMap(headers, true)
                     .setSSLSocketFactory(SSLSocketFactoryUtil.createSslSocketFactory()).executeAsync();
         } else if (Method.POST.equals(method)) {
             String body = this.getBodyByMap(formMap);
-            log.info("[" + method + "]请求地址[" + url + "]发送参数[" + body + "]");
+            log.debug("[" + method + "]请求地址[" + url + "]发送参数[" + body + "]");
             response = HttpUtil.createPost(url).form(formMap).body(body).setProxy(proxy)
-                    .headerMap(this.getHeaders(), true).setSSLSocketFactory(SSLSocketFactoryUtil.createSslSocketFactory()).execute();
+                    .headerMap(headers, true).setSSLSocketFactory(SSLSocketFactoryUtil.createSslSocketFactory()).execute();
         } else {
             throw new NoMoneyToEatKFCException("未定义的方法[" + method + "]");
         }
@@ -205,16 +285,31 @@ public class WyyHttpUtil {
     /**
      * 请求头
      *
+     * @param wyyApiTypeEnum
      * @return
      */
-    public Map<String, String> getHeaders() {
+    public Map<String, String> getHeaders(WyyApiTypeEnum wyyApiTypeEnum) {
         Map<String, String> headers = new HashMap<String, String>();
-        headers.put("User-Agent", this.getUserAgent());
-        headers.put("Content-Type", "application/x-www-form-urlencoded");
-        headers.put("Referer", "http://music.163.com");
-        headers.put("X-Real-IP", "127.0.0.1");
-        headers.put("X-Forwarded-For", "127.0.0.1");
-        headers.put("Cookie", this.getCookie());
+        if (WyyApiTypeEnum.WE_API.equals(wyyApiTypeEnum)) {
+            headers.put("User-Agent", this.getUserAgent());
+            headers.put("Content-Type", "application/x-www-form-urlencoded");
+            headers.put("Referer", "http://music.163.com");
+            headers.put("X-Real-IP", "127.0.0.1");
+            headers.put("X-Forwarded-For", "127.0.0.1");
+            headers.put("Cookie", this.getCookie(wyyApiTypeEnum));
+        } else if (WyyApiTypeEnum.LINUX_API.equals(wyyApiTypeEnum)) {
+
+        } else if (WyyApiTypeEnum.E_API.equals(wyyApiTypeEnum)) {
+            headers.put("User-Agent", this.getUserAgent());
+            headers.put("Content-Type", "application/x-www-form-urlencoded");
+            headers.put("Referer", "http://music.163.com");
+            headers.put("X-Real-IP", "127.0.0.1");
+            headers.put("X-Forwarded-For", "127.0.0.1");
+            headers.put("Cookie", this.getCookie(wyyApiTypeEnum));
+        } else {
+            throw new NoMoneyToEatKFCException("未定义的api" + wyyApiTypeEnum);
+        }
+
         log.debug("请求头: " + headers);
         return headers;
     }
@@ -222,15 +317,12 @@ public class WyyHttpUtil {
     /**
      * 获取Cookie
      *
+     * @param wyyApiTypeEnum
      * @return
      */
-    public String getCookie() {
+    public String getCookie(WyyApiTypeEnum wyyApiTypeEnum) {
         StringBuffer cookie = new StringBuffer();
-        Map<String, String> cookieMap = new HashMap<String, String>();
-        cookieMap.put("__remember_me", "true");
-        cookieMap.put("NMTID", RandomUtil.randomString(16));
-        cookieMap.put("_ntes_nuid", RandomUtil.randomString(16));
-        cookieMap.put("MUSIC_A", anonymousToken);
+        Map<String, String> cookieMap = this.getCookieMap(wyyApiTypeEnum);
 
         for (Map.Entry<String, String> entry : cookieMap.entrySet()) {
             cookie.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
@@ -241,4 +333,39 @@ public class WyyHttpUtil {
         return cookie.toString();
     }
 
+    /**
+     * 获取CookieMap
+     *
+     * @param wyyApiTypeEnum
+     * @return
+     */
+    public Map<String, String> getCookieMap(WyyApiTypeEnum wyyApiTypeEnum) {
+        Map<String, String> cookieMap = new HashMap<String, String>();
+        if (WyyApiTypeEnum.WE_API.equals(wyyApiTypeEnum)) {
+            cookieMap.put("__remember_me", "true");
+            cookieMap.put("NMTID", RandomUtil.randomString(16));
+            cookieMap.put("_ntes_nuid", RandomUtil.randomString(16));
+            cookieMap.put("MUSIC_A", anonymousToken);
+        } else if (WyyApiTypeEnum.LINUX_API.equals(wyyApiTypeEnum)) {
+
+        } else if (WyyApiTypeEnum.E_API.equals(wyyApiTypeEnum)) {
+            cookieMap.put("osver", "10.1");
+            cookieMap.put("deviceId", "123");
+            cookieMap.put("appver", "8.7.01");
+            cookieMap.put("versioncode", "140");
+            cookieMap.put("mobilename", "xiao mi 10 pro");
+            cookieMap.put("buildver", String.valueOf(System.currentTimeMillis()).substring(0, 10));
+            cookieMap.put("resolution", "1920x1080");
+            cookieMap.put("__csrf", "");
+            cookieMap.put("os", "pc");
+            cookieMap.put("channel", "1");
+            cookieMap.put("requestId", "");
+            DecimalFormat df1 = new DecimalFormat("0000");
+            cookieMap.put("channel", System.currentTimeMillis() + "_" + df1.format(RandomUtil.randomInt(0, 9999)));
+            cookieMap.put("MUSIC_A", anonymousToken);
+        } else {
+            throw new NoMoneyToEatKFCException("未定义的api" + wyyApiTypeEnum);
+        }
+        return cookieMap;
+    }
 }

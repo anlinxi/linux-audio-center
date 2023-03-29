@@ -47,4 +47,18 @@ public class GetMusicDetailTest {
 //        JSONObject json = JSONObject.parseObject(searchText);
 //        log.info(json.toJSONString());
     }
+
+    @Test
+    public void test2() throws Exception {
+        String id = "2029137267";
+        id = "29850683";
+        String url2 = music163Api + "/song/url?proxy=http://192.168.123.223:33335";
+        Map<String, Object> paramsMap2 = new HashMap<>();
+        paramsMap2.put("id", id);
+        Proxy proxy = null;
+//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("192.168.123.224", 33335));
+        HttpResponse response = HttpUtil.createPost(url2).form(paramsMap2).setProxy(proxy).executeAsync();
+        String searchText = response.body();
+        log.info(searchText);
+    }
 }

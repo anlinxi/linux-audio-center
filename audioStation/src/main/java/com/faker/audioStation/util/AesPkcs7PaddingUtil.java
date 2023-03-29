@@ -111,7 +111,7 @@ public class AesPkcs7PaddingUtil {
 //        RSA rsa = new RSA(null, PUBLIC_KEY);
 //        String encSecKey = rsa.encryptHex(secretKeyReverseByte, KeyType.PublicKey);
 
-        String encSecKey = AesPkcs7PaddingUtil.publicEncrypt(secretKeyReverseByte,PUBLIC_KEY);
+        String encSecKey = AesPkcs7PaddingUtil.publicEncrypt(secretKeyReverseByte, PUBLIC_KEY);
 
         log.info(encSecKey);
         log.info("74582dc679bec31d6279e50bcbed931756c8de354187ba51ee35a2abef917153441215fac2588c8efd605348a4dab202a847fa69f62f5610457d8e35a08a3db00aeaedc758f6112c25c236bdee1745650012cbc9ed3f064d0e5de9b2caf2ebd1e898d6ee059e03ce9097218cd2f5342ac4d045b04755eb4b47a228283e7fe2c4");
@@ -192,18 +192,48 @@ public class AesPkcs7PaddingUtil {
      * @param vi
      * @return
      */
-    public static String encrypt(@NotNull String content, @NotNull String key, @NotNull String vi) {
+    public static String encrypt(@NotNull String content, @NotNull String key, String vi) {
         byte[] result = null;
         try {
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(CHARSET_NAME), AES_NAME);
-            AlgorithmParameterSpec paramSpec = new IvParameterSpec(vi.getBytes());
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec, paramSpec);
+            if (null != vi) {
+                AlgorithmParameterSpec paramSpec = new IvParameterSpec(vi.getBytes());
+                cipher.init(Cipher.ENCRYPT_MODE, keySpec, paramSpec);
+            } else {
+                cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            }
             result = cipher.doFinal(content.getBytes(CHARSET_NAME));
         } catch (Exception e) {
             e.printStackTrace();
         }
         return Base64Encoder.encode(result);
+    }
+
+    /**
+     * 加密
+     *
+     * @param content
+     * @param key
+     * @param vi
+     * @return
+     */
+    public static String encryptHex(@NotNull String content, @NotNull String key, String vi) {
+        byte[] result = null;
+        try {
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(CHARSET_NAME), AES_NAME);
+            if (null != vi) {
+                AlgorithmParameterSpec paramSpec = new IvParameterSpec(vi.getBytes());
+                cipher.init(Cipher.ENCRYPT_MODE, keySpec, paramSpec);
+            } else {
+                cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            }
+            result = cipher.doFinal(content.getBytes(CHARSET_NAME));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return HexUtil.encodeHexStr(result);
     }
 
     /**

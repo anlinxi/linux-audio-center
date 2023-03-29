@@ -30,6 +30,7 @@ import java.security.Security;
 import java.security.spec.X509EncodedKeySpec;
 import java.text.DecimalFormat;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -177,14 +178,18 @@ public class WyyHttpUtil {
             formMap.put("eparams", params);
             return this.httpContent(method, url, formMap, this.getHeaders(wyyApiTypeEnum));
         } else if (WyyApiTypeEnum.E_API.equals(wyyApiTypeEnum)) {
-            Map<String, String> cookieMap = this.getCookieMap(wyyApiTypeEnum);
-            Map<String, String> headersTemp = new HashMap<>(cookieMap.size());
-            for (Map.Entry<String, String> entry : cookieMap.entrySet()) {
-                if (!"MUSIC_A".equals(entry.getKey())) {
-                    headersTemp.put(entry.getKey(), entry.getValue());
-                }
-            }
-            form.put("header", headersTemp);
+            Map<String, String> headersParams = new LinkedHashMap<>();
+            headersParams.put("appver", "8.7.01");
+            headersParams.put("versioncode", "140");
+            headersParams.put("mobilename", "xiao mi 10 pro");
+            headersParams.put("buildver", String.valueOf(System.currentTimeMillis()).substring(0, 10));
+            headersParams.put("resolution", "1920x1080");
+            headersParams.put("__csrf", "");
+            headersParams.put("os", "pc");
+            DecimalFormat df1 = new DecimalFormat("0000");
+            headersParams.put("requestId", System.currentTimeMillis() + "_" + df1.format(RandomUtil.randomInt(0, 9999)));
+            headersParams.put("MUSIC_A", anonymousToken);
+            form.put("header", headersParams);
             text = form.toJSONString();
             String message = "nobody" + url + "use" + text + "md5forencrypt";
             String digest = SecureUtil.md5(message);
@@ -194,6 +199,7 @@ public class WyyHttpUtil {
 //            log.debug("params=" + params);
             AES ase = new AES("ECB", "PKCS7Padding", EAPI_KEY.getBytes());
             String params = ase.encryptHex(data).toUpperCase();
+            params = "FA90B329E9614F79E79598F37DC2EDB430F8378D2A2796338F0BFDEAEF824A22975CDA9D96D79E6DC4A59218CDB8199F9EB352ACE89F772C97065DFB4022A468D65C5D25A63A76308BB5A6EE9D39D1EB9AEA636A1264F97CFE2CA12EEA39959FE15690157B324120B3A73ABF27CE2B0AFF13ADD0E6528974A4E3255839C998577AEB73FF937175F548C0C92AFCCE7173E108FA82EFF7CCDEE4148EA5C223E21196DFC96B97177027B1ED1FF9A529C11FBFAE35A6FB39B6040B57B7C83BCFC3AD4BC0ECCFC75FCBB450A37F9CE8B9B95883D46B6B226FC9BDE23DAE14821AC53B211F86CE4C2A9F5567E4F8C8C5201959570B0A6150591F3D0B9804197BEE8EA44790F0036E726B61949D3B45535238F18768851B01E0AFF7C3A888EF1A23E26BF0CAEF819BFB1A393063E52A7C12076F5A6D23EDFAC0C905A0C9CC7C3FB09912AE5B7AED9DAD66357102CC465BFE01321853A6CCFCB86B783B11FABC6A977A277EB67897B3FA31AEB3AC3815683C9B9A85718DC19768F5054607D14BB1A130E9FB4DD3E93EF9E6E9DA699E278BEF5680D8A94FCA4D2FCCF08D3F3E420F1D03EDA433E99378FD4770C5887DF0F0D80DF553C61DCAA5ECDD57F082AF9F53C3EEFB42508BFD72A0ECEA1A7967C885BB7C774CF867CE88B193D207DE47642A0263F46938B1396AF60F05EB51B8886BB86B9A07DE34946B568258B34902011CD94580";
             log.debug("params=" + params);
             Map<String, Object> formMap = new HashMap<>(1);
             formMap.put("params", params);
@@ -372,8 +378,8 @@ public class WyyHttpUtil {
         } else if (WyyApiTypeEnum.LINUX_API.equals(wyyApiTypeEnum)) {
 
         } else if (WyyApiTypeEnum.E_API.equals(wyyApiTypeEnum)) {
-            cookieMap.put("osver", "10.1");
-            cookieMap.put("deviceId", "123");
+            cookieMap.put("osver", "undefined");
+            cookieMap.put("deviceId", "undefined");
             cookieMap.put("appver", "8.7.01");
             cookieMap.put("versioncode", "140");
             cookieMap.put("mobilename", "xiao mi 10 pro");
@@ -381,10 +387,10 @@ public class WyyHttpUtil {
             cookieMap.put("resolution", "1920x1080");
             cookieMap.put("__csrf", "");
             cookieMap.put("os", "pc");
-            cookieMap.put("channel", "1");
-            cookieMap.put("requestId", "");
+            cookieMap.put("channel", "undefined");
             DecimalFormat df1 = new DecimalFormat("0000");
-            cookieMap.put("channel", System.currentTimeMillis() + "_" + df1.format(RandomUtil.randomInt(0, 9999)));
+            cookieMap.put("requestId", System.currentTimeMillis() + "_" + df1.format(RandomUtil.randomInt(0, 9999)));
+            cookieMap.put("channel", "undefined");
             cookieMap.put("MUSIC_A", anonymousToken);
         } else {
             throw new NoMoneyToEatKFCException("未定义的api" + wyyApiTypeEnum);

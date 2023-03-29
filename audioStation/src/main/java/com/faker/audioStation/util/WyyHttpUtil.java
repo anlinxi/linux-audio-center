@@ -55,13 +55,23 @@ public class WyyHttpUtil {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    @ApiModelProperty("userAgent")
-    private String[] userAgent = new String[]{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:80.0) Gecko/20100101 Firefox/80.0",
+    @ApiModelProperty("pc的userAgent")
+    private String[] userAgentPc = new String[]{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:80.0) Gecko/20100101 Firefox/80.0",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.30 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Safari/605.1.15",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.30 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/13.10586"};
+
+    @ApiModelProperty("手机的userAgent")
+    private String[] userAgentApp = new String[]{"Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/602.1.50 (KHTML like Gecko) Mobile/14A456 QQ/6.5.7.408 V1_IPH_SQ_6.5.7_1_APP_A Pixel/750 Core/UIWebView NetType/4G Mem/103",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/7.0.15(0x17000f27) NetType/WIFI Language/zh",
+            "Mozilla/5.0 (Linux; Android 9; PCT-AL10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.64 HuaweiBrowser/10.0.3.311 Mobile Safari/537.36",
+            "Mozilla/5.0 (Linux; U; Android 9; zh-cn; Redmi Note 8 Build/PKQ1.190616.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/71.0.3578.141 Mobile Safari/537.36 XiaoMi/MiuiBrowser/12.5.22",
+            "Mozilla/5.0 (Linux; Android 10; YAL-AL00 Build/HUAWEIYAL-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/78.0.3904.62 XWEB/2581 MMWEBSDK/200801 Mobile Safari/537.36 MMWEBID/3027 MicroMessenger/7.0.18.1740(0x27001235) Process/toolsmp WeChat/arm64 NetType/WIFI Language/zh_CN ABI/arm64",
+            "Mozilla/5.0 (Linux; U; Android 8.1.0; zh-cn; BKK-AL10 Build/HONORBKK-AL10) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/10.6 Mobile Safari/537.36"};
 
     @ApiModelProperty("未登录token")
     private String anonymousToken = "bf8bfeabb1aa84f9c8c3906c04a04fb864322804c83f5d607e91a04eae463c9436bd1a17ec353cf780b396507a3f7464e8a60f4bbc019437993166e004087dd32d1490298caf655c2353e58daa0bc13cc7d5c198250968580b12c1b8817e3f5c807e650dd04abd3fb8130b7ae43fcc5b";
@@ -280,9 +290,19 @@ public class WyyHttpUtil {
      *
      * @return
      */
-    public String getUserAgent() {
-        int i = RandomUtil.randomInt(0, userAgent.length);
-        return userAgent[i];
+    public String getUserAgentPc() {
+        int i = RandomUtil.randomInt(0, userAgentPc.length);
+        return userAgentPc[i];
+    }
+
+    /**
+     * 获取随机userAgent
+     *
+     * @return
+     */
+    public String getUserAgentApp() {
+        int i = RandomUtil.randomInt(0, userAgentApp.length);
+        return userAgentApp[i];
     }
 
     /**
@@ -294,7 +314,7 @@ public class WyyHttpUtil {
     public Map<String, String> getHeaders(WyyApiTypeEnum wyyApiTypeEnum) {
         Map<String, String> headers = new HashMap<String, String>();
         if (WyyApiTypeEnum.WE_API.equals(wyyApiTypeEnum)) {
-            headers.put("User-Agent", this.getUserAgent());
+            headers.put("User-Agent", this.getUserAgentPc());
             headers.put("Content-Type", "application/x-www-form-urlencoded");
             headers.put("Referer", "http://music.163.com");
             headers.put("X-Real-IP", "127.0.0.1");
@@ -303,7 +323,7 @@ public class WyyHttpUtil {
         } else if (WyyApiTypeEnum.LINUX_API.equals(wyyApiTypeEnum)) {
 
         } else if (WyyApiTypeEnum.E_API.equals(wyyApiTypeEnum)) {
-            headers.put("User-Agent", this.getUserAgent());
+            headers.put("User-Agent", this.getUserAgentApp());
             headers.put("Content-Type", "application/x-www-form-urlencoded");
             headers.put("Referer", "http://music.163.com");
             headers.put("X-Real-IP", "127.0.0.1");

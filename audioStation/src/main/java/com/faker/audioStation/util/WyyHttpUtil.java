@@ -51,6 +51,10 @@ import java.util.Map;
 @Slf4j
 public class WyyHttpUtil {
 
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+
     @ApiModelProperty("userAgent")
     private String[] userAgent = new String[]{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:80.0) Gecko/20100101 Firefox/80.0",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.30 Safari/537.36",
@@ -174,13 +178,12 @@ public class WyyHttpUtil {
             text = form.toJSONString();
             String message = "nobody" + url + "use" + text + "md5forencrypt";
             String digest = SecureUtil.md5(message);
-            String data = "api/" + url.split(wyyApiTypeEnum.getName())[1] + "-36cd479b6b5-" + text + "-36cd479b6b5-" + digest;
+            String data = "/api" + url.split(wyyApiTypeEnum.getName())[1] + "-36cd479b6b5-" + text + "-36cd479b6b5-" + digest;
             log.debug("data=" + data);
-            String params = AesPkcs7PaddingUtil.encryptHex(data, EAPI_KEY, null).toUpperCase();
-            log.debug("params=" + params);
-            Security.addProvider(new BouncyCastleProvider());
+//            String params = AesPkcs7PaddingUtil.encryptHex(data, EAPI_KEY, null).toUpperCase();
+//            log.debug("params=" + params);
             AES ase = new AES("ECB", "PKCS7Padding", EAPI_KEY.getBytes());
-            params = ase.encryptHex(data);
+            String params = ase.encryptHex(data).toUpperCase();
             log.debug("params=" + params);
             Map<String, Object> formMap = new HashMap<>(1);
             formMap.put("params", params);

@@ -1,9 +1,10 @@
 package com.faker.audioStation.util;
 
+import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.crypto.Mode;
-import cn.hutool.crypto.Padding;
-import cn.hutool.crypto.symmetric.AES;
+import cn.hutool.core.util.URLUtil;
+import cn.hutool.crypto.asymmetric.KeyType;
+import cn.hutool.crypto.asymmetric.RSA;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
@@ -14,11 +15,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,8 +65,11 @@ public class WyyHttpUtil {
     public void test() throws Exception {
         JSONObject form = new JSONObject();
         JSONArray ids = new JSONArray();
-        ids.add("29850683");
-        form.put("c", ids);
+        JSONObject id = new JSONObject();
+        id.put("id", 29850683);
+        ids.add(id);
+        form.put("c", ids.toJSONString());
+        form.put("csrf_token", "");
         String result = this.httpContent(Method.POST, "http://music.163.com/weapi/v3/song/detail", form);
         log.info(result);
     }
@@ -84,18 +85,27 @@ public class WyyHttpUtil {
     public String httpContent(Method method, String url, JSONObject form) throws Exception {
         String text = form.toJSONString();
         String secretKey = this.getSecretKey();
-        AES aes1 = new AES(Mode.CBC, Padding.ZeroPadding,
-                new SecretKeySpec(ENCODE_KEY.getBytes(), "AES"),
-                new IvParameterSpec(IV_KEY.getBytes()));
-        String aesText1 = aes1.encryptBase64(text, StandardCharsets.UTF_8);
+        secretKey = "jH7pk9jq099zjzuV";
+        String aesText1 = AesPkcs7PaddingUtil.encrypt(text, ENCODE_KEY, IV_KEY);
 
-        AES aes2 = new AES(Mode.CBC, Padding.ZeroPadding,
-                new SecretKeySpec(secretKey.getBytes(), "AES"),
-                new IvParameterSpec(IV_KEY.getBytes()));
-        String params = aes2.encryptBase64(aesText1, StandardCharsets.UTF_8);
+        String params = AesPkcs7PaddingUtil.encrypt(aesText1, secretKey, IV_KEY);
+
         String secretKeyReverse = new StringBuffer(secretKey).reverse().toString();
-        String encSecKey = RsaUtils.encryptPub(secretKeyReverse, PUBLIC_KEY);
-        Map<String, Object> formMap = new HashMap<>();
+        RSA rsa = new RSA(null, PUBLIC_KEY);
+        int byteLong = 128;
+        byte[] secretKeyReverseByte = new byte[byteLong];
+        for (int i = 0; i < (byteLong - secretKeyReverse.length()); i++) {
+            secretKeyReverseByte[i] = 0;
+        }
+        byte[] tmpSecretKey = secretKeyReverse.getBytes();
+        for (int i = (byteLong - secretKeyReverse.length()); i < byteLong; i++) {
+            secretKeyReverseByte[i] = tmpSecretKey[i - (byteLong - secretKeyReverse.length())];
+        }
+        String encSecKey = rsa.encryptHex(secretKeyReverseByte, KeyType.PublicKey);
+        encSecKey = "74582dc679bec31d6279e50bcbed931756c8de354187ba51ee35a2abef917153441215fac2588c8efd605348a4dab202a847fa69f62f5610457d8e35a08a3db00aeaedc758f6112c25c236bdee1745650012cbc9ed3f064d0e5de9b2caf2ebd1e898d6ee059e03ce9097218cd2f5342ac4d045b04755eb4b47a228283e7fe2c4";
+        log.info("encSecKey=" + encSecKey);
+
+        Map<String, Object> formMap = new HashMap<>(2);
         formMap.put("params", params);
         formMap.put("encSecKey", encSecKey);
         return this.httpContent(method, url, formMap);
@@ -108,45 +118,7 @@ public class WyyHttpUtil {
      * @return
      */
     public String getSecretKey() {
-        StringBuffer secretKeyBuffer = new StringBuffer();
-        String[] base62Arr = base62.split("");
-        byte[] bytes = RandomUtil.randomBytes(16);
-        for (int i = 0; i < bytes.length; i++) {
-            int bt = bytes[i];
-            if (bt < 0) {
-                bt = -bt;
-            }
-            int index = bt % 62;
-            String value = base62Arr[index];
-            secretKeyBuffer.append(value);
-        }
-        return secretKeyBuffer.toString();
-    }
-
-    /**
-     * 开始请求
-     *
-     * @param method
-     * @param url
-     * @param formMap
-     * @return
-     */
-    public String httpContentHutool(Method method, String url, Map<String, Object> formMap) throws Exception {
-        Proxy proxy = null;
-        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("192.168.123.223", 33335));
-        HttpResponse response = null;
-        log.info("[" + method + "]请求地址[" + url + "]发送参数[" + formMap + "]");
-        if (Method.GET.equals(method)) {
-            response = HttpUtil.createGet(url).form(formMap).setProxy(proxy).headerMap(this.getHeaders(), true)
-                    .setSSLSocketFactory(SSLSocketFactoryUtil.createSslSocketFactory()).executeAsync();
-        } else if (Method.POST.equals(method)) {
-            response = HttpUtil.createPost(url).form(formMap).body(this.getBodyByMap(formMap)).setProxy(proxy)
-                    .headerMap(this.getHeaders(), true).setSSLSocketFactory(SSLSocketFactoryUtil.createSslSocketFactory()).executeAsync();
-        } else {
-            throw new NoMoneyToEatKFCException("未定义的方法[" + method + "]");
-        }
-        String searchText = response.body();
-        return searchText;
+        return RandomUtil.randomString(base62, 16);
     }
 
     /**
@@ -160,15 +132,17 @@ public class WyyHttpUtil {
      */
     public String httpContent(Method method, String url, Map<String, Object> formMap) throws Exception {
         Proxy proxy = null;
-//        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("192.168.123.223", 33335));
+        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("192.168.123.223", 33335));
         HttpResponse response = null;
-        log.info("[" + method + "]请求地址[" + url + "]发送参数[" + formMap + "]");
         if (Method.GET.equals(method)) {
+            log.info("[" + method + "]请求地址[" + url + "]发送参数[" + formMap + "]");
             response = HttpUtil.createGet(url).form(formMap).setProxy(proxy).headerMap(this.getHeaders(), true)
                     .setSSLSocketFactory(SSLSocketFactoryUtil.createSslSocketFactory()).executeAsync();
         } else if (Method.POST.equals(method)) {
-            response = HttpUtil.createPost(url).form(formMap).body(this.getBodyByMap(formMap)).setProxy(proxy)
-                    .headerMap(this.getHeaders(), true).setSSLSocketFactory(SSLSocketFactoryUtil.createSslSocketFactory()).executeAsync();
+            String body = this.getBodyByMap(formMap);
+            log.info("[" + method + "]请求地址[" + url + "]发送参数[" + body + "]");
+            response = HttpUtil.createPost(url).form(formMap).body(body).setProxy(proxy)
+                    .headerMap(this.getHeaders(), true).setSSLSocketFactory(SSLSocketFactoryUtil.createSslSocketFactory()).execute();
         } else {
             throw new NoMoneyToEatKFCException("未定义的方法[" + method + "]");
         }
@@ -185,7 +159,7 @@ public class WyyHttpUtil {
     private String getBodyByMap(Map<String, Object> formMap) {
         StringBuffer body = new StringBuffer();
         for (Map.Entry<String, Object> entry : formMap.entrySet()) {
-            body.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+            body.append(entry.getKey()).append("=").append(URLUtil.encodeAll(ToolsUtil.getString(entry.getValue()), CharsetUtil.CHARSET_UTF_8)).append("&");
         }
         if (body.length() > 1) {
             body.setLength(body.length() - 1);

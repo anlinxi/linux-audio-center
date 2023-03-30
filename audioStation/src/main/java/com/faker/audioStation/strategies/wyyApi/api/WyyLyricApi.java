@@ -6,6 +6,7 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.faker.audioStation.enums.WyyApiTypeEnum;
 import com.faker.audioStation.model.domain.Lyric;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.strategies.wyyApi.WyyApiAbstract;
@@ -15,6 +16,7 @@ import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.junit.Test;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -83,5 +85,39 @@ public class WyyLyricApi extends WyyApiAbstract {
         JSONObject resultJson = super.callWyyAPi(params);
         cacheService.set(key, resultJson.toJSONString(), 8, TimeUnit.HOURS);
         return WrapMapper.ok(resultJson);
+    }
+
+    /**
+     * 执行java直连网易云方法
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    public JSONObject getWyyHttp(WyyApiDto params) throws Exception{
+        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
+        String id = urlQuery.get("id");
+        JSONObject form = new JSONObject();
+        form.put("id", id);
+        form.put("tv", -1);
+        form.put("lv", -1);
+        form.put("rv", id);
+        form.put("kv", id);
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, "http://music.163.com/api/song/lyric?_nmclfl=1", form);
+        log.debug(result);
+        return JSONObject.parseObject(result);
+    }
+
+    /**
+     * 测试方法
+     *
+     * @return
+     */
+    @Test
+    public void test() {
+        WyyApiDto params = new WyyApiDto();
+        params.setUrl("/lyric?id=29850683");
+        Wrapper wrapper = this.runTest(params);
+        log.info("测试结果:" + wrapper);
     }
 }

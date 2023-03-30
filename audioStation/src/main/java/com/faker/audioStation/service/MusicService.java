@@ -45,13 +45,6 @@ public interface MusicService extends IService<Music> {
      */
     Wrapper<IPage<Music>> getMusicPage(GetMusicPageParamDto pageSizeDto);
 
-    /**
-     * 下载网易云音乐的歌曲到本地
-     *
-     * @param songUrlRootBean
-     * @return
-     */
-    SongUrlRootBean downLoadMusic(SongUrlRootBean songUrlRootBean);
 
     /**
      * 网易云音乐详情
@@ -60,32 +53,6 @@ public interface MusicService extends IService<Music> {
      * @return
      */
     SongDetailRootBean songDetail(String[] ids);
-
-    /**
-     * 保存在线音乐到本地
-     *
-     * @param songUrlRootBean
-     * @param songs
-     * @param songJson
-     */
-    Music saveMusicByWyy(SongUrlRootBean songUrlRootBean, Songs songs, SongDetailRootBean songJson);
-
-    /**
-     * 通过网易云id获取歌手信息
-     *
-     * @param artistIdWyy
-     * @return
-     */
-    Singer getSingerByWyyId(Integer artistIdWyy);
-
-    /**
-     * 通过网易云id获取专辑信息
-     *
-     * @param albumWyy
-     * @param music
-     * @return
-     */
-    MusicCover getMusicCoverByWyyId(Al albumWyy, Music music);
 
     /**
      * 通过网易云id获取歌词信息

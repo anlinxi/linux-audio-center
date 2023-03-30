@@ -4,18 +4,21 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
-import com.faker.audioStation.mapper.LyricMapper;
-import com.faker.audioStation.mapper.MusicCoverMapper;
-import com.faker.audioStation.mapper.MvMapper;
-import com.faker.audioStation.mapper.SingerMapper;
+import com.faker.audioStation.mapper.*;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.service.CacheService;
+import com.faker.audioStation.util.ToolsUtil;
+import com.faker.audioStation.util.WyyHttpUtil;
+import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -38,9 +41,17 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
     @ApiModelProperty("资源文件路径")
     protected String resourcePath;
 
+    @Value("${faker.unblockNeteaseMusic.proxy:}")
+    @ApiModelProperty("解锁网易云灰色音乐的代理")
+    private String unblockNeteaseMusicProxy;
+
     @Autowired
     @ApiModelProperty("缓存服务")
     protected CacheService cacheService;
+
+    @Autowired
+    @ApiModelProperty("音乐文件Mapper")
+    protected MusicMapper musicMapper;
 
     @Autowired
     @ApiModelProperty("音乐封面图片文件Mapper")
@@ -58,12 +69,19 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
     @ApiModelProperty("Mv信息mapper")
     protected MvMapper mvMapper;
 
+    @ApiModelProperty("网易云音乐api")
+    protected NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
+
+    @ApiModelProperty("java的网易云音乐直连api")
+    protected WyyHttpUtil wyyHttpUtil;
+
     /**
      * 网易云方法调用入口
      *
      * @param params
      * @return
      */
+    @Override
     public JSONObject getWyyApi(WyyApiDto params) {
         String key = SecureUtil.md5(JSONObject.toJSONString(params));
         String value = cacheService.get(key);
@@ -119,5 +137,42 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
      * @param params
      * @return
      */
+    @Override
     public abstract Wrapper<JSONObject> doSomeThing(WyyApiDto params);
+
+    /**
+     * 返回代理对象
+     *
+     * @return
+     */
+    public Proxy getProxy() {
+        if (ToolsUtil.isNotNull(unblockNeteaseMusicProxy) && unblockNeteaseMusicProxy.contains(":")) {
+            String[] unblockNeteaseMusicProxyArr = unblockNeteaseMusicProxy.split(":");
+            String proxyIp = unblockNeteaseMusicProxyArr[0];
+            Integer proxyPort = Integer.parseInt(unblockNeteaseMusicProxyArr[1]);
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
+            return proxy;
+        }
+        return null;
+    }
+
+    /**
+     * 测试方法
+     *
+     * @param params
+     * @return
+     */
+    public Wrapper runTest(WyyApiDto params) {
+        try {
+            if (wyyHttpUtil == null) {
+                wyyHttpUtil = new WyyHttpUtil();
+                //设定测试的wyy解锁代理地址
+                wyyHttpUtil.setUnblockNeteaseMusicProxy("192.168.123.223:33335");
+            }
+            return WrapMapper.ok(this.getWyyHttp(params));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return WrapMapper.error(e.getMessage());
+        }
+    }
 }

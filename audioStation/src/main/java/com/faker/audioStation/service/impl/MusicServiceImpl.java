@@ -27,6 +27,7 @@ import com.faker.audioStation.service.MusicService;
 import com.faker.audioStation.strategies.wyyApi.WyyApiStrategies;
 import com.faker.audioStation.strategies.wyyApi.WyyApiStrategyContext;
 import com.faker.audioStation.util.ToolsUtil;
+import com.faker.audioStation.util.WyyHttpUtil;
 import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
@@ -99,6 +100,8 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
     @ApiModelProperty("网易云api策略")
     WyyApiStrategyContext wyyApiStrategyContext;
 
+    @ApiModelProperty("java的网易云音乐直连api")
+    protected WyyHttpUtil wyyHttpUtil;
 
     @ApiModelProperty(value = "歌曲封面图片类型", notes = "bmp|gif|jpg|jpeg|png")
     private String formatName = "png";
@@ -141,34 +144,6 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
     }
 
     /**
-     * 下载网易云音乐的歌曲到本地
-     *
-     * @param songUrlRootBean
-     * @return
-     */
-    @Override
-    public SongUrlRootBean downLoadMusic(SongUrlRootBean songUrlRootBean) {
-        if (null != songUrlRootBean && songUrlRootBean.getData().size() > 0) {
-            JsonData jsonData = songUrlRootBean.getData().get(0);
-            long wyyId = jsonData.getId();
-            QueryWrapper<Music> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("WYY_ID", wyyId);
-            Music music = this.getOne(queryWrapper);
-            if (null != music) {
-                songUrlRootBean.getData().get(0).setUrl("/api/music/getMusic?id=" + music.getId());
-                return songUrlRootBean;
-            }
-            SongDetailRootBean songJson = this.songDetail(new String[]{wyyId + ""});
-            if (null != jsonData.getUrl() && songJson.getSongs().size() > 0) {
-                Songs songs = songJson.getSongs().get(0);
-                music = this.saveMusicByWyy(songUrlRootBean, songs, songJson);
-                songUrlRootBean.getData().get(0).setUrl("/api/music/getMusic?id=" + music.getId());
-            }
-        }
-        return songUrlRootBean;
-    }
-
-    /**
      * 网易云音乐详情
      *
      * @param idsArr
@@ -188,199 +163,6 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
         songDetailRootBean = JSONObject.parseObject(songJson, SongDetailRootBean.class);
         cacheService.set(ids, songDetailRootBean, 30, TimeUnit.DAYS);
         return songDetailRootBean;
-    }
-
-    /**
-     * 保存在线音乐到本地
-     *
-     * @param songUrlRootBean
-     * @param songs
-     * @param songJson
-     */
-    @Override
-    public Music saveMusicByWyy(SongUrlRootBean songUrlRootBean, Songs songs, SongDetailRootBean songJson) {
-        Music music = new Music();
-        String musicName = songs.getName();
-        String artist = "佚名";
-        Integer artistIdWyy = null;
-        if (songs.getAr().size() > 0) {
-            artist = songs.getAr().get(0).getName();
-            artistIdWyy = songs.getAr().get(0).getId();
-        }
-        String type = "mp3";
-        try {
-            type = songUrlRootBean.getData().get(0).getType();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        String musicPath = resourcePath + PathEnum.DOWNLOAD_MUSIC_PATH.getPath() + "/" + ToolsUtil.getFileName(artist + " - " + musicName + "." + type);
-        JsonData jsonData = songUrlRootBean.getData().get(0);
-        String url = jsonData.getUrl();
-        File audio = new File(musicPath);
-        if (!audio.getParentFile().exists()) {
-            audio.getParentFile().mkdirs();
-        }
-        boolean isProxy = false;
-        if (ToolsUtil.isNotNull(unblockNeteaseMusicProxy) && unblockNeteaseMusicProxy.contains(":")) {
-            try {
-                String[] unblockNeteaseMusicProxyArr = unblockNeteaseMusicProxy.split(":");
-                String proxyIp = unblockNeteaseMusicProxyArr[0];
-                Integer proxyPort = Integer.parseInt(unblockNeteaseMusicProxyArr[1]);
-                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
-                HttpResponse response = HttpUtil.createGet(url, true).timeout(-1).setProxy(proxy).executeAsync();
-                response.writeBodyForFile(audio, null);
-                isProxy = true;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        if (!isProxy) {
-            HttpUtil.downloadFile(url, audio);
-        }
-
-        String sha256 = SecureUtil.sha256(new File(audio.getAbsolutePath()));
-        //481,115 小文件试听音乐移入缓存
-        if (audio.length() == 481115) {
-            log.info("小文件试听音乐移入缓存:" + audio.length());
-            String tmp = resourcePath + PathEnum.DOWNLOAD_MUSIC_PATH.getPath() + "/tmp/" + ToolsUtil.getFileName(artist + " - " + musicName + "." + type);
-            FileUtil.copy(musicPath, tmp, false);
-            musicPath = tmp;
-            audio.delete();
-            music.setStateCode("7");
-        }
-
-        music.setHashCode(sha256);
-        music.setPath(new File(musicPath).getAbsolutePath());
-        music.setTitle(musicName);
-        music.setArtist(artist);
-        if (null != artistIdWyy && artistIdWyy != 0) {
-            //获取歌手信息
-            Singer singer = this.getSingerByWyyId(artistIdWyy);
-            music.setArtistId(singer.getId());
-        }
-        String albumPicUrl = null;
-        String albumWyy = null;
-        Long albumIdWyy = null;
-        if (songs.getAl() != null) {
-            albumWyy = songs.getAl().getName();
-            albumIdWyy = songs.getAl().getId();
-            albumPicUrl = songs.getAl().getPicUrl();
-        }
-        if (null != albumPicUrl && null != albumWyy) {
-            //获取专辑封面
-            MusicCover musicCover = this.getMusicCoverByWyyId(songs.getAl(), music);
-            music.setCoverId(musicCover.getId());
-        }
-
-        //获取歌词信息
-        Lyric lyric = this.getLyricByWyyId(songs.getId(), music);
-        if (null != lyric) {
-            music.setLyricId(lyric.getId());
-        }
-
-        music.setAlbum(albumWyy);
-        music.setAlbumId(albumIdWyy);
-//        music.setRate();
-//        music.setSongLength();
-//        music.setFormat();
-        music.setTrack(songs.getCd());
-//        music.setYears();
-//        music.setType();
-//        music.setNote();
-//        music.setLanguage();
-        music.setCreateTime(new Date());
-        music.setWyyId(songs.getId());
-        this.save(music);
-        return music;
-
-    }
-
-    /**
-     * 通过网易云id获取歌手信息
-     *
-     * @param artistIdWyy
-     * @return
-     */
-    @Override
-    public Singer getSingerByWyyId(Integer artistIdWyy) {
-        QueryWrapper<Singer> query = new QueryWrapper<>();
-        query.eq("WYY_ID", artistIdWyy).or().eq("ID", artistIdWyy);
-        Singer singer = singerMapper.selectOne(query);
-        if (null == singer) {
-            JSONObject searchartist = new JSONObject();
-            searchartist.put("id", artistIdWyy + "");
-            JSONObject artistJson = neteaseCloudMusicInfo.artistDetail(searchartist);
-            JSONObject artistJson2 = artistJson.getJSONObject("data").getJSONObject("artist");
-            String coverUrl = artistJson2.getString("cover");
-
-            //歌手名称
-            String name = artistJson2.getString("name");
-            //歌手简介
-            String briefDesc = artistJson2.getString("briefDesc");
-            //音乐数量
-            Long musicSize = artistJson2.getLong("musicSize");
-            //专辑数量
-            Long albumSize = artistJson2.getLong("albumSize");
-            //网易云音乐id
-            Long wyyId = artistJson2.getLong("id");
-            singer = new Singer();
-            singer.setName(name);
-            String artistsCoverPath = resourcePath + PathEnum.SINGER_COVER.getPath() + "/" + ToolsUtil.getFileName(name + "—" + wyyId) + "." + formatName;
-            try {
-                File dir = new File(artistsCoverPath);
-                if (!dir.getParentFile().exists()) {
-                    dir.getParentFile().mkdirs();
-                }
-                ImageIO.write(ImageIO.read(new URL(coverUrl)), formatName, new File(artistsCoverPath));
-                singer.setPic(artistsCoverPath);
-            } catch (Exception e) {
-                e.printStackTrace();
-                singer.setPic(coverUrl);
-            }
-            singer.setIntroduction(briefDesc);
-            singer.setMusicSize(musicSize);
-            singer.setAlbumSize(albumSize);
-            singer.setWyyId(wyyId);
-            singerMapper.insert(singer);
-        }
-        return singer;
-    }
-
-    /**
-     * 通过网易云id获取专辑信息
-     *
-     * @param albumWyy
-     * @param music
-     * @return
-     */
-    @Override
-    public MusicCover getMusicCoverByWyyId(Al albumWyy, Music music) {
-        String coverPath = resourcePath + PathEnum.MUSIC_COVER.getPath() + "/" + ToolsUtil.getFileName(music) + "." + formatName;
-        QueryWrapper<MusicCover> query = new QueryWrapper<>();
-        query.eq("WYY_ID", albumWyy.getId());
-        MusicCover musicCover = musicCoverMapper.selectOne(query);
-        if (null == musicCover) {
-            try {
-                File dir = new File(coverPath);
-                if (!dir.getParentFile().exists()) {
-                    dir.getParentFile().mkdirs();
-                }
-                musicCover = new MusicCover();
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                ImageIO.write(ImageIO.read(new URL(albumWyy.getPicUrl())), formatName, os);
-                InputStream inputStream = new ByteArrayInputStream(os.toByteArray());
-                String sha256MusicCover = SecureUtil.sha256(inputStream);
-                ImageIO.write(ImageIO.read(new URL(albumWyy.getPicUrl())), formatName, new File(coverPath));
-                musicCover.setHashCode(sha256MusicCover);
-                musicCover.setPath(coverPath);
-                musicCover.setName(music.getTitle());
-                musicCover.setWyyId(albumWyy.getId());
-                musicCoverMapper.insert(musicCover);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return musicCover;
     }
 
     /**

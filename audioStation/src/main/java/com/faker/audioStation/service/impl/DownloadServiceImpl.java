@@ -224,8 +224,12 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
         music.setArtist(artist);
         if (null != artistIdWyy && artistIdWyy != 0) {
             //获取歌手信息
-            Singer singer = this.getSingerByWyyId(artistIdWyy);
-            music.setArtistId(singer.getId());
+            try {
+                Singer singer = this.getSingerByWyyId(artistIdWyy);
+                music.setArtistId(singer.getId());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         String albumPicUrl = null;
         String albumWyy = null;
@@ -237,14 +241,22 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
         }
         if (null != albumPicUrl && null != albumWyy) {
             //获取专辑封面
-            MusicCover musicCover = this.getMusicCoverByWyyId(songs.getAl(), music);
-            music.setCoverId(musicCover.getId());
+            try {
+                MusicCover musicCover = this.getMusicCoverByWyyId(songs.getAl(), music);
+                music.setCoverId(musicCover.getId());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         //获取歌词信息
-        Lyric lyric = this.getLyricByWyyId(songs.getId(), music);
-        if (null != lyric) {
-            music.setLyricId(lyric.getId());
+        try {
+            Lyric lyric = this.getLyricByWyyId(songs.getId(), music);
+            if (null != lyric) {
+                music.setLyricId(lyric.getId());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         music.setAlbum(albumWyy);

@@ -203,8 +203,8 @@ public class MusicController {
         QueryWrapper<Music> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("ID", id).or().eq("WYY_ID", id);
         Music music = musicService.getOne(queryWrapper);
+        final String url = music163Api + "/song/url";
         if (null == music) {
-            String url = music163Api + "/song/url";
             log.info("网易云音乐api请求地址:" + url);
             Map<String, Object> paramsMap = new HashMap<>();
             paramsMap.put("id", id);
@@ -232,6 +232,16 @@ public class MusicController {
         if (!file.exists()) {
             log.error("音乐文件地址不存在:" + file.getAbsolutePath());
             ToolsUtil.setStateInfo(response, 404, "音乐文件不存在");
+            new Thread(() -> {
+                log.info("网易云音乐api请求地址:" + url);
+                Map<String, Object> paramsMap = new HashMap<>();
+                paramsMap.put("id", id);
+                String resultText = HttpUtil.get(url, paramsMap);
+                if (null != resultText) {
+                    SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
+                    downloadService.downLoadMusic(songUrlRootBean);
+                }
+            }).start();
             return;
         }
         ToolsUtil.downloadFile(response, file);

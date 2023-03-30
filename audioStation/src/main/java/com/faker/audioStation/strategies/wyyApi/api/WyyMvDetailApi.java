@@ -1,21 +1,20 @@
 package com.faker.audioStation.strategies.wyyApi.api;
 
-import cn.hutool.core.io.file.FileReader;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.faker.audioStation.enums.PathEnum;
-import com.faker.audioStation.model.domain.Lyric;
+import com.faker.audioStation.enums.WyyApiTypeEnum;
 import com.faker.audioStation.model.domain.Mv;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.strategies.wyyApi.WyyApiAbstract;
-import com.faker.audioStation.util.StringUtils;
 import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -27,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Component
-public class WyyMvApi extends WyyApiAbstract {
+public class WyyMvDetailApi extends WyyApiAbstract {
 
     @ApiModelProperty("定义的网易云请求参数")
     protected String url = "/mv/url";
@@ -146,5 +145,35 @@ public class WyyMvApi extends WyyApiAbstract {
             }
         }
         return WrapMapper.error("查询参数id不能为空");
+    }
+
+    /**
+     * 执行java直连网易云方法
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    public JSONObject getWyyHttp(WyyApiDto params) throws Exception{
+        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
+        String id = urlQuery.get("id");
+        JSONObject form = new JSONObject();
+        form.put("id", id);
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, "http://music.163.com/api/v1/mv/detail", form);
+        log.debug(result);
+        return JSONObject.parseObject(result);
+    }
+
+    /**
+     * 测试方法
+     *
+     * @return
+     */
+    @Test
+    public void test() {
+        WyyApiDto params = new WyyApiDto();
+        params.setUrl("/song/url?id=5327513");
+        Wrapper wrapper = this.runTest(params);
+        log.info("测试结果:" + wrapper);
     }
 }

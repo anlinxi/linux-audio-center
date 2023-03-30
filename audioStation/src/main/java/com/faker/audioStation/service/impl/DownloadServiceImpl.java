@@ -3,10 +3,13 @@ package com.faker.audioStation.service.impl;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpUtil;
+import cn.hutool.http.Method;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.faker.audioStation.enums.PathEnum;
+import com.faker.audioStation.enums.WyyApiTypeEnum;
 import com.faker.audioStation.mapper.*;
 import com.faker.audioStation.model.domain.Lyric;
 import com.faker.audioStation.model.domain.Music;
@@ -21,6 +24,7 @@ import com.faker.audioStation.scanner.Scanner;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.DownloadService;
 import com.faker.audioStation.util.ToolsUtil;
+import com.faker.audioStation.util.WyyHttpUtil;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +86,13 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
 
     @ApiModelProperty(value = "歌曲封面图片类型", notes = "bmp|gif|jpg|jpeg|png")
     private String formatName = "png";
+
+    @ApiModelProperty("java的网易云音乐直连api")
+    protected WyyHttpUtil wyyHttpUtil;
+
+    @Value("${faker.unblockNeteaseMusic.proxy:}")
+    @ApiModelProperty("解锁网易云灰色音乐的代理")
+    private String unblockNeteaseMusicProxy;
 
     /**
      * 下载网易云音乐的歌曲到本地
@@ -171,6 +182,16 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
         String musicPath = resourcePath + PathEnum.DOWNLOAD_MUSIC_PATH.getPath() + "/" + ToolsUtil.getFileName(artist + " - " + musicName + "." + type);
         JsonData jsonData = songUrlRootBean.getData().get(0);
         String url = jsonData.getUrl();
+
+        //如果是vip，且配置了unblockNeteaseMusic的代理。自动使用unblockNeteaseMusic查询其他音源信息
+        if (jsonData.getFee() == 1 && ToolsUtil.isNotNull(unblockNeteaseMusicProxy) && unblockNeteaseMusicProxy.contains(":")) {
+            try {
+                JSONObject jsonObject = getWyySongUrlHttp(String.valueOf(songs.getId()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
         File audio = new File(musicPath);
         if (!audio.getParentFile().exists()) {
             audio.getParentFile().mkdirs();
@@ -236,6 +257,24 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
         this.save(music);
         return music;
 
+    }
+
+    /**
+     * 直接连接java版wyy的api，解锁vip歌曲
+     *
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public JSONObject getWyySongUrlHttp(String id) throws Exception {
+        JSONObject form = new JSONObject();
+        JSONArray ids = new JSONArray();
+        ids.add(id);
+        form.put("ids", ids.toJSONString());
+        form.put("br", 999000);
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.E_API, Method.POST, "http://interface3.music.163.com/eapi/song/enhance/player/url", form);
+        return JSONObject.parseObject(result);
     }
 
     /**

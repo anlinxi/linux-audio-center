@@ -40,4 +40,12 @@ public interface WyyApiStrategies {
      * @return
      */
     Wrapper<JSONObject> doSomeThing(WyyApiDto params);
+
+    /**
+     * 执行java直连网易云方法
+     *
+     * @param params
+     * @return
+     */
+    JSONObject getWyyHttp(WyyApiDto params) throws Exception;
 }

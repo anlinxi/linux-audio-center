@@ -1,23 +1,16 @@
 package com.faker.audioStation.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.faker.audioStation.model.domain.Lyric;
 import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.domain.MusicCover;
 import com.faker.audioStation.model.domain.Singer;
-import com.faker.audioStation.model.dto.GetMusicPageParamDto;
-import com.faker.audioStation.model.dto.IdDto;
+import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.model.dto.wyy.songDetail.Al;
 import com.faker.audioStation.model.dto.wyy.songDetail.SongDetailRootBean;
 import com.faker.audioStation.model.dto.wyy.songDetail.Songs;
 import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
-import com.faker.audioStation.model.vo.LayuiColVo;
-import com.faker.audioStation.wrapper.Wrapper;
-
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 
 /**
  * <p>DownloadService</p>
@@ -34,7 +27,7 @@ import java.util.List;
  * @version 1.0
  * @date 2023/3/28 14:19
  */
-public interface DownloadService  extends IService<Music> {
+public interface DownloadService extends IService<Music> {
 
 
     /**
@@ -61,6 +54,15 @@ public interface DownloadService  extends IService<Music> {
      * @param songJson
      */
     Music saveMusicByWyy(SongUrlRootBean songUrlRootBean, Songs songs, SongDetailRootBean songJson);
+
+    /**
+     * 直接连接java版wyy的api，解锁vip歌曲
+     *
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    JSONObject getWyySongUrlHttp(String id) throws Exception;
 
     /**
      * 通过网易云id获取歌手信息

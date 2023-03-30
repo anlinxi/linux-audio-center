@@ -8,6 +8,8 @@ import com.faker.audioStation.mapper.*;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.util.ToolsUtil;
+import com.faker.audioStation.util.WyyHttpUtil;
+import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +71,9 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
 
     @ApiModelProperty("网易云音乐api")
     protected NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
+
+    @ApiModelProperty("java的网易云音乐直连api")
+    protected WyyHttpUtil wyyHttpUtil;
 
     /**
      * 网易云方法调用入口
@@ -149,5 +154,25 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
             return proxy;
         }
         return null;
+    }
+
+    /**
+     * 测试方法
+     *
+     * @param params
+     * @return
+     */
+    public Wrapper runTest(WyyApiDto params) {
+        try {
+            if (wyyHttpUtil == null) {
+                wyyHttpUtil = new WyyHttpUtil();
+                //设定测试的wyy解锁代理地址
+                wyyHttpUtil.setUnblockNeteaseMusicProxy("192.168.123.223:33335");
+            }
+            return WrapMapper.ok(this.getWyyHttp(params));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return WrapMapper.error(e.getMessage());
+        }
     }
 }

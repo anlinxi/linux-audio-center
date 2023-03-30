@@ -95,9 +95,17 @@ public class WyyHttpUtil {
     @ApiModelProperty(value = "aes加密秘钥", notes = "linuxApi的秘钥")
     private final String LINUX_API_KEY = "rFgB&h#%2?^eDg:Q";
 
-    @Value("${faker.unblockNeteaseMusic.proxy:192.168.123.223:33335}")
+    @Value("${faker.unblockNeteaseMusic.proxy:}")
     @ApiModelProperty("解锁网易云灰色音乐的代理")
-    private String unblockNeteaseMusicProxy = "192.168.123.223:33335";
+    private String unblockNeteaseMusicProxy;
+
+    public String getUnblockNeteaseMusicProxy() {
+        return unblockNeteaseMusicProxy;
+    }
+
+    public void setUnblockNeteaseMusicProxy(String unblockNeteaseMusicProxy) {
+        this.unblockNeteaseMusicProxy = unblockNeteaseMusicProxy;
+    }
 
     /**
      * 歌曲详情

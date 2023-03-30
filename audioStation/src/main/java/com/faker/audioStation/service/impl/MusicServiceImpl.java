@@ -27,6 +27,7 @@ import com.faker.audioStation.service.MusicService;
 import com.faker.audioStation.strategies.wyyApi.WyyApiStrategies;
 import com.faker.audioStation.strategies.wyyApi.WyyApiStrategyContext;
 import com.faker.audioStation.util.ToolsUtil;
+import com.faker.audioStation.util.WyyHttpUtil;
 import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
@@ -99,6 +100,8 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
     @ApiModelProperty("网易云api策略")
     WyyApiStrategyContext wyyApiStrategyContext;
 
+    @ApiModelProperty("java的网易云音乐直连api")
+    protected WyyHttpUtil wyyHttpUtil;
 
     @ApiModelProperty(value = "歌曲封面图片类型", notes = "bmp|gif|jpg|jpeg|png")
     private String formatName = "png";

@@ -4,8 +4,10 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.faker.audioStation.enums.WyyApiTypeEnum;
 import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
@@ -16,10 +18,10 @@ import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
@@ -117,6 +119,38 @@ public class WyySongUrlApi extends WyyApiAbstract {
         JSONObject resultJson = super.callWyyAPi(params);
         cacheService.set(key, resultJson.toJSONString(), 8, TimeUnit.HOURS);
         return WrapMapper.ok(resultJson);
+    }
+
+    /**
+     * 执行java直连网易云方法
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    public JSONObject getWyyHttp(WyyApiDto params) throws Exception {
+        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
+        String id = urlQuery.get("id");
+        JSONObject form = new JSONObject();
+        JSONArray ids = new JSONArray();
+        ids.add(id);
+        form.put("ids", ids.toJSONString());
+        form.put("br", 999000);
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.E_API, Method.POST, "http://interface3.music.163.com/eapi/song/enhance/player/url", form);
+        return JSONObject.parseObject(result);
+    }
+
+    /**
+     * 测试方法
+     *
+     * @return
+     */
+    @Test
+    public void test() {
+        WyyApiDto params = new WyyApiDto();
+        params.setUrl("/song/url?id=29850683");
+        Wrapper wrapper = this.runTest(params);
+        log.info("测试结果:" + wrapper);
     }
 
 }

@@ -1,7 +1,9 @@
 package com.faker.audioStation.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.faker.audioStation.model.dto.DeleteDataDto;
 import com.faker.audioStation.model.dto.GetPageDto;
+import com.faker.audioStation.wrapper.Wrapper;
 
 /**
  * <p>
@@ -21,4 +23,12 @@ public interface TableService {
      * @return
      */
     IPage<?> getPage(GetPageDto pageSizeDto);
+
+    /**
+     * 删除一条数据
+     *
+     * @param param
+     * @return
+     */
+    Wrapper delete(DeleteDataDto param);
 }

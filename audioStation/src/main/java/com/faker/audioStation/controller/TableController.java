@@ -3,6 +3,7 @@ package com.faker.audioStation.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.faker.audioStation.aop.LogAndPermissions;
 import com.faker.audioStation.conf.SqliteInit;
+import com.faker.audioStation.model.dto.DeleteDataDto;
 import com.faker.audioStation.model.dto.GetPageDto;
 import com.faker.audioStation.model.dto.NameDto;
 import com.faker.audioStation.model.vo.LayuiColVo;
@@ -83,6 +84,11 @@ public class TableController {
             return WrapMapper.error("未查询到对应的实体类[" + param.getName() + "]");
         }
         List<LayuiColVo> layuiColVoList = ToolsUtil.getApiModelProperty(clazz);
+        LayuiColVo controlBar = new LayuiColVo();
+        controlBar.setTitle("操作");
+        controlBar.setMinWidth(180);
+        controlBar.setToolbar("#toolbarUpdate");
+        layuiColVoList.add(controlBar);
         return WrapMapper.ok(layuiColVoList);
     }
 
@@ -100,5 +106,14 @@ public class TableController {
             return WrapMapper.error("未查询到对应的Mapper[" + pageSizeDto.getDomainName() + "]");
         }
         return WrapMapper.ok(iPage);
+    }
+
+
+    @ApiOperation(value = "删除一条数据", notes = "删除一条数据")
+    @PostMapping(value = "delete")
+    @ResponseBody
+    @LogAndPermissions("1")
+    public Wrapper delete(@RequestBody DeleteDataDto param) {
+        return tableService.delete(param);
     }
 }

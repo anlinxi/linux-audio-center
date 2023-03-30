@@ -3,11 +3,15 @@ package com.faker.audioStation.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.faker.audioStation.conf.SqliteInit;
 import com.faker.audioStation.mapper.*;
 import com.faker.audioStation.model.domain.*;
+import com.faker.audioStation.model.dto.DeleteDataDto;
 import com.faker.audioStation.model.dto.GetPageDto;
 import com.faker.audioStation.service.TableService;
 import com.faker.audioStation.util.ToolsUtil;
+import com.faker.audioStation.wrapper.WrapMapper;
+import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -118,5 +122,37 @@ public class TableServiceImpl implements TableService {
             return null;
         }
         return musicIPage;
+    }
+
+    /**
+     * 删除一条数据
+     *
+     * @param param
+     * @return
+     */
+    @Override
+    public Wrapper delete(DeleteDataDto param) {
+        if (ToolsUtil.isNullOrEmpty(param.getId())) {
+            return WrapMapper.error("删除id不能为空!");
+        }
+        Class clazz = SqliteInit.classMap.get(param.getDomainName());
+        if (null == clazz) {
+            return WrapMapper.error("未查询到对应的实体类[" + param.getDomainName() + "]");
+        }
+        int musicIPage = 0;
+        if ("Music".equals(param.getDomainName())) {
+            musicIPage = musicMapper.deleteById(param.getId());
+        } else if ("MusicCover".equals(param.getDomainName())) {
+            musicIPage = musicCoverMapper.deleteById(param.getId());
+        } else if ("Lyric".equals(param.getDomainName())) {
+            musicIPage = lyricMapper.deleteById(param.getId());
+        } else if ("Singer".equals(param.getDomainName())) {
+            musicIPage = singerMapper.deleteById(param.getId());
+        } else if ("Mv".equals(param.getDomainName())) {
+            musicIPage = mvMapper.deleteById(param.getId());
+        } else {
+            return WrapMapper.error("未定义的类型[" + param.getDomainName() + "]");
+        }
+        return WrapMapper.ok(musicIPage);
     }
 }

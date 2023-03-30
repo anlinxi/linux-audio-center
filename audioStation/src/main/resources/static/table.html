@@ -74,7 +74,8 @@
 <table id="attrTable" lay-filter="attrTable"></table>
 <script type="text/html" id="toolbarUpdate">
     <a class="layui-btn layui-btn-xs" lay-event="look">查看</a>
-    <a class="layui-btn layui-btn-xs" lay-event="download">下载</a>
+    <a class="layui-btn layui-btn-xs layui-bg-orange" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-xs layui-bg-red" lay-event="delete">删除</a>
 </script>
 <script type="text/html" id="toolbarLook">
     <a class="layui-btn layui-btn-xs" lay-event="look">查看</a>
@@ -229,26 +230,36 @@
                     }
                 });
 
-            } else if (obj.event === 'del') {
+            } else if (obj.event === 'delete') {
                 layer.confirm('真的删除行么', function (index) {
-                    //实时更新表和值对应关系
-                    for (var i = 0; i < rows.length; i++) {
-                        if (rows[i].id == data.id) {
-                            rows.splice(i, 1);
-                            layer.msg('删除成功~');
-                            break;
-                        }
-                    }
-                    obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
-                    layer.close(index);
                     //向服务端发送删除指令
+                    ajax({
+                        type: "post",
+                        "url": "/api/table/delete",
+                        data: {
+                            domainName: $("#flag3").val(),
+                            id: data.id
+                        },
+                        dataType: "json",
+                        success: function (result) {
+                            console.log(result);
+                            reload();
+                            layer.close(index);
+                        },
+                        error: function (error) {
+                            console.log(error);
+                            //关闭
+                            layer.close(index);
+                            layer.alert(error);
+                        }
+                    });
                 });
             } else if (obj.event === 'edit') {
                 layer.open({
                     title: '编辑',
-                    type: 1,
+                    type: 2,
                     area: ['80%', '80%'],
-                    content: '<div style="padding: 16px;">自定义表单元素</div>'
+                    content: 'form.html',
                 });
             } else if (obj.event === 'download') {
                 layer.confirm('需要下载该视频[' + data.name + ']吗?', function (index) {

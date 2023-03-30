@@ -87,6 +87,7 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
     @ApiModelProperty(value = "歌曲封面图片类型", notes = "bmp|gif|jpg|jpeg|png")
     private String formatName = "png";
 
+    @Autowired
     @ApiModelProperty("java的网易云音乐直连api")
     protected WyyHttpUtil wyyHttpUtil;
 
@@ -186,7 +187,11 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
         //如果是vip，且配置了unblockNeteaseMusic的代理。自动使用unblockNeteaseMusic查询其他音源信息
         if (jsonData.getFee() == 1 && ToolsUtil.isNotNull(unblockNeteaseMusicProxy) && unblockNeteaseMusicProxy.contains(":")) {
             try {
+                music.setStateCode("7");
                 JSONObject jsonObject = getWyySongUrlHttp(String.valueOf(songs.getId()));
+                url = jsonObject.getJSONArray("data").getJSONObject(0).getString("url");
+                log.info(url);
+                music.setStateCode("1");
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -1,5 +1,6 @@
 package com.faker.audioStation.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,6 +9,7 @@ import com.faker.audioStation.mapper.*;
 import com.faker.audioStation.model.domain.*;
 import com.faker.audioStation.model.dto.DeleteDataDto;
 import com.faker.audioStation.model.dto.GetPageDto;
+import com.faker.audioStation.model.dto.UpdateDataDto;
 import com.faker.audioStation.service.TableService;
 import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.wrapper.WrapMapper;
@@ -150,6 +152,43 @@ public class TableServiceImpl implements TableService {
             musicIPage = singerMapper.deleteById(param.getId());
         } else if ("Mv".equals(param.getDomainName())) {
             musicIPage = mvMapper.deleteById(param.getId());
+        } else {
+            return WrapMapper.error("未定义的类型[" + param.getDomainName() + "]");
+        }
+        return WrapMapper.ok(musicIPage);
+    }
+
+    /**
+     * 修改一条数据
+     *
+     * @param param
+     * @return
+     */
+    @Override
+    public Wrapper updateData(UpdateDataDto param) {
+        if (ToolsUtil.isNullOrEmpty(param.getData())) {
+            return WrapMapper.error("数据不能为空!");
+        }
+        Class clazz = SqliteInit.classMap.get(param.getDomainName());
+        if (null == clazz) {
+            return WrapMapper.error("未查询到对应的实体类[" + param.getDomainName() + "]");
+        }
+        int musicIPage = 0;
+        if ("Music".equals(param.getDomainName())) {
+            Music form = BeanUtil.mapToBean(param.getData(), Music.class, true);
+            musicIPage = musicMapper.updateById(form);
+        } else if ("MusicCover".equals(param.getDomainName())) {
+            MusicCover form = BeanUtil.mapToBean(param.getData(), MusicCover.class, true);
+            musicIPage = musicCoverMapper.updateById(form);
+        } else if ("Lyric".equals(param.getDomainName())) {
+            Lyric form = BeanUtil.mapToBean(param.getData(), Lyric.class, true);
+            musicIPage = lyricMapper.updateById(form);
+        } else if ("Singer".equals(param.getDomainName())) {
+            Singer form = BeanUtil.mapToBean(param.getData(), Singer.class, true);
+            musicIPage = singerMapper.updateById(form);
+        } else if ("Mv".equals(param.getDomainName())) {
+            Mv form = BeanUtil.mapToBean(param.getData(), Mv.class, true);
+            musicIPage = mvMapper.updateById(form);
         } else {
             return WrapMapper.error("未定义的类型[" + param.getDomainName() + "]");
         }

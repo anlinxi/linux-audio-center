@@ -58,13 +58,17 @@
         let html = "";
         for (let i = 0; i < cols.length; i++) {
             let col = cols[i];
+            let readOnly = false
+            if (col.field == 'id' || col.field == 'ID') {
+                readOnly = true
+            }
             if (col.field) {
                 if (col.dataType == "DATE") {
-                    html += formHtml(col.title, col.field, col.value, true);
+                    html += formHtml(col.title, col.field, col.value, readOnly);
                 } else if (col.dataType == "CLOB") {
-                    html += formColb(col.title, col.field, col.value, true);
+                    html += formColb(col.title, col.field, col.value, readOnly);
                 } else {
-                    html += formHtml(col.title, col.field, col.value, true);
+                    html += formHtml(col.title, col.field, col.value, readOnly);
                 }
             }
         }
@@ -96,7 +100,11 @@
         let html = "    <div class=\"layui-form-item\">\n" +
             "        <label class=\"layui-form-label\">" + label + "</label>\n" +
             "        <div class=\"layui-input-block\">\n" +
-            "            <input type=\"text\" name=\"" + attr + "\" value=\"" + value + "\" autocomplete=\"off\"  readonly=\"" + readOnly + "\" class=\"layui-input\">\n" +
+            "            <input type=\"text\" name=\"" + attr + "\" value=\"" + value + "\" autocomplete=\"off\" ";
+        if (readOnly) {
+            html += " readonly "
+        }
+        html += "class=\"layui-input\">\n" +
             "        </div>\n" +
             "    </div>\n";
         return html;
@@ -117,7 +125,11 @@
         let html = "    <div class=\"layui-form-item\">\n" +
             "        <label class=\"layui-form-label\">" + label + "</label>\n" +
             "        <div class=\"layui-input-block\">\n" +
-            "            <textarea  type=\"text\" name=\"" + attr + "\" value=\"" + value + "\" autocomplete=\"off\"  readonly=\"" + readOnly + "\" class=\"layui-textarea\">" + value + "</textarea>\n" +
+            "            <textarea  type=\"text\" name=\"" + attr + "\" value=\"" + value + "\" autocomplete=\"off\"";
+        if (readOnly) {
+            html += " readonly "
+        }
+        html += " class=\"layui-textarea\">" + value + "</textarea>\n" +
             "        </div>\n" +
             "    </div>\n";
         return html;

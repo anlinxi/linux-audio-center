@@ -235,7 +235,7 @@
                     //向服务端发送删除指令
                     ajax({
                         type: "post",
-                        "url": "/api/table/delete",
+                        "url": "/api/table/deleteData",
                         data: {
                             domainName: $("#flag3").val(),
                             id: data.id
@@ -255,11 +255,49 @@
                     });
                 });
             } else if (obj.event === 'edit') {
+                sessionStorage.formData = JSON.stringify(data);
+                sessionStorage.cols = JSON.stringify(cols);
                 layer.open({
                     title: '编辑',
                     type: 2,
                     area: ['80%', '80%'],
                     content: 'form.html',
+                    shade: 0.3,
+                    // 是否点击遮罩关闭：默认：false
+                    shadeClose: true,
+                    btn: ['更新', '关闭'],
+                    // 第一个按钮事件，也可以叫btn1
+                    btn1: function (index, layero) {
+                        var params = {}
+                        var body = layer.getChildFrame('body', index);
+                        body.find('#formList').serializeArray().forEach(function (element) {
+                            params[element.name] = element.value
+                        });
+                        console.log(params)
+                        ajax({
+                            type: "post",
+                            "url": "/api/table/updateData",
+                            data: {
+                                domainName: $("#flag3").val(),
+                                data: params
+                            },
+                            dataType: "json",
+                            success: function (result) {
+                                console.log(result);
+                                reload();
+                                layer.close(index);
+                            },
+                            error: function (error) {
+                                console.log(error);
+                                //关闭
+                                layer.close(index);
+                                layer.alert(error);
+                            }
+                        });
+                    },
+                    btn2: function (index, layero) {
+                        layer.close(index);
+                    },
                 });
             } else if (obj.event === 'download') {
                 layer.confirm('需要下载该视频[' + data.name + ']吗?', function (index) {
@@ -434,6 +472,7 @@
             dataType: "json",
             success: function (result) {
                 // console.log(cols);
+                cols = result
                 layer.close(index);
                 tableIns = table.render({
                     id: 'attrTable',

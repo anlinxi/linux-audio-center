@@ -6,6 +6,7 @@ import com.faker.audioStation.conf.SqliteInit;
 import com.faker.audioStation.model.dto.DeleteDataDto;
 import com.faker.audioStation.model.dto.GetPageDto;
 import com.faker.audioStation.model.dto.NameDto;
+import com.faker.audioStation.model.dto.UpdateDataDto;
 import com.faker.audioStation.model.vo.LayuiColVo;
 import com.faker.audioStation.service.TableService;
 import com.faker.audioStation.util.ToolsUtil;
@@ -110,10 +111,18 @@ public class TableController {
 
 
     @ApiOperation(value = "删除一条数据", notes = "删除一条数据")
-    @PostMapping(value = "delete")
+    @PostMapping(value = "deleteData")
     @ResponseBody
     @LogAndPermissions("1")
     public Wrapper delete(@RequestBody DeleteDataDto param) {
         return tableService.delete(param);
+    }
+
+    @ApiOperation(value = "修改一条数据", notes = "修改一条数据")
+    @PostMapping(value = "updateData")
+    @ResponseBody
+    @LogAndPermissions("1")
+    public Wrapper updateData(@RequestBody UpdateDataDto param) {
+        return tableService.updateData(param);
     }
 }

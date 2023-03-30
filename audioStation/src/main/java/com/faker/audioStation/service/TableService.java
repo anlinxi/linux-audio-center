@@ -3,6 +3,7 @@ package com.faker.audioStation.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.faker.audioStation.model.dto.DeleteDataDto;
 import com.faker.audioStation.model.dto.GetPageDto;
+import com.faker.audioStation.model.dto.UpdateDataDto;
 import com.faker.audioStation.wrapper.Wrapper;
 
 /**
@@ -31,4 +32,12 @@ public interface TableService {
      * @return
      */
     Wrapper delete(DeleteDataDto param);
+
+    /**
+     * 修改一条数据
+     *
+     * @param param
+     * @return
+     */
+    Wrapper updateData(UpdateDataDto param);
 }

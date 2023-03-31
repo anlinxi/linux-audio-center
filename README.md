@@ -29,6 +29,15 @@
 
 然后在application.yml的faker.music163Api里改成自己的地址
 
+##### UnblockNeteaseMusic配置
+
+已接入UnblockNeteaseMusic。只需在
+在application.yml的faker.unblockNeteaseMusic.proxy: 
+
+设置UnblockNeteaseMusic代理端口地址。设置好后，会自动替换vip和无版权的音源。
+
+在群辉docker里搜索<font style="color:#FF9900">nondanee/unblockneteasemusic</font>安装即可
+
 ###### 前端解释及源码地址
 前端使用了[vue_pc_music](https://gitee.com/trtst/vue_pc_music) 项目改造而,
 

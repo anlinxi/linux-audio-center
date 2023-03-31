@@ -80,7 +80,7 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
     protected WyyHttpUtil wyyHttpUtil;
 
     @ApiModelProperty("请求协议")
-    final protected String PROTOCOL = "http://";
+    final public static String PROTOCOL = "http://";
 
     /**
      * 网易云方法调用入口
@@ -239,4 +239,36 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
         return resultJson;
     }
 
+
+    /**
+     * 设置表单数值
+     *
+     * @param attr         属性名称
+     * @param defaultValue 默认值
+     * @param form         表单
+     * @param urlQuery     查询参数
+     */
+    public void setFormInteger(String attr, Integer defaultValue, JSONObject form, Map<String, String> urlQuery) {
+        this.setFormInteger(attr, defaultValue, form, urlQuery.get(attr));
+    }
+
+
+    /**
+     * 设置表单数值
+     *
+     * @param attr         属性名称
+     * @param defaultValue 默认值
+     * @param form         表单
+     * @param value        设置值
+     */
+    public void setFormInteger(String attr, Integer defaultValue, JSONObject form, String value) {
+        form.put(attr, defaultValue);
+        if (ToolsUtil.isNotNull(value)) {
+            try {
+                form.put(attr, Integer.parseInt(value));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

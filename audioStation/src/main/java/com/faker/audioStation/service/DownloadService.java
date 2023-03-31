@@ -90,4 +90,18 @@ public interface DownloadService extends IService<Music> {
      */
     Lyric getLyricByWyyId(Long id, Music music);
 
+    /**
+     * 通过网易云id下载歌曲
+     *
+     * @param wyyId
+     */
+    void downLoadMusic(String wyyId);
+
+    /**
+     * 下载转换网易云音乐对象
+     *
+     * @param wyyId
+     * @return
+     */
+    SongUrlRootBean getWyySongUrl(String wyyId);
 }

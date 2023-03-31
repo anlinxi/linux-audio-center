@@ -15,6 +15,7 @@ import com.faker.audioStation.model.domain.Lyric;
 import com.faker.audioStation.model.domain.Music;
 import com.faker.audioStation.model.domain.MusicCover;
 import com.faker.audioStation.model.domain.Singer;
+import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.model.dto.wyy.songDetail.Al;
 import com.faker.audioStation.model.dto.wyy.songDetail.SongDetailRootBean;
 import com.faker.audioStation.model.dto.wyy.songDetail.Songs;
@@ -23,6 +24,8 @@ import com.faker.audioStation.model.dto.wyy.songUrl.SongUrlRootBean;
 import com.faker.audioStation.scanner.Scanner;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.DownloadService;
+import com.faker.audioStation.strategies.wyyApi.WyyApiAbstract;
+import com.faker.audioStation.strategies.wyyApi.api.WyySongUrlApi;
 import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.util.WyyHttpUtil;
 import io.swagger.annotations.ApiModelProperty;
@@ -37,6 +40,8 @@ import java.io.*;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -91,9 +96,17 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
     @ApiModelProperty("java的网易云音乐直连api")
     protected WyyHttpUtil wyyHttpUtil;
 
+    @Autowired
+    @ApiModelProperty("歌曲下载地址策略")
+    protected WyySongUrlApi wyySongUrlApi;
+
     @Value("${faker.unblockNeteaseMusic.proxy:}")
     @ApiModelProperty("解锁网易云灰色音乐的代理")
     private String unblockNeteaseMusicProxy;
+
+    @Value("${faker.music163Api:http://yumbo.top:3000}")
+    @ApiModelProperty("网易云音乐API地址")
+    protected String music163Api;
 
     /**
      * 下载网易云音乐的歌曲到本地
@@ -285,13 +298,17 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
      */
     @Override
     public JSONObject getWyySongUrlHttp(String id) throws Exception {
-        JSONObject form = new JSONObject();
-        JSONArray ids = new JSONArray();
-        ids.add(id);
-        form.put("ids", ids.toJSONString());
-        form.put("br", 999000);
-        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.E_API, Method.POST, "http://interface3.music.163.com/eapi/song/enhance/player/url", form);
-        return JSONObject.parseObject(result);
+//        JSONObject form = new JSONObject();
+//        JSONArray ids = new JSONArray();
+//        ids.add(id);
+//        form.put("ids", ids.toJSONString());
+//        form.put("br", 999000);
+//        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.E_API, Method.POST, "http://interface3.music.163.com/eapi/song/enhance/player/url", form);
+//        return JSONObject.parseObject(result);
+        WyyApiDto params = new WyyApiDto();
+        params.setMethod("get");
+        params.setUrl("/song/url?id=" + id);
+        return wyySongUrlApi.getWyyHttp(params);
     }
 
     /**
@@ -420,5 +437,67 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
             }
         }
         return lyric;
+    }
+
+    /**
+     * 通过网易云id下载歌曲
+     *
+     * @param wyyId
+     */
+    @Override
+    public void downLoadMusic(String wyyId) {
+        final WyyApiDto params = new WyyApiDto();
+        params.setMethod("get");
+        params.setUrl("/song/url?id=" + wyyId);
+
+        new Thread(() -> {
+            String resultText = wyySongUrlApi.getHttp(params).toJSONString();
+            SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
+            this.downLoadMusic(songUrlRootBean);
+        }).start();
+
+    }
+
+    /**
+     * 下载转换网易云音乐对象
+     *
+     * @param wyyId
+     * @return
+     */
+    @Override
+    public SongUrlRootBean getWyySongUrl(String wyyId) {
+        WyyApiDto params = new WyyApiDto();
+        params.setMethod("get");
+        params.setUrl("/song/url?id=" + wyyId);
+        //使用网易云api查询
+        JSONObject jsonObject = wyySongUrlApi.getWyyApi(params);
+        SongUrlRootBean songUrlRootBean = null;
+        if (null != jsonObject) {
+            songUrlRootBean = JSONObject.parseObject(jsonObject.toJSONString(), SongUrlRootBean.class);
+            if (null != songUrlRootBean.getData() && songUrlRootBean.getData().size() > 0) {
+                JsonData jsonData = songUrlRootBean.getData().get(0);
+                //如果是vip，且配置了unblockNeteaseMusic的代理。自动使用unblockNeteaseMusic查询其他音源信息
+                if (jsonData.getFee() == 1 && ToolsUtil.isNotNull(unblockNeteaseMusicProxy) && unblockNeteaseMusicProxy.contains(":")) {
+                    try {
+                        jsonObject = wyySongUrlApi.getWyyHttp(params);
+                        songUrlRootBean = JSONObject.parseObject(jsonObject.toJSONString(), SongUrlRootBean.class);
+                        return songUrlRootBean;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+        } else {
+            //网易云api没查到，使用java网易云api查询
+            try {
+                jsonObject = wyySongUrlApi.getWyyHttp(params);
+                songUrlRootBean = JSONObject.parseObject(jsonObject.toJSONString(), SongUrlRootBean.class);
+                return songUrlRootBean;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return songUrlRootBean;
     }
 }

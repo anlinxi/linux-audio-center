@@ -23,12 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.Proxy;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 歌词策略
+ * 歌曲下载地址策略
  */
 @Slf4j
 @Component
@@ -129,7 +130,10 @@ public class WyySongUrlApi extends WyyApiAbstract {
         String id = urlQuery.get("id");
         JSONObject form = new JSONObject();
         JSONArray ids = new JSONArray();
-        ids.add(id);
+
+        Arrays.asList(id.split(",")).forEach(id2 -> {
+            ids.add(id2);
+        });
         form.put("ids", ids.toJSONString());
         form.put("br", 999000);
         String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.E_API, Method.POST, PROTOCOL + "interface3.music.163.com/eapi/song/enhance/player/url", form);
@@ -145,7 +149,7 @@ public class WyySongUrlApi extends WyyApiAbstract {
     public void test() {
         WyyApiDto params = new WyyApiDto();
         params.setMethod("get");
-        params.setUrl("/song/url?id=29850683");
+        params.setUrl("/song/url?id=29850683,1815918804,1806926997,190072,1815692964,1494807967,1816716764,1814090981,1806732446,1496392700,1486060211,1492319441,416552313,296885,1492319432,412902075,1813812305,1498342485,1479706965,1804879213,29764634,1330348068,1808492017,64093,1495058484,5249197,1331593956,108284,255858,1494510428,5261904");
         Wrapper wyyWrap = wyyApiProxyTest(params, false);
         log.debug(wyyWrap.toString());
         Wrapper wrapper = this.runTest(params);

@@ -48,4 +48,13 @@ public interface WyyApiStrategies {
      * @return
      */
     JSONObject getWyyHttp(WyyApiDto params) throws Exception;
+
+    /**
+     * 自动选择请求路线
+     * 优先java网易云api
+     *
+     * @param params
+     * @return
+     */
+    JSONObject getHttp(WyyApiDto params);
 }

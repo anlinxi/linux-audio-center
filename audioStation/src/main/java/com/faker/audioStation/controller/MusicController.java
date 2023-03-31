@@ -16,7 +16,9 @@ import com.faker.audioStation.model.vo.LayuiColVo;
 import com.faker.audioStation.service.CacheService;
 import com.faker.audioStation.service.DownloadService;
 import com.faker.audioStation.service.MusicService;
+import com.faker.audioStation.strategies.wyyApi.WyyApiStrategies;
 import com.faker.audioStation.strategies.wyyApi.WyyApiStrategyContext;
+import com.faker.audioStation.strategies.wyyApi.api.WyySongUrlApi;
 import com.faker.audioStation.util.ToolsUtil;
 import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
@@ -68,6 +70,10 @@ public class MusicController {
     @ApiModelProperty("下载服务")
     protected DownloadService downloadService;
 
+    @Autowired
+    @ApiModelProperty("歌曲下载地址策略")
+    protected WyySongUrlApi wyySongUrlApi;
+
     @ApiOperation(value = "获取音乐文件的layui参数", notes = "layui表头参数")
     @PostMapping(value = "getMusicLayuiColVo")
     @ResponseBody
@@ -89,7 +95,7 @@ public class MusicController {
     @ResponseBody
     @LogAndPermissions
     public JSONObject getWyyApi(@RequestBody WyyApiDto params) {
-        String key = SecureUtil.md5(JSONObject.toJSONString(params));
+        String key = "getWyyApi:" + SecureUtil.md5(JSONObject.toJSONString(params));
         String value = cacheService.get(key);
         if (null != value) {
             try {
@@ -137,18 +143,7 @@ public class MusicController {
                 e.printStackTrace();
             }
         }
-        String url = music163Api + "/song/url";
-        log.info("网易云音乐api请求地址:" + url);
-        Map<String, Object> paramsMap = new HashMap<>();
-        paramsMap.put("id", params.getId());
-        String resultText = HttpUtil.get(url, paramsMap);
-        if (null == resultText) {
-            return null;
-        }
-        if (resultText.length() < 100) {
-            log.info("网易云音乐api返回:" + resultText);
-        }
-        SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
+        SongUrlRootBean songUrlRootBean = downloadService.getWyySongUrl(params.getId());
         log.info(songUrlRootBean.toString());
         new Thread(() -> {
             SongUrlRootBean songUrlRootBeanV2 = downloadService.downLoadMusic(songUrlRootBean);
@@ -173,20 +168,22 @@ public class MusicController {
                 e.printStackTrace();
             }
         }
-        String url = music163Api + "/song/url";
-        log.info("网易云音乐api请求地址:" + url);
-        Map<String, Object> paramsMap = new HashMap<>();
-        paramsMap.put("id", params.getId());
-        String resultText = HttpUtil.get(url, paramsMap);
-        if (null == resultText) {
-            return null;
-        }
-        if (resultText.length() < 100) {
-            log.info("网易云音乐api返回:" + resultText);
-        }
-        SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
+
         //下载音乐
-        downloadService.downLoadMusic(songUrlRootBean);
+        downloadService.downLoadMusic(params.getId());
+
+        WyyApiDto wyyApiDto = new WyyApiDto();
+        wyyApiDto.setMethod("get");
+        wyyApiDto.setUrl("/song/detail?id=" + params.getId());
+        WyyApiStrategies wyySongDetailApi = wyyApiStrategyContext.getWyyApiStrategies(wyyApiDto.getUrl(), wyyApiDto.getMethod());
+        if (wyySongDetailApi != null) {
+            JSONObject jsonObject = wyySongDetailApi.getHttp(wyyApiDto);
+            //返回对象
+            SongDetailRootBean songJson = JSONObject.parseObject(jsonObject.toJSONString(), SongDetailRootBean.class);
+            //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
+            cacheService.set(key, JSONObject.toJSONString(songJson), 7, TimeUnit.DAYS);
+            return songJson;
+        }
         //返回对象
         SongDetailRootBean songJson = musicService.songDetail(new String[]{params.getId() + ""});
         //减小网易云音乐api鸭梨 缓存一些信息，免得频繁调用api被封
@@ -203,20 +200,8 @@ public class MusicController {
         QueryWrapper<Music> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("ID", id).or().eq("WYY_ID", id);
         Music music = musicService.getOne(queryWrapper);
-        final String url = music163Api + "/song/url";
         if (null == music) {
-            log.info("网易云音乐api请求地址:" + url);
-            Map<String, Object> paramsMap = new HashMap<>();
-            paramsMap.put("id", id);
-            String resultText = HttpUtil.get(url, paramsMap);
-            if (null == resultText) {
-                ToolsUtil.setStateInfo(response, 404, "根据[" + id + "]未找到音乐信息");
-                return;
-            }
-            if (resultText.length() < 100) {
-                log.info("网易云音乐api返回:" + resultText);
-            }
-            SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
+            SongUrlRootBean songUrlRootBean = downloadService.getWyySongUrl(id);
             log.info(songUrlRootBean.toString());
 
             songUrlRootBean = downloadService.downLoadMusic(songUrlRootBean);
@@ -233,14 +218,8 @@ public class MusicController {
             log.error("音乐文件地址不存在:" + file.getAbsolutePath());
             ToolsUtil.setStateInfo(response, 404, "音乐文件不存在");
             new Thread(() -> {
-                log.info("网易云音乐api请求地址:" + url);
-                Map<String, Object> paramsMap = new HashMap<>();
-                paramsMap.put("id", id);
-                String resultText = HttpUtil.get(url, paramsMap);
-                if (null != resultText) {
-                    SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
-                    downloadService.downLoadMusic(songUrlRootBean);
-                }
+                SongUrlRootBean songUrlRootBean = downloadService.getWyySongUrl(id);
+                downloadService.downLoadMusic(songUrlRootBean);
             }).start();
             return;
         }
@@ -253,7 +232,7 @@ public class MusicController {
     @ResponseBody
     @LogAndPermissions
     public Wrapper<JSONObject> getLyricByWyyId(@RequestBody IdDto params) {
-        String key = SecureUtil.md5("getLyricByWyyId:" + JSONObject.toJSONString(params));
+        String key = "getLyricByWyyId:" + SecureUtil.md5("getLyricByWyyId:" + JSONObject.toJSONString(params));
         JSONObject value = cacheService.get(key);
         if (null != value) {
             return WrapMapper.ok(value);

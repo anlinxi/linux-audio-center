@@ -152,12 +152,12 @@ public class WyyMvDetailApi extends WyyApiAbstract {
      * @return
      */
     @Override
-    public JSONObject getWyyHttp(WyyApiDto params) throws Exception{
+    public JSONObject getWyyHttp(WyyApiDto params) throws Exception {
         Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
         String id = urlQuery.get("id");
         JSONObject form = new JSONObject();
         form.put("id", id);
-        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, "http://music.163.com/api/v1/mv/detail", form);
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, PROTOCOL + "music.163.com/api/v1/mv/detail", form);
         log.debug(result);
         return JSONObject.parseObject(result);
     }

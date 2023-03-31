@@ -132,7 +132,7 @@ public class WyySongUrlApi extends WyyApiAbstract {
         ids.add(id);
         form.put("ids", ids.toJSONString());
         form.put("br", 999000);
-        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.E_API, Method.POST, "http://interface3.music.163.com/eapi/song/enhance/player/url", form);
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.E_API, Method.POST, PROTOCOL + "interface3.music.163.com/eapi/song/enhance/player/url", form);
         return JSONObject.parseObject(result);
     }
 

@@ -79,6 +79,9 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
     @ApiModelProperty("java的网易云音乐直连api")
     protected WyyHttpUtil wyyHttpUtil;
 
+    @ApiModelProperty("请求协议")
+    final protected String PROTOCOL = "http://";
+
     /**
      * 网易云方法调用入口
      *

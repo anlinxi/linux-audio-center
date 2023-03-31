@@ -1,7 +1,6 @@
 package com.faker.audioStation.strategies.wyyApi.api;
 
 import cn.hutool.core.io.file.FileReader;
-import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
@@ -15,7 +14,6 @@ import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.Test;
 import org.springframework.stereotype.Component;
 
@@ -23,14 +21,14 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 歌词策略
+ * 相似音乐策略
  */
 @Slf4j
 @Component
-public class WyyLyricApi extends WyyApiAbstract {
+public class WyySimiSongApi extends WyyApiAbstract {
 
     @ApiModelProperty("定义的网易云请求参数")
-    protected String url = "/lyric";
+    protected String url = "/simi/song";
 
     @ApiModelProperty("定义的网易云请求方法")
     protected Method method = Method.GET;
@@ -65,23 +63,6 @@ public class WyyLyricApi extends WyyApiAbstract {
     @Override
     public Wrapper<JSONObject> doSomeThing(WyyApiDto params) {
         String key = SecureUtil.md5(JSONObject.toJSONString(params));
-        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
-        if (null != urlQuery.get("id")) {
-            String id = urlQuery.get("id");
-            QueryWrapper<Lyric> queryWrapper = new QueryWrapper();
-            queryWrapper.eq("WYY_ID", id);
-            Lyric lyric = lyricMapper.selectOne(queryWrapper);
-            if (null != lyric) {
-                FileReader reader = new FileReader(lyric.getPath());
-                JSONObject result = new JSONObject();
-                JSONObject lrc = new JSONObject();
-                lrc.put("lyric", reader.readString());
-                result.put("code", 200);
-                result.put("lrc", lrc);
-                result.put("lyric", lyric);
-                WrapMapper.ok(result);
-            }
-        }
         JSONObject resultJson = super.getHttp(params);
         cacheService.set(key, resultJson.toJSONString(), 8, TimeUnit.HOURS);
         return WrapMapper.ok(resultJson);
@@ -98,14 +79,31 @@ public class WyyLyricApi extends WyyApiAbstract {
         Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
         String id = urlQuery.get("id");
         JSONObject form = new JSONObject();
-        form.put("id", id);
-        form.put("tv", -1);
-        form.put("lv", -1);
-        form.put("rv", id);
-        form.put("kv", id);
-        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.API, Method.POST, PROTOCOL + "music.163.com/api/song/lyric?_nmclfl=1", form);
+        form.put("songid", id);
+        this.setFormInteger("limit", 50, form, urlQuery);
+        this.setFormInteger("offset", 0, form, urlQuery);
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, PROTOCOL + "music.163.com/weapi/v1/discovery/simiSong", form);
         log.debug(result);
         return JSONObject.parseObject(result);
+    }
+
+    /**
+     * 设置表单数值
+     *
+     * @param attr         属性名称
+     * @param defaultValue 默认值
+     * @param form         表单
+     * @param urlQuery     查询参数
+     */
+    public void setFormInteger(String attr, Integer defaultValue, JSONObject form, Map<String, String> urlQuery) {
+        form.put(attr, defaultValue);
+        if (ToolsUtil.isNotNull(urlQuery.get(attr))) {
+            try {
+                form.put(attr, Integer.parseInt(urlQuery.get(attr)));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -117,7 +115,7 @@ public class WyyLyricApi extends WyyApiAbstract {
     public void test() {
         WyyApiDto params = new WyyApiDto();
         params.setMethod("get");
-        params.setUrl("/lyric?id=1950343972");
+        params.setUrl("/simi/song?id=2029174219");
 //        Wrapper wyyWrap = wyyApiTest(params);
 //        log.debug(wyyWrap.toString());
         Wrapper wrapper = this.runTest(params);

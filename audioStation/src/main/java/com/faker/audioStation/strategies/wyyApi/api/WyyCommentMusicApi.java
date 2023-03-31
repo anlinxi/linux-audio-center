@@ -1,13 +1,9 @@
 package com.faker.audioStation.strategies.wyyApi.api;
 
-import cn.hutool.core.io.file.FileReader;
-import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.faker.audioStation.enums.WyyApiTypeEnum;
-import com.faker.audioStation.model.domain.Lyric;
 import com.faker.audioStation.model.dto.WyyApiDto;
 import com.faker.audioStation.strategies.wyyApi.WyyApiAbstract;
 import com.faker.audioStation.util.ToolsUtil;
@@ -15,7 +11,6 @@ import com.faker.audioStation.wrapper.WrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.Test;
 import org.springframework.stereotype.Component;
 
@@ -23,14 +18,14 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 歌词策略
+ * 相似音乐策略
  */
 @Slf4j
 @Component
-public class WyyLyricApi extends WyyApiAbstract {
+public class WyyCommentMusicApi extends WyyApiAbstract {
 
     @ApiModelProperty("定义的网易云请求参数")
-    protected String url = "/lyric";
+    protected String url = "/comment/music";
 
     @ApiModelProperty("定义的网易云请求方法")
     protected Method method = Method.GET;
@@ -65,23 +60,6 @@ public class WyyLyricApi extends WyyApiAbstract {
     @Override
     public Wrapper<JSONObject> doSomeThing(WyyApiDto params) {
         String key = SecureUtil.md5(JSONObject.toJSONString(params));
-        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
-        if (null != urlQuery.get("id")) {
-            String id = urlQuery.get("id");
-            QueryWrapper<Lyric> queryWrapper = new QueryWrapper();
-            queryWrapper.eq("WYY_ID", id);
-            Lyric lyric = lyricMapper.selectOne(queryWrapper);
-            if (null != lyric) {
-                FileReader reader = new FileReader(lyric.getPath());
-                JSONObject result = new JSONObject();
-                JSONObject lrc = new JSONObject();
-                lrc.put("lyric", reader.readString());
-                result.put("code", 200);
-                result.put("lrc", lrc);
-                result.put("lyric", lyric);
-                WrapMapper.ok(result);
-            }
-        }
         JSONObject resultJson = super.getHttp(params);
         cacheService.set(key, resultJson.toJSONString(), 8, TimeUnit.HOURS);
         return WrapMapper.ok(resultJson);
@@ -98,14 +76,45 @@ public class WyyLyricApi extends WyyApiAbstract {
         Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
         String id = urlQuery.get("id");
         JSONObject form = new JSONObject();
-        form.put("id", id);
-        form.put("tv", -1);
-        form.put("lv", -1);
-        form.put("rv", id);
-        form.put("kv", id);
-        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.API, Method.POST, PROTOCOL + "music.163.com/api/song/lyric?_nmclfl=1", form);
+        form.put("rid", id);
+        this.setFormInteger("limit", 20, form, urlQuery);
+        this.setFormInteger("offset", 0, form, urlQuery);
+        this.setFormInteger("beforeTime", 0, form, urlQuery.get("before"));
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, PROTOCOL + "music.163.com/api/v1/resource/comments/R_SO_4_" + id, form);
         log.debug(result);
         return JSONObject.parseObject(result);
+    }
+
+    /**
+     * 设置表单数值
+     *
+     * @param attr         属性名称
+     * @param defaultValue 默认值
+     * @param form         表单
+     * @param urlQuery     查询参数
+     */
+    public void setFormInteger(String attr, Integer defaultValue, JSONObject form, Map<String, String> urlQuery) {
+        this.setFormInteger(attr, defaultValue, form, urlQuery.get(attr));
+    }
+
+
+    /**
+     * 设置表单数值
+     *
+     * @param attr         属性名称
+     * @param defaultValue 默认值
+     * @param form         表单
+     * @param value        设置值
+     */
+    public void setFormInteger(String attr, Integer defaultValue, JSONObject form, String value) {
+        form.put(attr, defaultValue);
+        if (ToolsUtil.isNotNull(value)) {
+            try {
+                form.put(attr, Integer.parseInt(value));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -117,7 +126,7 @@ public class WyyLyricApi extends WyyApiAbstract {
     public void test() {
         WyyApiDto params = new WyyApiDto();
         params.setMethod("get");
-        params.setUrl("/lyric?id=1950343972");
+        params.setUrl("/comment/music?id=2029174219&limit=20&offset=0&before=0&timestamp=0");
 //        Wrapper wyyWrap = wyyApiTest(params);
 //        log.debug(wyyWrap.toString());
         Wrapper wrapper = this.runTest(params);

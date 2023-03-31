@@ -213,6 +213,8 @@ public class WyyHttpUtil {
             Map<String, Object> formMap = new HashMap<>(1);
             formMap.put("params", params);
             return this.httpContent(method, url, formMap, this.getHeaders(wyyApiTypeEnum));
+        } else if (WyyApiTypeEnum.API.equals(wyyApiTypeEnum)) {
+            return this.httpContent(method, url, form, this.getHeaders(wyyApiTypeEnum));
         } else {
             throw new NoMoneyToEatKFCException("未定义的api" + wyyApiTypeEnum);
         }
@@ -336,9 +338,21 @@ public class WyyHttpUtil {
             headers.put("X-Forwarded-For", "127.0.0.1");
             headers.put("Cookie", this.getCookie(wyyApiTypeEnum));
         } else if (WyyApiTypeEnum.LINUX_API.equals(wyyApiTypeEnum)) {
-
+            headers.put("User-Agent", this.getUserAgentPc());
+            headers.put("Content-Type", "application/x-www-form-urlencoded");
+            headers.put("Referer", "http://music.163.com");
+            headers.put("X-Real-IP", "127.0.0.1");
+            headers.put("X-Forwarded-For", "127.0.0.1");
+            headers.put("Cookie", this.getCookie(wyyApiTypeEnum));
         } else if (WyyApiTypeEnum.E_API.equals(wyyApiTypeEnum)) {
             headers.put("User-Agent", this.getUserAgentApp());
+            headers.put("Content-Type", "application/x-www-form-urlencoded");
+            headers.put("Referer", "http://music.163.com");
+            headers.put("X-Real-IP", "127.0.0.1");
+            headers.put("X-Forwarded-For", "127.0.0.1");
+            headers.put("Cookie", this.getCookie(wyyApiTypeEnum));
+        } else if (WyyApiTypeEnum.API.equals(wyyApiTypeEnum)) {
+            headers.put("User-Agent", this.getUserAgentPc());
             headers.put("Content-Type", "application/x-www-form-urlencoded");
             headers.put("Referer", "http://music.163.com");
             headers.put("X-Real-IP", "127.0.0.1");
@@ -385,7 +399,11 @@ public class WyyHttpUtil {
             cookieMap.put("_ntes_nuid", RandomUtil.randomString(16));
             cookieMap.put("MUSIC_A", anonymousToken);
         } else if (WyyApiTypeEnum.LINUX_API.equals(wyyApiTypeEnum)) {
-
+            cookieMap.put("os", "linux");
+            cookieMap.put("__remember_me", "true");
+            cookieMap.put("NMTID", RandomUtil.randomString(16));
+            cookieMap.put("_ntes_nuid", RandomUtil.randomString(16));
+            cookieMap.put("MUSIC_A", anonymousToken);
         } else if (WyyApiTypeEnum.E_API.equals(wyyApiTypeEnum)) {
             cookieMap.put("osver", "undefined");
             cookieMap.put("deviceId", "undefined");
@@ -400,6 +418,12 @@ public class WyyHttpUtil {
             DecimalFormat df1 = new DecimalFormat("0000");
             cookieMap.put("requestId", System.currentTimeMillis() + "_" + df1.format(RandomUtil.randomInt(0, 9999)));
             cookieMap.put("channel", "undefined");
+            cookieMap.put("MUSIC_A", anonymousToken);
+        } else if (WyyApiTypeEnum.API.equals(wyyApiTypeEnum)) {
+            cookieMap.put("os", "ios");
+            cookieMap.put("__remember_me", "true");
+            cookieMap.put("NMTID", RandomUtil.randomString(16));
+            cookieMap.put("_ntes_nuid", RandomUtil.randomString(16));
             cookieMap.put("MUSIC_A", anonymousToken);
         } else {
             throw new NoMoneyToEatKFCException("未定义的api" + wyyApiTypeEnum);

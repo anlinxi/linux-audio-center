@@ -81,35 +81,31 @@ public class WyySongUrlApi extends WyyApiAbstract {
             queryWrapper.eq("WYY_ID", id);
             Music music = musicMapper.selectOne(queryWrapper);
             if (null == music) {
-                String url = music163Api + "/song/url";
-                log.info("网易云音乐api请求地址:" + url);
-                Map<String, Object> paramsMap = new HashMap<>();
-                paramsMap.put("id", id);
-                String resultText = HttpUtil.get(url, paramsMap);
-                if (null == resultText) {
+                JSONObject resultJson = super.callWyyAPi(params);
+                if (null == resultJson) {
                     return null;
                 }
+                String resultText = resultJson.toJSONString();
                 if (resultText.length() < 100) {
                     log.info("网易云音乐api返回:" + resultText);
                 }
                 SongUrlRootBean songUrlRootBean = JSONObject.parseObject(resultText, SongUrlRootBean.class);
-                if (songUrlRootBean.getData().get(0).getFee() != 1) {
-                    new Thread(() -> {
-                        SongUrlRootBean songUrlRootBeanV2 = downloadService.downLoadMusic(songUrlRootBean);
-                        cacheService.set(key, JSONObject.toJSONString(songUrlRootBeanV2), 4, TimeUnit.HOURS);
-                    }).start();
-                    return WrapMapper.ok(JSONObject.parseObject(resultText));
-                } else {
-                    //vip音乐 只能试听 需查询其他音乐源
-                    String url2 = music163Api + "/song/detail?timestamp=" + System.currentTimeMillis();
-                    Map<String, Object> paramsMap2 = new HashMap<>();
-                    paramsMap2.put("ids", id);
-                    Proxy proxy = super.getProxy();
-                    HttpResponse response = HttpUtil.createPost(url2).form(paramsMap2).setProxy(proxy).executeAsync();
-                    String searchText = response.body();
+
+                new Thread(() -> {
+                    SongUrlRootBean songUrlRootBeanV2 = downloadService.downLoadMusic(songUrlRootBean);
+                    cacheService.set(key, JSONObject.toJSONString(songUrlRootBeanV2), 4, TimeUnit.HOURS);
+                }).start();
+                if (songUrlRootBean.getData() != null
+                        && songUrlRootBean.getData().size() > 0
+                        && songUrlRootBean.getData().get(0).getFee() == 1) {
+                    //vip歌曲
+                    try {
+                        return WrapMapper.ok(this.getWyyHttp(params));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
-
-
+                return WrapMapper.ok(JSONObject.parseObject(resultText));
             } else {
                 SongUrlRootBean songUrlRootBean = new SongUrlRootBean(music);
                 cacheService.set(key, JSONObject.toJSONString(songUrlRootBean), 4, TimeUnit.HOURS);
@@ -148,7 +144,10 @@ public class WyySongUrlApi extends WyyApiAbstract {
     @Test
     public void test() {
         WyyApiDto params = new WyyApiDto();
+        params.setMethod("get");
         params.setUrl("/song/url?id=29850683");
+        Wrapper wyyWrap = wyyApiProxyTest(params, false);
+        log.debug(wyyWrap.toString());
         Wrapper wrapper = this.runTest(params);
         log.info("测试结果:" + wrapper);
     }

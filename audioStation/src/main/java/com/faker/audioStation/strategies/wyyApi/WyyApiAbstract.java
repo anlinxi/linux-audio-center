@@ -1,6 +1,7 @@
 package com.faker.audioStation.strategies.wyyApi;
 
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
@@ -19,6 +20,8 @@ import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -72,6 +75,7 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
     @ApiModelProperty("网易云音乐api")
     protected NeteaseCloudMusicInfo neteaseCloudMusicInfo = new NeteaseCloudMusicInfo();
 
+    @Autowired
     @ApiModelProperty("java的网易云音乐直连api")
     protected WyyHttpUtil wyyHttpUtil;
 
@@ -175,4 +179,61 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
             return WrapMapper.error(e.getMessage());
         }
     }
+
+    /**
+     * 网易云api测试方法
+     *
+     * @param params 参数
+     * @return
+     */
+    public Wrapper wyyApiTest(WyyApiDto params) {
+        return wyyApiProxyTest(params, true);
+    }
+
+    /**
+     * 网易云api测试方法
+     *
+     * @param params    参数
+     * @param needProxy 是否需要代理
+     * @return
+     */
+    public Wrapper wyyApiProxyTest(WyyApiDto params, boolean needProxy) {
+        try {
+            String music163Api = "http://127.0.0.1:3000";
+            String url2 = music163Api + params.getUrl();
+            if (needProxy) {
+                url2 = music163Api + params.getUrl() + "?proxy=http://192.168.123.223:33335";
+                if (params.getUrl().contains("?")) {
+                    url2 = music163Api + params.getUrl() + "&proxy=http://192.168.123.223:33335";
+                }
+            }
+
+            Proxy proxy = null;
+            HttpResponse response = HttpUtil.createPost(url2).form(params.getData()).setProxy(proxy).executeAsync();
+            String searchText = response.body();
+            return WrapMapper.ok(searchText);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return WrapMapper.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 自动选择请求路线
+     * 优先java网易云api
+     *
+     * @param params
+     * @return
+     */
+    public JSONObject getHttp(WyyApiDto params) {
+        JSONObject resultJson = null;
+        try {
+            resultJson = this.getWyyHttp(params);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultJson = this.callWyyAPi(params);
+        }
+        return resultJson;
+    }
+
 }

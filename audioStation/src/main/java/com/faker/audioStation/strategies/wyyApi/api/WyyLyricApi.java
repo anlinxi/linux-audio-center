@@ -82,7 +82,7 @@ public class WyyLyricApi extends WyyApiAbstract {
                 WrapMapper.ok(result);
             }
         }
-        JSONObject resultJson = super.callWyyAPi(params);
+        JSONObject resultJson = super.getHttp(params);
         cacheService.set(key, resultJson.toJSONString(), 8, TimeUnit.HOURS);
         return WrapMapper.ok(resultJson);
     }
@@ -94,7 +94,7 @@ public class WyyLyricApi extends WyyApiAbstract {
      * @return
      */
     @Override
-    public JSONObject getWyyHttp(WyyApiDto params) throws Exception{
+    public JSONObject getWyyHttp(WyyApiDto params) throws Exception {
         Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
         String id = urlQuery.get("id");
         JSONObject form = new JSONObject();
@@ -103,7 +103,7 @@ public class WyyLyricApi extends WyyApiAbstract {
         form.put("lv", -1);
         form.put("rv", id);
         form.put("kv", id);
-        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, "http://music.163.com/api/song/lyric?_nmclfl=1", form);
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.API, Method.POST, "http://music.163.com/api/song/lyric?_nmclfl=1", form);
         log.debug(result);
         return JSONObject.parseObject(result);
     }
@@ -116,7 +116,10 @@ public class WyyLyricApi extends WyyApiAbstract {
     @Test
     public void test() {
         WyyApiDto params = new WyyApiDto();
-        params.setUrl("/lyric?id=29850683");
+        params.setMethod("get");
+        params.setUrl("/lyric?id=1950343972");
+//        Wrapper wyyWrap = wyyApiTest(params);
+//        log.debug(wyyWrap.toString());
         Wrapper wrapper = this.runTest(params);
         log.info("测试结果:" + wrapper);
     }

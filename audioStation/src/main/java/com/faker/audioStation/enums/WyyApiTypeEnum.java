@@ -1,7 +1,10 @@
 package com.faker.audioStation.enums;
 
 public enum WyyApiTypeEnum {
-
+    /**
+     * 不加密的api
+     */
+    API("api"),
     /**
      * web的api
      */

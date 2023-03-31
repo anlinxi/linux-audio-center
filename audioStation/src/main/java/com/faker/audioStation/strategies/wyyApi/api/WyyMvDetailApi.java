@@ -87,13 +87,11 @@ public class WyyMvDetailApi extends WyyApiAbstract {
                 if (null == lock) {
                     try {
                         cacheService.set(key, true, 1, TimeUnit.MINUTES);
-                        JSONObject json = super.callWyyAPi(params);
+                        JSONObject json = super.getHttp(params);
                         Mv mvInsert = new Mv();
                         if (200 == json.getInteger("code")) {
                             mvInsert.setWyyId(json.getJSONObject("data").getLong("id"));
                             mvInsert.setUrl(json.getJSONObject("data").getString("url"));
-
-
                             mvInsert.setResolution(resolution);
 
                             //异步下载

@@ -110,7 +110,7 @@ public class MobileUserAppController extends BaseController {
             BeanUtils.copyProperties(user1, user2);
             user2.setPassword("");
             result.put("user", user2);
-            cacheService.set("mobileLogin:" + user1.getUserCode(), user1, 36, TimeUnit.HOURS);
+            cacheService.set("mobileLogin:" + user1.getUserCode(), user1, 36, TimeUnit.DAYS);
         } else {
             String num = cacheService.get(loginTimesKey);
             int times = 1;

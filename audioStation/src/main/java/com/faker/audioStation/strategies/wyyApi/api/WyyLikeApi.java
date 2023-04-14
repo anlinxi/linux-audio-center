@@ -17,6 +17,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 /**
  * 添加收藏
  */
@@ -83,6 +85,7 @@ public class WyyLikeApi extends WyyApiAbstract {
             Like userLike = new Like();
             userLike.setUserId(userId);
             userLike.setWyyId(Long.parseLong(id));
+            userLike.setCreateTime(new Date());
             QueryWrapper<Music> queryWrapMusic = new QueryWrapper<>();
             queryWrapMusic.eq("WYY_ID", userLike.getWyyId());
             Music music = musicMapper.selectOne(queryWrapMusic);

@@ -76,34 +76,14 @@ public class WyySimiSongApi extends WyyApiAbstract {
      */
     @Override
     public JSONObject getWyyHttp(WyyApiDto params) throws Exception {
-        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
-        String id = urlQuery.get("id");
+        String id = ToolsUtil.getString(params.getData().get("id"));
         JSONObject form = new JSONObject();
         form.put("songid", id);
-        this.setFormInteger("limit", 50, form, urlQuery);
-        this.setFormInteger("offset", 0, form, urlQuery);
+        this.setFormInteger("limit", 50, form, params.getData());
+        this.setFormInteger("offset", 0, form, params.getData());
         String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, PROTOCOL + "music.163.com/weapi/v1/discovery/simiSong", form);
         log.debug(result);
         return JSONObject.parseObject(result);
-    }
-
-    /**
-     * 设置表单数值
-     *
-     * @param attr         属性名称
-     * @param defaultValue 默认值
-     * @param form         表单
-     * @param urlQuery     查询参数
-     */
-    public void setFormInteger(String attr, Integer defaultValue, JSONObject form, Map<String, String> urlQuery) {
-        form.put(attr, defaultValue);
-        if (ToolsUtil.isNotNull(urlQuery.get(attr))) {
-            try {
-                form.put(attr, Integer.parseInt(urlQuery.get(attr)));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     /**

@@ -75,9 +75,8 @@ public class WyySongUrlApi extends WyyApiAbstract {
     @Override
     public Wrapper<JSONObject> doSomeThing(WyyApiDto params) {
         String key = SecureUtil.md5(JSONObject.toJSONString(params));
-        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
-        if (null != urlQuery.get("id")) {
-            String id = urlQuery.get("id");
+        if (null != params.getData().get("id")) {
+            String id =ToolsUtil.getString(params.getData().get("id"));
             QueryWrapper<Music> queryWrapper = new QueryWrapper();
             queryWrapper.eq("WYY_ID", id);
             Music music = musicMapper.selectOne(queryWrapper);
@@ -126,8 +125,7 @@ public class WyySongUrlApi extends WyyApiAbstract {
      */
     @Override
     public JSONObject getWyyHttp(WyyApiDto params) throws Exception {
-        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
-        String id = urlQuery.get("id");
+        String id =ToolsUtil.getString(params.getData().get("id"));
         JSONObject form = new JSONObject();
         JSONArray ids = new JSONArray();
 

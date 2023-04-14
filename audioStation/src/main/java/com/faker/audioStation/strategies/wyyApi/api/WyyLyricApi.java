@@ -95,8 +95,7 @@ public class WyyLyricApi extends WyyApiAbstract {
      */
     @Override
     public JSONObject getWyyHttp(WyyApiDto params) throws Exception {
-        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
-        String id = urlQuery.get("id");
+        String id = ToolsUtil.getString(params.getData().get("id"));
         JSONObject form = new JSONObject();
         form.put("id", id);
         form.put("tv", -1);

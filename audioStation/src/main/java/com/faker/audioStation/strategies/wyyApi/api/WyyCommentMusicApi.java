@@ -73,13 +73,12 @@ public class WyyCommentMusicApi extends WyyApiAbstract {
      */
     @Override
     public JSONObject getWyyHttp(WyyApiDto params) throws Exception {
-        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
-        String id = urlQuery.get("id");
+        String id = ToolsUtil.getString(params.getData().get("id"));
         JSONObject form = new JSONObject();
         form.put("rid", id);
-        this.setFormInteger("limit", 20, form, urlQuery);
-        this.setFormInteger("offset", 0, form, urlQuery);
-        this.setFormInteger("beforeTime", 0, form, urlQuery.get("before"));
+        this.setFormInteger("limit", 20, form, params.getData());
+        this.setFormInteger("offset", 0, form, params.getData());
+        this.setFormInteger("beforeTime", 0, form, ToolsUtil.getString(params.getData().get("before")));
         String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, PROTOCOL + "music.163.com/api/v1/resource/comments/R_SO_4_" + id, form);
         log.debug(result);
         return JSONObject.parseObject(result);

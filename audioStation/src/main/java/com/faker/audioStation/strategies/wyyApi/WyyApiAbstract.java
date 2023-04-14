@@ -100,6 +100,12 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
             }
         }
         try {
+            //get请求参数和post参数合并，优先post参数
+            Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
+            Map<String, Object> allParams = new HashMap<String, Object>();
+            allParams.putAll(urlQuery);
+            allParams.putAll(params.getData());
+            params.setData(allParams);
             Wrapper<JSONObject> wrapper = this.doSomeThing(params);
             log.info("策略执行结果:" + wrapper);
             if (wrapper.success() && null != wrapper.getResult()) {
@@ -248,8 +254,8 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
      * @param form         表单
      * @param urlQuery     查询参数
      */
-    public void setFormInteger(String attr, Integer defaultValue, JSONObject form, Map<String, String> urlQuery) {
-        this.setFormInteger(attr, defaultValue, form, urlQuery.get(attr));
+    public void setFormInteger(String attr, Integer defaultValue, JSONObject form, Map<String, Object> urlQuery) {
+        this.setFormInteger(attr, defaultValue, form, ToolsUtil.getString(urlQuery.get(attr)));
     }
 
 

@@ -33,12 +33,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import top.yumbo.util.music.musicImpl.netease.NeteaseCloudMusicInfo;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -94,7 +93,7 @@ public class MusicController {
     @PostMapping(value = "getWyyApi")
     @ResponseBody
     @LogAndPermissions
-    public JSONObject getWyyApi(@RequestBody WyyApiDto params) {
+    public JSONObject getWyyApi(@RequestBody WyyApiDto params, HttpServletRequest request) {
         String key = "getWyyApi:" + SecureUtil.md5(JSONObject.toJSONString(params));
         String value = cacheService.get(key);
         if (null != value) {
@@ -104,6 +103,7 @@ public class MusicController {
                 e.printStackTrace();
             }
         }
+        params.setUserId(request.getHeader("__userId"));
         //如果有自定义策略 优先执行策略内容
         JSONObject jsonObject = wyyApiStrategyContext.doWyyApiStrategies(params);
         if (null != jsonObject) {

@@ -30,8 +30,11 @@ public class WyyApiDto {
     @ApiModelProperty(value = "接口方法", example = "GET")
     private String method;
 
-    @ApiModelProperty(value = "相对地址",example = "/personalized/newsong")
+    @ApiModelProperty(value = "相对地址", example = "/personalized/newsong")
     private String url;
+
+    @ApiModelProperty(value = "用户id", notes = "根据请求头自动set")
+    private String userId;
 
     @ApiModelProperty(value = "参数")
     private Map<String, Object> data;

@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -37,5 +38,5 @@ public class WyyApiDto {
     private String userId;
 
     @ApiModelProperty(value = "参数")
-    private Map<String, Object> data;
+    private Map<String, Object> data = new HashMap<>();
 }

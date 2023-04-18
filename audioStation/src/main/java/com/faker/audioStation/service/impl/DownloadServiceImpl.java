@@ -308,6 +308,7 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
         WyyApiDto params = new WyyApiDto();
         params.setMethod("get");
         params.setUrl("/song/url?id=" + id);
+        params.getData().put("id", id);
         return wyySongUrlApi.getWyyHttp(params);
     }
 
@@ -469,6 +470,7 @@ public class DownloadServiceImpl extends ServiceImpl<MusicMapper, Music> impleme
         WyyApiDto params = new WyyApiDto();
         params.setMethod("get");
         params.setUrl("/song/url?id=" + wyyId);
+        params.getData().put("id", wyyId);
         //使用网易云api查询
         JSONObject jsonObject = wyySongUrlApi.getWyyApi(params);
         SongUrlRootBean songUrlRootBean = null;

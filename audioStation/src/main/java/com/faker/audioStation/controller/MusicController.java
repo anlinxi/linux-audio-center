@@ -175,6 +175,7 @@ public class MusicController {
         WyyApiDto wyyApiDto = new WyyApiDto();
         wyyApiDto.setMethod("get");
         wyyApiDto.setUrl("/song/detail?id=" + params.getId());
+        wyyApiDto.getData().put("id", params.getId());
         WyyApiStrategies wyySongDetailApi = wyyApiStrategyContext.getWyyApiStrategies(wyyApiDto.getUrl(), wyyApiDto.getMethod());
         if (wyySongDetailApi != null) {
             JSONObject jsonObject = wyySongDetailApi.getHttp(wyyApiDto);

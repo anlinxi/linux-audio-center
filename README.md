@@ -47,7 +47,16 @@
 
 ###### app解释及源码地址
 
-基于Uni Music(homic音乐播放器) 二次开发的[群晖音乐播放器](https://gitee.com/anlinxi/linux-player-uniapp.git)，支持多端发布。可以在手机上连接音乐中心播放音乐。
+基于Uni Music(homic音乐播放器) 二次开发的[群晖音乐播放器](https://gitee.com/anlinxi/linux-player-uniapp.git) ，支持多端发布。可以在手机上连接音乐中心播放音乐。
+
+#### docker部署
+直接拉取[镜像](https://hub.docker.com/r/anlinxi/linux-audio-center) 就行
+```shell
+docker pull anlinxi/linux-audio-center
+```
+扫描的音乐文件地址是/music/，docker映射到群辉的音乐文件夹下
+
+application.yml是整体配置文件，也可以映射出来自定义修改配置
 
 ## 开源社区支持
 

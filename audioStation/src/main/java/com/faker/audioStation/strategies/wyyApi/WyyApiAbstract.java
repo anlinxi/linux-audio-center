@@ -218,6 +218,7 @@ public abstract class WyyApiAbstract implements WyyApiStrategies {
             }
 
             Proxy proxy = null;
+            proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("192.168.123.223", 33335));
             HttpResponse response = HttpUtil.createPost(url2).form(params.getData()).setProxy(proxy).executeAsync();
             String searchText = response.body();
             return WrapMapper.ok(searchText);

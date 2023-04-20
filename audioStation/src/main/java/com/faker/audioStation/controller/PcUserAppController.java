@@ -1,5 +1,7 @@
 package com.faker.audioStation.controller;
 
+import cn.hutool.crypto.SecureUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.faker.audioStation.model.domain.JsMobileUser;
 import com.faker.audioStation.model.dto.LoginDto;
@@ -10,11 +12,12 @@ import com.faker.audioStation.util.RandomValidateCodeUtil;
 import com.faker.audioStation.wrapper.AesWrapMapper;
 import com.faker.audioStation.wrapper.Wrapper;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
-import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,6 +45,10 @@ public class PcUserAppController extends MobileUserAppController {
     @Autowired
     private IJsMobileUserService iJsMobileUserService;
 
+    @ApiModelProperty("是否启用来宾账户")
+    @Value("${faker.guest:false}")
+    private String guest;
+
 
     @Autowired
     private CacheService cacheService;
@@ -55,6 +62,19 @@ public class PcUserAppController extends MobileUserAppController {
         String username = params.getUsername();
         String password = params.getPassword();
         String randomcode = params.getVercode();
+        if("true".equals(guest) && "guest".equals(username)){
+            String uuid = SecureUtil.md5(username);;
+            JsMobileUser user2 = new JsMobileUser();
+            user2.setUserCode(username);
+            user2.setLoginCode(username);
+            user2.setUserCode(username);
+            user2.setMgrType("0");
+            user2.setPassword("");
+            user2.setToken(uuid);
+            cacheService.set("mobileLogin:" + user2.getUserCode(), user2, 36, TimeUnit.DAYS);
+            cacheService.delete(RandomValidateCodeUtil.RANDOMCODEKEY + ":" + username);
+            return AesWrapMapper.ok(user2);
+        }
         if (StringUtils.isEmpty(password)) {
             return AesWrapMapper.error("密码不能为空!");
         }

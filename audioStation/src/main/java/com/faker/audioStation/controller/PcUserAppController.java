@@ -71,6 +71,8 @@ public class PcUserAppController extends MobileUserAppController {
             user2.setMgrType("0");
             user2.setPassword("");
             user2.setToken(uuid);
+            String redisKey = "userInfo:" + username;
+            cacheService.set(redisKey, uuid, 60, TimeUnit.HOURS);
             cacheService.set("mobileLogin:" + user2.getUserCode(), user2, 36, TimeUnit.DAYS);
             cacheService.delete(RandomValidateCodeUtil.RANDOMCODEKEY + ":" + username);
             return AesWrapMapper.ok(user2);

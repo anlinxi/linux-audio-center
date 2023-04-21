@@ -156,7 +156,14 @@ public class WyyMvDetailApi extends WyyApiAbstract {
         String id = ToolsUtil.getString(params.getData().get("id"));
         JSONObject form = new JSONObject();
         form.put("id", id);
-        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, PROTOCOL + "music.163.com/api/v1/mv/detail", form);
+        if (null != params.getData().get("r")) {
+            form.put("r", params.getData().get("r"));
+        } else {
+            form.put("r", 1080);
+        }
+
+        form.put("csrf_token", "");
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, PROTOCOL + "music.163.com/weapi/song/enhance/play/mv/url", form);
         log.debug(result);
         return JSONObject.parseObject(result);
     }
@@ -172,9 +179,11 @@ public class WyyMvDetailApi extends WyyApiAbstract {
         params.setUrl(url);
         params.setMethod(method.name());
         params.getData().put("id", "14620291");
-        super.music163Api = "http://192.168.123.223:3000";
+        params.getData().put("r", 1080);
         Wrapper wrapper = this.runTest(params);
         log.info("测试结果:" + wrapper);
+
+//        super.music163Api = "http://127.0.0.1:3000";
 //        JSONObject jsonObject = this.callWyyAPi(params);
 //        log.info("测试结果:" + jsonObject);
     }

@@ -63,11 +63,10 @@ public class WyyMvDetailApi extends WyyApiAbstract {
      */
     @Override
     public Wrapper<JSONObject> doSomeThing(WyyApiDto params) {
-        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
-        if (null != urlQuery.get("id")) {
-            String id = urlQuery.get("id");
+        if (null != params.getData().get("id")) {
+            String id = ToolsUtil.getString(params.getData().get("id"));
             //分辨率 清晰度
-            String resolution = urlQuery.get("r");
+            String resolution = ToolsUtil.getString(params.getData().get("r"));
             Mv mv = mvMapper.selectById(id);
             if (null != mv) {
                 File mvFile = new File(mv.getPath());

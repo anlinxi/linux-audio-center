@@ -86,6 +86,7 @@ public class WyyMvDetailApi extends WyyApiAbstract {
                 if (null == lock) {
                     try {
                         cacheService.set(key, true, 1, TimeUnit.MINUTES);
+                        params.setUrl(url);
                         JSONObject json = super.getHttp(params);
                         Mv mvInsert = new Mv();
                         if (200 == json.getInteger("code")) {
@@ -168,8 +169,13 @@ public class WyyMvDetailApi extends WyyApiAbstract {
     @Test
     public void test() {
         WyyApiDto params = new WyyApiDto();
-        params.setUrl("/song/url?id=5327513");
+        params.setUrl(url);
+        params.setMethod(method.name());
+        params.getData().put("id", "14620291");
+        super.music163Api = "http://192.168.123.223:3000";
         Wrapper wrapper = this.runTest(params);
         log.info("测试结果:" + wrapper);
+//        JSONObject jsonObject = this.callWyyAPi(params);
+//        log.info("测试结果:" + jsonObject);
     }
 }

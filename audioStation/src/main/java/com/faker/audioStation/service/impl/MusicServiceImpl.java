@@ -281,6 +281,8 @@ public class MusicServiceImpl extends ServiceImpl<MusicMapper, Music> implements
             WyyApiDto params = new WyyApiDto();
             params.setUrl("/mv/url?id=" + id + "&r=1080");
             params.setMethod("get");
+            params.getData().put("id", id);
+            params.getData().put("r", 1080);
             WyyApiStrategies wyyApiStrategies = wyyApiStrategyContext.getWyyApiStrategies(params.getUrl(), params.getMethod());
             Wrapper<JSONObject> jsonObjectWrapper = wyyApiStrategies.doSomeThing(params);
             if (jsonObjectWrapper.success()) {

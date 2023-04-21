@@ -4,6 +4,10 @@
 
 项目很多资源都是依赖了开源社区提供的方案，通过这个项目整合到了一起。同时项目代码完全开源，无需担心隐私和信息泄露情况。
 
+## 体验地址
+
+[地址1](http://www.anlinxi.top:9306/web/?guest=true) 
+
 ## 项目框架
 
 项目使用了springboot+mybatis plus+sqlite作为后端，文档使用swagger和knife4j。

@@ -63,11 +63,10 @@ public class WyyMvDetailApi extends WyyApiAbstract {
      */
     @Override
     public Wrapper<JSONObject> doSomeThing(WyyApiDto params) {
-        Map<String, String> urlQuery = ToolsUtil.parseUrlQuery(params.getUrl());
-        if (null != urlQuery.get("id")) {
-            String id = urlQuery.get("id");
+        if (null != params.getData().get("id")) {
+            String id = ToolsUtil.getString(params.getData().get("id"));
             //分辨率 清晰度
-            String resolution = urlQuery.get("r");
+            String resolution = ToolsUtil.getString(params.getData().get("r"));
             Mv mv = mvMapper.selectById(id);
             if (null != mv) {
                 File mvFile = new File(mv.getPath());
@@ -87,6 +86,7 @@ public class WyyMvDetailApi extends WyyApiAbstract {
                 if (null == lock) {
                     try {
                         cacheService.set(key, true, 1, TimeUnit.MINUTES);
+                        params.setUrl(url);
                         JSONObject json = super.getHttp(params);
                         Mv mvInsert = new Mv();
                         if (200 == json.getInteger("code")) {
@@ -156,7 +156,14 @@ public class WyyMvDetailApi extends WyyApiAbstract {
         String id = ToolsUtil.getString(params.getData().get("id"));
         JSONObject form = new JSONObject();
         form.put("id", id);
-        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, PROTOCOL + "music.163.com/api/v1/mv/detail", form);
+        if (null != params.getData().get("r")) {
+            form.put("r", params.getData().get("r"));
+        } else {
+            form.put("r", 1080);
+        }
+
+        form.put("csrf_token", "");
+        String result = wyyHttpUtil.httpContent(WyyApiTypeEnum.WE_API, Method.POST, PROTOCOL + "music.163.com/weapi/song/enhance/play/mv/url", form);
         log.debug(result);
         return JSONObject.parseObject(result);
     }
@@ -169,8 +176,15 @@ public class WyyMvDetailApi extends WyyApiAbstract {
     @Test
     public void test() {
         WyyApiDto params = new WyyApiDto();
-        params.setUrl("/song/url?id=5327513");
+        params.setUrl(url);
+        params.setMethod(method.name());
+        params.getData().put("id", "14620291");
+        params.getData().put("r", 1080);
         Wrapper wrapper = this.runTest(params);
         log.info("测试结果:" + wrapper);
+
+//        super.music163Api = "http://127.0.0.1:3000";
+//        JSONObject jsonObject = this.callWyyAPi(params);
+//        log.info("测试结果:" + jsonObject);
     }
 }

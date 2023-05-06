@@ -202,14 +202,21 @@ public class MusicController {
         queryWrapper.eq("ID", id).or().eq("WYY_ID", id);
         Music music = musicService.getOne(queryWrapper);
         if (null == music) {
-            SongUrlRootBean songUrlRootBean = downloadService.getWyySongUrl(id);
-            log.info(songUrlRootBean.toString());
-
-            songUrlRootBean = downloadService.downLoadMusic(songUrlRootBean);
-            QueryWrapper<Music> queryWrapper2 = new QueryWrapper<>();
-            queryWrapper2.eq("WYY_ID", id);
-            music = musicService.getOne(queryWrapper2);
+            if(ToolsUtil.isNotNull(id)){
+                SongUrlRootBean songUrlRootBean = downloadService.getWyySongUrl(id);
+                log.info(songUrlRootBean.toString());
+                songUrlRootBean = downloadService.downLoadMusic(songUrlRootBean);
+                QueryWrapper<Music> queryWrapper2 = new QueryWrapper<>();
+                queryWrapper2.eq("ID", id).or().eq("WYY_ID", id);
+                music = musicService.getOne(queryWrapper2);
+            }
             if (null == music) {
+                if(ToolsUtil.isNotNull(id)){
+                    new Thread(() -> {
+                        downloadService.downLoadMusic(downloadService.getWyySongUrl(id));
+                    }).start();
+                }
+
                 ToolsUtil.setStateInfo(response, 404, "根据[" + id + "]未找到音乐信息");
                 return;
             }

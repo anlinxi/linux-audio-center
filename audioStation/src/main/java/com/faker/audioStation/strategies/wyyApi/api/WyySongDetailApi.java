@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -76,6 +75,9 @@ public class WyySongDetailApi extends WyyApiAbstract {
     @Override
     public JSONObject getWyyHttp(WyyApiDto params) throws Exception {
         String id = ToolsUtil.getString(params.getData().get("id"));
+        if (ToolsUtil.isNullOrEmpty(id)) {
+            id = ToolsUtil.getString(params.getData().get("ids"));
+        }
         JSONObject form = new JSONObject();
         JSONArray ids = new JSONArray();
         Arrays.asList(id.split(",")).forEach(id2 -> {

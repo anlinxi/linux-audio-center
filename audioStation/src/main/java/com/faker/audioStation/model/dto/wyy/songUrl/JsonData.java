@@ -28,24 +28,24 @@ import java.io.Serializable;
 public class JsonData implements Serializable {
 
     @ApiModelProperty(value = "id")
-    private long id;
+    private Long id;
 
     @ApiModelProperty(value = "url地址")
     private String url;
 
-    private long br;
+    private Long br;
 
     @ApiModelProperty(value = "大小")
-    private long size;
+    private Integer size;
 
     @ApiModelProperty(value = "md5编码")
     private String md5;
 
     @ApiModelProperty(value = "编码", example = "200")
-    private int code;
+    private Integer code;
 
     @ApiModelProperty(value = "经验", example = "1200")
-    private int expi;
+    private Integer expi;
 
     @ApiModelProperty(value = "歌曲类型", example = "mp3")
     private String type;
@@ -53,12 +53,12 @@ public class JsonData implements Serializable {
     @ApiModelProperty(value = "", example = "-8.111")
     private double gain;
 
-    private int peak;
+    private Integer peak;
     @ApiModelProperty(value = "是否是vip", example = "1", notes = "1为vip")
-    private int fee;
+    private Integer fee;
     private String uf;
-    private int payed;
-    private int flag;
+    private Integer payed;
+    private Integer flag;
 
     @ApiModelProperty(value = "", example = "-8.111")
     private boolean canExtend;
@@ -69,11 +69,11 @@ public class JsonData implements Serializable {
     private String encodeType;
     private FreeTrialPrivilege freeTrialPrivilege;
     private FreeTimeTrialPrivilege freeTimeTrialPrivilege;
-    private int urlSource;
-    private int rightSource;
+    private Integer urlSource;
+    private Integer rightSource;
     private String podcastCtrp;
     private String effectTypes;
 
     @ApiModelProperty(value = "歌曲长度", example = "312997", notes = "毫秒")
-    private long time;
+    private Integer time;
 }

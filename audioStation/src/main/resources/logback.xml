@@ -2,9 +2,21 @@
 <!DOCTYPE configuration>
 <configuration>
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <!--指定logstash ip：监听端口，这个端口就是tcp中的port属性-->
-        <destination>192.168.123.223:9603</destination>
-        <encoder charset="UTF-8" class="net.logstash.logback.encoder.LogstashEncoder" />
+        <!-- logstash tcp 服务器地址，这个端口就是tcp中的port属性，可以配置多个地址 -->
+<!--        <destination>192.168.123.223:9603</destination>-->
+        <destination>192.168.123.223:5045</destination>
+        <!-- 保持连接 -->
+        <keepAliveDuration>5 minutes</keepAliveDuration>
+        <!-- 连接超时等待时间 -->
+        <connectionTimeout>5 seconds</connectionTimeout>
+        <!-- 重连延迟，默认 30s -->
+        <reconnectionDelay>30 second</reconnectionDelay>
+        <!-- 等待策略，需要测试和监控CPU找到最佳配置 -->
+        <!-- 文档: https://github.com/logfellow/logstash-logback-encoder#wait-strategy -->
+        <waitStrategyType>sleeping</waitStrategyType>
+        <encoder  charset="UTF-8" class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"host":"${HOSTNAME}", "appname":"cloud-user"}</customFields>
+        </encoder>
     </appender>
 
     <!--引用springboot默认配置-->

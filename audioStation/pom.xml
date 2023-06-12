@@ -188,6 +188,12 @@
             <artifactId>smiley-http-proxy-servlet</artifactId>
             <version>1.12.1</version>
         </dependency>
+        <!-- logstash -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.3</version>
+        </dependency>
 
     </dependencies>
 

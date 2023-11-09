@@ -71,7 +71,7 @@ public class MobileAuthFilter implements Filter {
 
         //例外
         String url = httpServletRequest.getRequestURL().toString();
-        log.info("[" + this.getClass().getName() + "]执行过滤方法>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n" + url);
+        log.debug("[" + this.getClass().getName() + "]执行过滤方法>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n" + url);
         if (url.contains("/message-center/ws/") || url.endsWith("mobile/app_version_control/appVersion/update") || url.endsWith("mobile/app_version_control/appVersion/findLastVersionList")) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
@@ -116,7 +116,7 @@ public class MobileAuthFilter implements Filter {
         }
         if (null != token) {
             if (token.equals(__token)) {
-                log.warn("用户[" + __userId + "]app验证sid[" + __token + "]通过!");
+                log.debug("用户[" + __userId + "]app验证sid[" + __token + "]通过!");
             } else {
                 String errorMsg = "[" + __userId + "]验证token未通过!token[" + token + "],sid[" + __token + "]";
                 log.error(errorMsg);
